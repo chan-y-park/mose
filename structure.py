@@ -2,23 +2,26 @@ import cmath
 
 
 class Trajectory:
-	"""The trajectory class.
+	"""
+    The trajectory class.
 
-	Attributes: coordinates, periods, degeneracy, phase, charge, parents,\
+	Attributes: coordinates, periods, degeneracy, phase, charge, parents, \
 	boundary_condition, count (shared).
 	Methods: evolve, terminate (?).
-	Arguments of the instance: (initial_charge,degeneracy,phase,parents,boundary_condition)
+	Arguments of the instance: (initial_charge, degeneracy, phase, parents, \
+    boundary_condition)
 	"""
 
 	count = 0
 
-	def __init__(self, initial_charge, degeneracy, phase, parents, boundary_condition):
+	def __init__(self, initial_charge, degeneracy, phase, parents, 
+                 boundary_condition):
 		self.degeneracy = degeneracy
 		self.phase = phase
 		self.parents = parents
 		self.boundary_condition = boundary_condition
 		self.initial_charge = initial_charge 		# the initial charge
-		Trajectory.count += 1
+		Trajectory.count += 1 
 		# Make trajectory evolve automatically at this point?
 		self.evolve()
 
@@ -28,11 +31,12 @@ class Trajectory:
 
 	def evolve(self):
 		print "Evolving trajectory"
-		self.coordinates = (0+0j,1+1j,2+2j)		# points of the trajectory, must write algorithm to evolve
-		self.periods = (0,2,4)					# periods of the holomorphic one-form
+		self.coordinates = (0+0j, 1+1j, 2+2j)		# points of the trajectory, 
+        # must write algorithm to evolve
+		self.periods = (0, 2, 4)		# periods of the holomorphic one-form
 		self.check_cuts()
 
-	def charge(self,  point):
+	def charge(self, point):
 		return self.initial_charge
 		# to be updated by taking into account branch-cuts, 
 		# will use data in self.splittings
@@ -62,7 +66,7 @@ class BranchPoint:
 	def __init__(self, locus, charge):
 		self.charge = charge
 		self.locus = locus
-		BranchPoint.count += 1
+		BranchPoint.count += 1 
 
 	def __str__(self):
 		return 'Branch point info: charge %s, locus %s ' % \
@@ -79,11 +83,13 @@ class BranchCut:
 	"""
 
 	count = 0
-	cutoff = 10 		# how far way from the singularity the locus of the branch cut extends
+	cutoff = 10 		# how far way from the singularity the locus of the 
+                        # branch cut extends
 
-	def __init__(self,BP,phase):
-		self.charge = BP.charge
-		self.locus = (BP.locus, BP.locus + BranchCut.cutoff * phase)
+	def __init__(self, branch_point, phase):
+		self.charge = branch_point.charge
+		self.locus = (branch_point.locus, 
+                      branch_point.locus + BranchCut.cutoff * phase)
 		BranchCut.count += 1
 
 	def __str__(self):
@@ -119,7 +125,7 @@ def prepare_branch_locus(phase):
 	global BC1
 	print "Determining branch points"
 	print "Constructing branch cuts"
-	BP1 = BranchPoint(0+0j,(1,0))
+	BP1 = BranchPoint(0+0j, (1,0))
 	BC1 = BranchCut(BP1, phase)
 
 
@@ -134,11 +140,11 @@ def build_first_generation():
 	kwalls = []
 	intersections = []
 	# here insert creation algorithm for the primary k-walls
-	t1 = Trajectory((1,0),1,0,(23,7),"bc1")
-	t2 = Trajectory((-1,2),1,0,(23,7),"bc1")
+	t1 = Trajectory((1, 0), 1, 0, (23, 7), "bc1")
+	t2 = Trajectory((-1, 2), 1, 0, (23, 7), "bc1")
 	#
-	kwalls = [t1,t2]
-	new_kwalls = [t1,t2]
+	kwalls = [t1, t2]
+	new_kwalls = [t1, t2]
 	print "\nConstructed primary Kwalls, there are %d of them" % len(new_kwalls)
 
 
@@ -147,8 +153,9 @@ def build_first_generation():
 
 def new_intersections():
 	"""Find new wall-wall intersections"""
-	# here insert algorithm that computes all intersections of NEW kwalls with ALL kwalls
-	int1 = IntersectionPoint(0+0j,[new_kwalls[0],new_kwalls[1]])
+	# here insert algorithm that computes all intersections of NEW kwalls with 
+    # ALL kwalls
+	int1 = IntersectionPoint(0+0j, [new_kwalls[0], new_kwalls[1]])
 	new_ints = [int1]
 	print "Evaluating intersections of NEW Kwalls with ALL Kwalls: found %d of them" % len(new_ints)
 	return new_ints
@@ -176,7 +183,7 @@ def build_new_walls(intersections):
 	global t3
 	print "Constructing new walls"
 	# here insert algorithm that computes the new walls
-	t3 = Trajectory((0,2),1,0,(12,35),"bc3")
+	t3 = Trajectory((0,2), 1, 0, (12,35), "bc3")
 	new_walls = [t3]
 	#
 	return new_walls
@@ -185,10 +192,11 @@ def build_new_walls(intersections):
 
 
 def build_genealogy_tree(parents):
-	return "this function will return the genealogy tree of an intersection in the form of a list \
-	such as [[BP1,BP2],BP3] for an intersection with the obvious history\
-	"
-	# Genealogy is crucial for identifying which points should belong to the same MS wall.
+	return "this function will return the genealogy tree of an intersection \
+    in the form of a list such as [[BP1,BP2],BP3] for an intersection with the\
+    obvious history"
+	# Genealogy is crucial for identifying which points should belong to the 
+    # same MS wall.
 	# It will not be necessary to develop this until everything else is in place.
 
 
