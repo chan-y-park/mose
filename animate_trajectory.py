@@ -12,8 +12,11 @@ class Locus(object):
 
     def __init__(self, name, boundary_conditions):
         self.name=name
-        self.coordinates = [boundary_conditions[0]]
-        self.velocity = boundary_conditions[1]
+        self.xcoordinates = [boundary_conditions[0][0]]
+        self.ycoordinates = [boundary_conditions[0][1]]
+        self.xvelocity = boundary_conditions[1][0]
+        self.yvelocity = boundary_conditions[1][1]
+        
 
     def __str__(self):
         return 'Trajectory name : '+self.name 
@@ -39,8 +42,10 @@ class Trajectory(Locus):
         #self.phase = phase
         self.name = name
         self.parents = parents
-        self.coordinates = [parents[0].get_last_coordinate()]
-        self.velocity = boundary_conditions[1]
+        self.xcoordinates = [boundary_conditions[0][0]]
+        self.ycoordinates = [boundary_conditions[0][1]]
+        self.xvelocity = boundary_conditions[1][0]
+        self.yvelocity = boundary_conditions[1][1]
         #self.initial_charge = initial_charge
         #Trajectory.count += 1
         # Make trajectory evolve automatically at this point?
@@ -51,15 +56,13 @@ class Trajectory(Locus):
 
     def evolve(self):
         def force(z):
-            Fx=(-4*(z.real**3)+68*(z.real))
-            Fy=(-4*(z.imag**3)+68*(z.imag))
-            return Fx+1j*Fy
+            return (-4*(z**3)+68*z)
             
-   	z=self.coordinates[-1]
-   	new_coordinates=z+self.velocity*0.001
-   	self.coordinates.append(new_coordinates)
-   	self.velocity=self.velocity+force(z)*0.001
-   	print "Evolving trajectory "+self.name+"."+\
+        x, y = self.xcoordinates[-1], self.ycoordinates[-1]        
+        new_coordinates=z+self.velocity*0.001
+        self.coordinates.append(new_coordinates)
+        self.velocity=self.velocity+force(z)*0.001
+        print "Evolving trajectory "+self.name+"."+\
    	       "Current position: "+str(new_coordinates)
 
 		
@@ -74,7 +77,9 @@ class Trajectory(Locus):
         
     def get_name(self):
         return self.name
-        
+    
+    def get_color(self):
+        return self.color
 
                 
 # Sample Data
@@ -91,9 +96,7 @@ def test_trajectory(trajectory):
         print i
         trajectory.evolve()
 
-    datax=[z.real for z in trajectory.get_coordinates()]
-    datay=[z.imag for z in trajectory.get_coordinates()]
-    plt.plot(datax,datay)
+    plt.plot(trajectory.get_xcoordinates,trajectory.get_ycoordinates)
     plt.show()
 
 #test_trajectory(path)
@@ -102,22 +105,27 @@ def test_trajectory(trajectory):
 
 # Actual Animation Function
 
-def animate_trajectory(trajectory):
+def animate_trajectories(trajectories):
     fig = plt.figure()
     ax = plt.axes(xlim=(-8, 8), ylim=(-8, 8))
-    line, = ax.plot([], [], lw=1.2)
+    lines=[]
+    for t in trajectories:
+        line = ax.plot([],[],t.get_color()+'-')
+        lines.append(line)
 
     # initialization function: plot the background of each frame
     def init():
-        line.set_data([], [])
-        return line,
+        for line in lines:
+            line.set_data([], [])
+        return lines
 
     # animation function.  This is called sequentially
     def animate(i):
-        trajectory.evolve()
-        datax=[z.real for z in trajectory.get_coordinates()]
-        datay=[z.imag for z in trajectory.get_coordinates()]
-        line.set_data(datax, datay)
+        for t in trajectories:
+            t.evolve()
+            datax=[z.real for z in trajectory.get_xcoordinates()]
+            datay=[z.imag for z in trajectory.get_ycoordinates()]
+            line.set_data(datax, datay)
         return line,
 
     anim = FuncAnimation(fig, animate, init_func=init,
