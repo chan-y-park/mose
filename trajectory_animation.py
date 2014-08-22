@@ -55,6 +55,8 @@ def animate_trajectories(trajectories, steps=10):
             line.set_data(xcoords[t][:steps*i],ycoords[t][:steps*i])
         return lines,
 
+    frame_number = len(xcoords[0])/steps
+
     anim = FuncAnimation(fig, animate, init_func=init,
-                              frames=2000, interval=10, blit=False)
+                              frames=frame_number, interval=10, blit=False)
     plt.show()
