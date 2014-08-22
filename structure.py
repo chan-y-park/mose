@@ -29,6 +29,12 @@ class Trajectory:
         return 'Trajectory info: initial charge %s , degeneracy %d, etc... ' % \
         (self.initial_charge, self.degeneracy)
 
+    def get_xcoordinates(self):
+        return [z[0] for z in self.coordinates]
+
+    def get_ycoordinates(self):
+        return [z[1] for z in self.coordinates]
+
     def evolve(self):
         if self.parents[0].__class__.__name__ == 'BranchPoint':
             u0 = self.boundary_condition[0]
