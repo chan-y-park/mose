@@ -80,7 +80,7 @@ class Trajectory(Locus):
 # Sample Data
         
 a=Locus("point1",(0,0))
-path = Trajectory("path1",(a,),(0,0.1+0.2j))
+path = Trajectory("path1",(a,),(0,0.5+0.8j))
 
 
 
@@ -121,7 +121,7 @@ def animate_trajectory(trajectory):
         return line,
 
     anim = FuncAnimation(fig, animate, init_func=init,
-                              frames=200, interval=10, blit=True)
+                              frames=200, interval=10, blit=False)
     plt.show()
 
 

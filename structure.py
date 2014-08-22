@@ -1,5 +1,5 @@
 import cmath
-
+from numerics import *
 
 class Trajectory:
     """
@@ -30,11 +30,24 @@ class Trajectory:
         (self.initial_charge, self.degeneracy)
 
     def evolve(self):
-        print "Evolving trajectory"
-        self.coordinates = (0+0j, 1+1j, 2+2j)       # points of the trajectory, 
-        # must write algorithm to evolve
-        self.periods = (0, 2, 4)        # periods of the holomorphic one-form
-        self.check_cuts()
+        if self.parents[0].__class__.__name__ == 'BranchPoint':
+            u0 = self.boundary_condition[0]
+            sign = self.boundary_condition[1]
+            g2 = self.boundary_condition[2][0]
+            g3 = self.boundary_condition[2][1]
+            options = self.boundary_condition[2][2]
+            self.coordinates = grow_primary_kwall(u0, sign, g2, g3, self.phase, options)
+
+            #######     TO DO FROM HERE ON
+            self.periods = (0, 2, 4)        # periods of the holomorphic one-form
+            self.check_cuts()
+        elif self.parents[0].__class__.__name__ == 'Trajectory':
+            YYYY
+            #print "Evolving trajectory"
+            self.coordinates = (0+0j, 1+1j, 2+2j)       # points of the trajectory, 
+            # must write algorithm to evolve
+            self.periods = (0, 2, 4)        # periods of the holomorphic one-form
+            self.check_cuts()
 
     def charge(self, point):
         return self.initial_charge
@@ -42,7 +55,7 @@ class Trajectory:
         # will use data in self.splittings
 
     def check_cuts(self):
-        print "Checking intersections with cuts, determining charges"
+        #print "Checking intersections with cuts, determining charges"
         self.splittings = (55, 107, 231) 
         self.local_charge = (self.initial_charge, (2,1), (0,-1), (1,1))
         # determine at which points the wall crosses a cut, for instance
@@ -119,33 +132,43 @@ class IntersectionPoint:
 
 
 
-def prepare_branch_locus(phase):
+def prepare_branch_locus(g2, g3, phase):
     """Find branch points and build branch cuts."""
-    global BP1
-    global BC1
-    print "Determining branch points"
-    print "Constructing branch cuts"
-    BP1 = BranchPoint(0+0j, (1,0))
-    BC1 = BranchCut(BP1, phase)
+    fixed_charge = (0,0) ### Must update with actual charge at branch-point
+    branch_point_loci = map(complex, find_singularities(g2, g3))
+    bpts = [BranchPoint(branch_point_loci[i], fixed_charge)  for i in range(len(branch_point_loci))]
+    bcts = [BranchCut(bpts[i], phase) for i in range(len(bpts))]
+    return [bpts, bcts]
 
 
 
 
-def build_first_generation():
+def build_first_generation(branch_points, phase, g2, g3, options):
     """Construct the primary Kwalls"""
-    global new_kwalls
-    global kwalls
-    global intersections
-    new_kwalls = []
-    kwalls = []
-    intersections = []
+    #global new_kwalls
+    #global kwalls
+    #global intersections
+    #new_kwalls = []
+    #kwalls = []
+    #intersections = []
+    extra_parameters = [g2, g3, options]
+    traj = []
+    bp = branch_points[0]
     # here insert creation algorithm for the primary k-walls
-    t1 = Trajectory((1, 0), 1, 0, (23, 7), "bc1")
-    t2 = Trajectory((-1, 2), 1, 0, (23, 7), "bc1")
+    for i in range(len(branch_points)):
+        bp = branch_points[i]
+        traj.append(Trajectory(bp.charge, 1, phase, [bp], [bp.locus, +1, extra_parameters]))
+    for i in range(len(branch_points)):
+        bp = branch_points[i]
+        traj.append(Trajectory(bp.charge, 1, phase, [bp], [bp.locus, -1, extra_parameters]))
+    #[ Trajectory(bp.charge, 1, phase, bp, None) for i in range(len(branch_points))]
+    #t1 = Trajectory(bp.charge, 1, phase, bp, None)
+    #t2 = Trajectory((-1, 2), 1, 0, (23, 7), "bc1")
     #
-    kwalls = [t1, t2]
-    new_kwalls = [t1, t2]
-    print "\nConstructed primary Kwalls, there are %d of them" % len(new_kwalls)
+    return traj
+    #kwalls = [t1, t2]
+    #new_kwalls = [t1, t2]
+    #print "\nConstructed primary Kwalls, there are %d of them" % len(new_kwalls)
 
 
 
@@ -210,38 +233,38 @@ def build_genealogy_tree(parents):
 ### An Example of a Workflow
 
 
-print "Preparing the branch locus:"
-phase = cmath.exp(1.23j)
-prepare_branch_locus(phase)
+#print "Preparing the branch locus:"
+#phase = cmath.exp(1.23j)
+#prepare_branch_locus(phase)
 
-print "\nPreparing the primary kwalls:"
+#print "\nPreparing the primary kwalls:"
 
-build_first_generation()
+#build_first_generation()
 
-print "\n the kwalls are:"
-print kwalls[0]
-print kwalls[1]
+#print "\n the kwalls are:"
+#print kwalls[0]
+#print kwalls[1]
 
-print "\n the new kwalls are:"
-print new_kwalls[0]
-print new_kwalls[1]
+#print "\n the new kwalls are:"
+#print new_kwalls[0]
+#print new_kwalls[1]
 
-print "\n the intersections are:"
-print intersections
+#print "\n the intersections are:"
+#print intersections
 
-print "\n --going to the next generation-- \n"
-iterate(1)
+#print "\n --going to the next generation-- \n"
+#iterate(1)
 
-print "\n the kwalls are:"
-print kwalls[0]
-print kwalls[1]
-print kwalls[2]
+#print "\n the kwalls are:"
+#print kwalls[0]
+#print kwalls[1]
+#print kwalls[2]
 
-print "\n the new kwalls are:"
-print new_kwalls[0]
+#print "\n the new kwalls are:"
+#print new_kwalls[0]
 
-print "\n the intersections are:"
-print intersections[0]
+#print "\n the intersections are:"
+#print intersections[0]
 
 
 ### Some Command Tests
@@ -270,4 +293,3 @@ print intersections[0]
 
 
 #print intersections[0].genealogy
-
