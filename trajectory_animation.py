@@ -59,4 +59,5 @@ def animate_trajectories(trajectories, steps=10):
 
     anim = FuncAnimation(fig, animate, init_func=init,
                               frames=frame_number, interval=10, blit=False)
+
     plt.show()
