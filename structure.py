@@ -15,20 +15,24 @@ class Trajectory:
     count = 0
 
     def __init__(self, initial_charge, degeneracy, phase, parents, 
-                 boundary_condition):
+                 boundary_condition, color='b'):
         self.degeneracy = degeneracy
         self.phase = phase
         self.parents = parents
         self.boundary_condition = boundary_condition
         self.initial_charge = initial_charge        # the initial charge
-        Trajectory.count += 1 
+        self.color = color
         # Make trajectory evolve automatically at this point?
         self.evolve()
+        Trajectory.count += 1 
 
     def __str__(self):
         return 'Trajectory info: initial charge %s , degeneracy %d, etc... ' % \
         (self.initial_charge, self.degeneracy)
 
+    def get_color(self):
+        return self.color
+    
     def get_xcoordinates(self):
         return [z[0] for z in self.coordinates]
 
@@ -36,16 +40,25 @@ class Trajectory:
         return [z[1] for z in self.coordinates]
 
     def evolve(self):
+        from numpy import concatenate
         if self.parents[0].__class__.__name__ == 'BranchPoint':
+            ## for a *primary* kwall the boundary conditions are a bit particular:
             u0 = self.boundary_condition[0]
             sign = self.boundary_condition[1]
             g2 = self.boundary_condition[2][0]
             g3 = self.boundary_condition[2][1]
             options = self.boundary_condition[2][2]
-            self.coordinates = grow_primary_kwall(u0, sign, g2, g3, self.phase, options)
-
-            #######     TO DO FROM HERE ON
-            self.periods = (0, 2, 4)        # periods of the holomorphic one-form
+            pw_data = grow_primary_kwall(u0, sign, g2, g3, self.phase, options)
+            self.coordinates = pw_data[0]
+            self.periods = pw_data[1]
+            ## now switch to Picard-Fuchs evolution
+            bc = set_bc(self)
+            #print " Picard_Fuchs boundary conditions: %s" % bc
+            print "Extending trajectory %d with Picard-Fuchs " % Trajectory.count
+            pw_data_pf = grow_pf(bc, g2, g3, self.phase, options)
+            #print " length of pw_data_pf: %d" % len(pw_data_pf)
+            self.coordinates = concatenate(( self.coordinates, [ [row[0], row[1]] for row in pw_data_pf ] ))
+            self.periods = concatenate(( self.periods , [row[2] + 1j* row[3] for row in pw_data_pf] ))
             self.check_cuts()
         elif self.parents[0].__class__.__name__ == 'Trajectory':
             YYYY
@@ -160,13 +173,14 @@ def build_first_generation(branch_points, phase, g2, g3, options):
     extra_parameters = [g2, g3, options]
     traj = []
     bp = branch_points[0]
+    colors = ['r','b','g','k']
     # here insert creation algorithm for the primary k-walls
     for i in range(len(branch_points)):
         bp = branch_points[i]
-        traj.append(Trajectory(bp.charge, 1, phase, [bp], [bp.locus, +1, extra_parameters]))
+        traj.append(Trajectory(bp.charge, 1, phase, [bp], [bp.locus, +1, extra_parameters],colors[i]))
     for i in range(len(branch_points)):
         bp = branch_points[i]
-        traj.append(Trajectory(bp.charge, 1, phase, [bp], [bp.locus, -1, extra_parameters]))
+        traj.append(Trajectory(bp.charge, 1, phase, [bp], [bp.locus, -1, extra_parameters],colors[i+2]))
     #[ Trajectory(bp.charge, 1, phase, bp, None) for i in range(len(branch_points))]
     #t1 = Trajectory(bp.charge, 1, phase, bp, None)
     #t2 = Trajectory((-1, 2), 1, 0, (23, 7), "bc1")

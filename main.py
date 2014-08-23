@@ -1,5 +1,6 @@
 from numerics import *
 from structure import *
+from trajectory_animation import *
 
 import sympy as sym
 from sympy import *
@@ -13,7 +14,9 @@ g3 = u / 3 + 8 * u ** 3 / 27
 theta = 0
 
 # the options are for numerical integration: initial time, final time, number of steps
-options = [0.0, 1.0, 100]
+options = [0.0, 1.5, 20]
+### NOTE: in function grow_primary_kwall() I'm overriding these options for the primary growth!
+### must set up parameter handling there..
 
 print "Preparing the branch locus:"
 branch_locus = prepare_branch_locus(g2, g3, theta)
@@ -27,12 +30,8 @@ new_kwalls = []
 kwalls = []
 intersections = []
 new_kwalls = build_first_generation(branch_points, theta, g2, g3, options)
-print new_kwalls
-#print "\n the kwalls are:"
-#print kwalls[0]
-#print kwalls[1]
 
-
+animate_trajectories(new_kwalls)
 
 
 #singularties = find_singularities(g2, g3)
