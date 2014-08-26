@@ -1,6 +1,6 @@
 from numerics import *
 from structure import *
-from trajectory_animation import *
+from trajectory_animation import animate_trajectories
 
 import sympy as sym
 from sympy import *
@@ -8,13 +8,13 @@ from sympy import mpmath as mp
 
 u = sym.Symbol('u')
 
-g2 = 1 + 4 * u ** 2 / 3
-g3 = u / 3 + 8 * u ** 3 / 27
+g2 = 1 + 4 * (u ** 2) / 3
+g3 = u / 3 + 8 * (u ** 3) / 27
 
-theta = 0
+theta = N(sym.pi) / 2 
 
 # the options are for numerical integration: initial time, final time, number of steps
-options = [0.0, 1.5, 20]
+options = [0.0, 8, 1000]
 ### NOTE: in function grow_primary_kwall() I'm overriding these options for the primary growth!
 ### must set up parameter handling there..
 
@@ -31,7 +31,7 @@ kwalls = []
 intersections = []
 new_kwalls = build_first_generation(branch_points, theta, g2, g3, options)
 
-animate_trajectories(new_kwalls)
+animate_trajectories(new_kwalls,3)
 
 
 #singularties = find_singularities(g2, g3)

@@ -40,6 +40,7 @@ class Trajectory:
         return [z[1] for z in self.coordinates]
 
     def evolve(self):
+        print "Evolving trajectory %d " % Trajectory.count
         from numpy import concatenate
         if self.parents[0].__class__.__name__ == 'BranchPoint':
             ## for a *primary* kwall the boundary conditions are a bit particular:
@@ -54,7 +55,7 @@ class Trajectory:
             ## now switch to Picard-Fuchs evolution
             bc = set_bc(self)
             #print " Picard_Fuchs boundary conditions: %s" % bc
-            print "Extending trajectory %d with Picard-Fuchs " % Trajectory.count
+            #print "Extending trajectory %d with Picard-Fuchs " % Trajectory.count
             pw_data_pf = grow_pf(bc, g2, g3, self.phase, options)
             #print " length of pw_data_pf: %d" % len(pw_data_pf)
             self.coordinates = concatenate(( self.coordinates, [ [row[0], row[1]] for row in pw_data_pf ] ))
@@ -115,13 +116,13 @@ class BranchCut:
     """
 
     count = 0
-    cutoff = 10         # how far way from the singularity the locus of the 
+    cutoff = 10.0         # how far way from the singularity the locus of the 
                         # branch cut extends
 
     def __init__(self, branch_point, phase):
         self.charge = branch_point.charge
         self.locus = (branch_point.locus, 
-                      branch_point.locus + BranchCut.cutoff * phase)
+                      complex(branch_point.locus + BranchCut.cutoff * phase))
         BranchCut.count += 1
 
     def __str__(self):
@@ -164,32 +165,21 @@ def prepare_branch_locus(g2, g3, phase):
 
 def build_first_generation(branch_points, phase, g2, g3, options):
     """Construct the primary Kwalls"""
-    #global new_kwalls
-    #global kwalls
-    #global intersections
-    #new_kwalls = []
-    #kwalls = []
-    #intersections = []
+    
     extra_parameters = [g2, g3, options]
     traj = []
+    Trajectory.count = 0
     bp = branch_points[0]
     colors = ['r','b','g','k']
-    # here insert creation algorithm for the primary k-walls
+    
     for i in range(len(branch_points)):
         bp = branch_points[i]
         traj.append(Trajectory(bp.charge, 1, phase, [bp], [bp.locus, +1, extra_parameters],colors[i]))
     for i in range(len(branch_points)):
         bp = branch_points[i]
         traj.append(Trajectory(bp.charge, 1, phase, [bp], [bp.locus, -1, extra_parameters],colors[i+2]))
-    #[ Trajectory(bp.charge, 1, phase, bp, None) for i in range(len(branch_points))]
-    #t1 = Trajectory(bp.charge, 1, phase, bp, None)
-    #t2 = Trajectory((-1, 2), 1, 0, (23, 7), "bc1")
-    #
+    
     return traj
-    #kwalls = [t1, t2]
-    #new_kwalls = [t1, t2]
-    #print "\nConstructed primary Kwalls, there are %d of them" % len(new_kwalls)
-
 
 
 
@@ -242,74 +232,3 @@ def build_genealogy_tree(parents):
     # same MS wall.
     # It will not be necessary to develop this until everything else is in place.
 
-
-
-
-
-
-###### Some Checks ######
-
-
-### An Example of a Workflow
-
-
-#print "Preparing the branch locus:"
-#phase = cmath.exp(1.23j)
-#prepare_branch_locus(phase)
-
-#print "\nPreparing the primary kwalls:"
-
-#build_first_generation()
-
-#print "\n the kwalls are:"
-#print kwalls[0]
-#print kwalls[1]
-
-#print "\n the new kwalls are:"
-#print new_kwalls[0]
-#print new_kwalls[1]
-
-#print "\n the intersections are:"
-#print intersections
-
-#print "\n --going to the next generation-- \n"
-#iterate(1)
-
-#print "\n the kwalls are:"
-#print kwalls[0]
-#print kwalls[1]
-#print kwalls[2]
-
-#print "\n the new kwalls are:"
-#print new_kwalls[0]
-
-#print "\n the intersections are:"
-#print intersections[0]
-
-
-### Some Command Tests
-
-#print t1
-#print t2
-
-
-#print "coordinates: %s" % (t1.coordinates,)
-#print "periods: %s" % (t1.periods,)
-#print "charge at step %d: %s" % (55,t1.charge(55))
-
-
-
-#print BC1
-#print BP1
-
-#print "There are %d trajectories." % Trajectory.count
-#print "There are %d branch points." % BranchPoint.count
-#print "There are %d branch cuts." % BranchCut.count
-
-#print t1.__class__.__name__
-#print BP1.__class__.__name__
-#print BC1.__class__.__name__
-
-
-
-#print intersections[0].genealogy
