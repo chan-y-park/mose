@@ -14,7 +14,7 @@ def complexify(y):
     """ complexifies an array of two reals """
     return y[0] + 1j * y[1]
 
-def set_bc(traj):
+def set_primary_bc(traj):
     """ employs data of class Trajectory to produce correctly formatted boundary conditions for grow_pf """
     coords = traj.coordinates
     per = traj.periods
@@ -23,7 +23,7 @@ def set_bc(traj):
     d_eta0 = (per[-1]-per[-2]) / (complexify(coords[-1])-complexify(coords[-2]))
     return [u0, eta0, d_eta0]
 
-def grow_primary_kwall(u0, sign, g2, g3, theta, options): 
+def grow_primary_kwall(u0, sign, g2, g3, theta, primary_options): 
     """ implementation of the ODE for evolving primary walls, valid in neighborhood of an A_1 singularity """
     import sympy as sym
     from sympy import N
@@ -61,9 +61,9 @@ def grow_primary_kwall(u0, sign, g2, g3, theta, options):
     from sympy.utilities.lambdify import lambdify
     import scipy
     eta_1_part_1 = lambdify(u, sym.expand( (sign)* ( 4 * (f3 - f1) ** (-0.5) )), mp) 
-    eta_1_part_2 = lambdify(u, ( (sym.expand( (f2 - f1) / (f3 - f1)  )) ** 0.5 ) ,mp)
+    eta_1_part_2 = lambdify(u, (sym.expand( (f2 - f1) / (f3 - f1)  ) ), mp)
     def eta_1(z): 
-        return eta_1_part_1(z) * mp.ellipk( eta_1_part_2(z) )
+        return eta_1_part_1(z) * mp.ellipk( eta_1_part_2(z) ) / 2
 
     eta0 = eta_1(u0)
     bc = [u0,eta0]
@@ -75,11 +75,10 @@ def grow_primary_kwall(u0, sign, g2, g3, theta, options):
         c = exp( 1j * ( theta + pi - phase( eta_1(z) ) ) )
         return array([c.real, c.imag])
 
-    new_options = [0.0, 1.0,100]
-    time = linspace(new_options[0],new_options[1],new_options[2])
+    time = linspace(primary_options[0],primary_options[1],primary_options[2])
     y = odeint(deriv, y0, time)
 
-    return [y , map( eta_1 , map(complexify, y) ) ]
+    return [y , map( complex, map( eta_1 , map(complexify, y) ) ) ]
 
 
 def grow_pf(boundary_conditions, g2, g3, theta, options): 
@@ -99,7 +98,7 @@ def grow_pf(boundary_conditions, g2, g3, theta, options):
     # (d eta / du)_0 = boundary_conditions[2] 
     # ## They must all be given as complex numbers (Warning: u0 must be formatted to comply)
     # ## to this end, when calling this function from inside evolve() of a primary Kwall, 
-    # ## use set_bc(...)
+    # ## use set_primaery_bc(...)
 
     u = sym.Symbol('u')
     x = sym.Symbol('x')
@@ -120,9 +119,12 @@ def grow_pf(boundary_conditions, g2, g3, theta, options):
         eta = y[2] + 1j * y[3]
         d_eta = y[4] + 1j * y[5]
         matrix = pf_matrix(z)
+        #### A confusing point to bear in mind: here we are solving the ode with respect to 
+        #### time t, but d_eta is understood to be (d eta / d u), with its own 
+        #### appropriate b.c. and so on!
         z_1 = exp( 1j * ( theta + pi - phase( eta ) ) )
-        eta_1 = (matrix[0][0] * eta + matrix[0][1] * d_eta)
-        d_eta_1 = (matrix[1][0] * eta + matrix[1][1] * d_eta)
+        eta_1 = z_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
+        d_eta_1 = z_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
         return array([z_1.real, z_1.imag, eta_1.real, eta_1.imag, d_eta_1.real, d_eta_1.imag])
 
     time = linspace(options[0],options[1],options[2])

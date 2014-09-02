@@ -40,7 +40,7 @@ class Trajectory:
         return [z[1] for z in self.coordinates]
 
     def evolve(self):
-        print "Evolving trajectory %d " % Trajectory.count
+        print "\nEvolving trajectory %d " % Trajectory.count
         from numpy import concatenate
         if self.parents[0].__class__.__name__ == 'BranchPoint':
             ## for a *primary* kwall the boundary conditions are a bit particular:
@@ -48,16 +48,14 @@ class Trajectory:
             sign = self.boundary_condition[1]
             g2 = self.boundary_condition[2][0]
             g3 = self.boundary_condition[2][1]
-            options = self.boundary_condition[2][2]
-            pw_data = grow_primary_kwall(u0, sign, g2, g3, self.phase, options)
+            primary_options = self.boundary_condition[2][2]
+            options = self.boundary_condition[2][3]
+            pw_data = grow_primary_kwall(u0, sign, g2, g3, self.phase, primary_options)
             self.coordinates = pw_data[0]
             self.periods = pw_data[1]
-            ## now switch to Picard-Fuchs evolution
-            bc = set_bc(self)
-            #print " Picard_Fuchs boundary conditions: %s" % bc
-            #print "Extending trajectory %d with Picard-Fuchs " % Trajectory.count
+            # 
+            bc = set_primary_bc(self)
             pw_data_pf = grow_pf(bc, g2, g3, self.phase, options)
-            #print " length of pw_data_pf: %d" % len(pw_data_pf)
             self.coordinates = concatenate(( self.coordinates, [ [row[0], row[1]] for row in pw_data_pf ] ))
             self.periods = concatenate(( self.periods , [row[2] + 1j* row[3] for row in pw_data_pf] ))
             self.check_cuts()
@@ -163,10 +161,10 @@ def prepare_branch_locus(g2, g3, phase):
 
 
 
-def build_first_generation(branch_points, phase, g2, g3, options):
+def build_first_generation(branch_points, phase, g2, g3, primary_options, options):
     """Construct the primary Kwalls"""
     
-    extra_parameters = [g2, g3, options]
+    extra_parameters = [g2, g3, primary_options, options]
     traj = []
     Trajectory.count = 0
     bp = branch_points[0]
@@ -184,7 +182,7 @@ def build_first_generation(branch_points, phase, g2, g3, options):
 
 
 
-def new_intersections():
+def new_intersections(kwalls,new_kwalls):
     """Find new wall-wall intersections"""
     # here insert algorithm that computes all intersections of NEW kwalls with 
     # ALL kwalls
@@ -196,15 +194,12 @@ def new_intersections():
 
 
 
-def iterate(n):
-    global intersections
-    global kwalls
-    global new_kwalls
+def iterate(n,kwalls,new_kwalls,intersections):
     """Iteration"""
-    new_ints = new_intersections()
+    new_ints = new_intersections(kwalls, new_kwalls)
+    intersections = intersections + new_ints    
     new_kwalls = build_new_walls(new_ints)
     kwalls = kwalls + new_kwalls
-    intersections = intersections + new_ints    
     # Make it repeat n times, once it works
 
 
@@ -213,9 +208,11 @@ def iterate(n):
 def build_new_walls(intersections):     
     #the argument here will be provided directly by function new_intersections()
     """Build K-walls from new intersections"""
-    global t3
+    # global t3
     print "Constructing new walls"
-    # here insert algorithm that computes the new walls
+    # here insert algorithm that computes the new walls: 
+    # includes the KSWCF to see what new kwalls to create, 
+    # and must receive the appropriate boundary conditions for PF evolution
     t3 = Trajectory((0,2), 1, 0, (12,35), "bc3")
     new_walls = [t3]
     #
