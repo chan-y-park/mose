@@ -48,14 +48,10 @@ class Trajectory:
             ## for a *primary* kwall the boundary conditions are a bit particular:
             u0 = self.boundary_condition[0]
             sign = self.boundary_condition[1]
-            # g2 = self.boundary_condition[2][0]  # obsolete: available from importing parameters.py
-            # g3 = self.boundary_condition[2][1]   # same as above
-            # primary_options = self.boundary_condition[2][2] # same as above
-            # options = self.boundary_condition[2][3] # same as above
             pw_data = grow_primary_kwall(u0, sign, g2, g3, self.phase, primary_options)
             self.coordinates = pw_data[0]
             self.periods = pw_data[1]
-            # 
+            # now switch to picard-fuchs evolution
             bc = set_primary_bc(self)
             pw_data_pf = grow_pf(bc, g2, g3, self.phase, options)
             self.coordinates = concatenate(( self.coordinates, [ [row[0], row[1]] for row in pw_data_pf ] ))
@@ -65,7 +61,6 @@ class Trajectory:
             pw_data_pf = grow_pf(self.boundary_condition, g2, g3, self.phase, options)
             self.coordinates =  [ [row[0], row[1]] for row in pw_data_pf ]
             self.periods =  [ row[2] + 1j* row[3] for row in pw_data_pf ] 
-            # print "I have created a new trajectory."
             self.check_cuts()
 
     def charge(self, point):
@@ -172,8 +167,6 @@ def prepare_branch_locus(g2, g3, phase):
 
 def build_first_generation(branch_points, phase, g2, g3, primary_options, options):
     """Construct the primary Kwalls"""
-    
-    extra_parameters = [g2, g3, primary_options, options]
     traj = []
     Trajectory.count = 0
     bp = branch_points[0]
@@ -181,10 +174,10 @@ def build_first_generation(branch_points, phase, g2, g3, primary_options, option
     
     for i in range(len(branch_points)):
         bp = branch_points[i]
-        traj.append(Trajectory(bp.charge, 1, phase, [bp], [bp.locus, +1, extra_parameters],colors[i]))
+        traj.append(Trajectory(bp.charge, 1, phase, [bp], [bp.locus, +1],colors[i]))
     for i in range(len(branch_points)):
         bp = branch_points[i]
-        traj.append(Trajectory(bp.charge, 1, phase, [bp], [bp.locus, -1, extra_parameters],colors[i+2]))
+        traj.append(Trajectory(bp.charge, 1, phase, [bp], [bp.locus, -1],colors[i]))
     
     return traj
 

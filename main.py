@@ -5,6 +5,7 @@ from parameters import *
 
 
 
+##### Need to write a functino that determines the charge associated with each branch point
 print "Preparing the branch locus:"
 branch_locus = prepare_branch_locus(g2, g3, theta)
 branch_points = branch_locus[0]
