@@ -13,6 +13,12 @@ theta = N(pi/2) # N(sym.pi) / 2
 primary_options = [0.0, 1.0, 100]
 options = [0.0, 3, 100]
 
+
+# how far way from the singularity the locus of the branch cut extends
+branch_cut_cutoff = 10.0         
+
+
+
 #### this parameter is related only to the temporary intersection algorithm:
 #### this is the threshold above which a distance between two points is not regarded as intersection
 intersection_range = 0.1 
@@ -23,4 +29,4 @@ new_kwalls = []
 kwalls = []
 intersections = []
 
-n_iter = 1
+n_iter = 2

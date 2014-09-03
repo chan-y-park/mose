@@ -108,15 +108,14 @@ class BranchCut:
     Attributes: locus, charge
     Arguments: branch-point (as an object), direction (as a phase e^(i phi))
     """
+    from parameters import branch_cut_cutoff
 
     count = 0
-    cutoff = 10.0         # how far way from the singularity the locus of the 
-                        # branch cut extends
 
     def __init__(self, branch_point, phase):
         self.charge = branch_point.charge
         self.locus = (branch_point.locus, 
-                      complex(branch_point.locus + BranchCut.cutoff * phase))
+                      complex(branch_point.locus + branch_cut_cutoff * phase))
         BranchCut.count += 1
 
     def __str__(self):
@@ -192,19 +191,18 @@ def new_intersections(kwalls,new_kwalls):
 
     from parameters import intersection_range ## parameter related only to the temporary intersection algorithm
     
+    ### note: I am excluding some cases from being checked for intersections, see the if statements below
     for i_1, traj_1 in list(enumerate(kwalls)):
         for i_2, traj_2 in list(enumerate(new_kwalls)):
-            if (dsz_pairing(traj_1.charge(0), traj_2.charge(0), dsz_matrix) != 0 and traj_1.parents != traj_2.parents):
+            if (dsz_pairing(traj_1.charge(0), traj_2.charge(0), dsz_matrix) != 0 and traj_1.parents != traj_2.parents and (not(traj_1 in traj_2.parents)) ):
                 intersections_list = find_intersections(traj_1, traj_2)
-                # print "\nclosest point between trajectories [%s, %s]: %s" % (i_1, i_2, intersections_list)
                 new_ints += [ IntersectionPoint(intersection, [traj_1, traj_2]) for intersection in intersections_list] 
 
 
     for i_1, traj_1 in list(enumerate(new_kwalls)):
         for i_2, traj_2 in list(enumerate(new_kwalls))[i_1+1 : ]:
-            if (dsz_pairing(traj_1.charge(0), traj_2.charge(0), dsz_matrix) != 0 and traj_1.parents != traj_2.parents):
+            if (dsz_pairing(traj_1.charge(0), traj_2.charge(0), dsz_matrix) != 0 and traj_1.parents != traj_2.parents and not(traj_1 in traj_2.parents) and not(traj_2 in traj_1.parents)):
                 intersections_list = find_intersections(traj_1, traj_2)
-                # print "\nclosest point between trajectories [%s, %s]: %s" % (i_1, i_2, intersections_list)
                 new_ints += [ IntersectionPoint(intersection, [traj_1, traj_2]) for intersection in intersections_list] 
 
     print "\nEvaluating intersections of NEW Kwalls with ALL Kwalls: found %d of them" % len(new_ints)
@@ -228,8 +226,6 @@ def iterate(n,kwalls,new_kwalls,intersections):
 
 def build_new_walls(new_intersections):     
     """Build K-walls from new intersections"""
-    
-    print "\nConstructing new walls"
     new_walls = []
     
     from parameters import theta
@@ -262,7 +258,7 @@ def build_new_walls(new_intersections):
 
 
 
-def build_genealogy_tree(parents):
+def build_genealogy_tree(intersection_point):
     return "this function will return the genealogy tree of an intersection \
     in the form of a list such as [[BP1,BP2],BP3] for an intersection with the\
     obvious history"

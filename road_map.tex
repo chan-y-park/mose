@@ -1,0 +1,69 @@
+\documentclass[11pt]{article}
+
+\title{Things to do}
+\author{Chan, Daniel, Pietro}
+%\date{}                                           % Activate to display a given date or no date
+
+\begin{document}
+\maketitle
+
+\section{Intersection algorithm}
+This should be a function called \texttt{find\_intersections(trajectory\_1,trajectory\_2)} returning the intersection(s) of the two given trajectories. It shold be placed in the numerics.py file\\
+If the trajectories don't intersect, it should return {\tt []} otherwise it should return a list {\tt [[point, index\_1, index\_2], ...]} where
+\begin{itemize}
+\item {\tt point} is the exact point of intersection, given as a complex number 
+\item {\tt index\_1} is the index of the element of {\tt trajectory\_1.coordinates} that corresponds to the exact intersection point. (Same for {\tt index\_2}).
+\item The exact point of intersection should be added to the lists {\tt trajectory\_1.coordinates} and {\tt trajectory\_2.coordinates}, at the appropriate point {\bf warning:} coordinates attributes in the Trajectory class are given as a 2-vector, not as a complex numer. 
+\item Moreover, the corresponding value of the period of $\eta$ for that trajectory should also be added to {\tt trajectory\_1.periods} (and same for trajectory\_2), this goes as a complex number.
+\end{itemize}
+A very primitive intersection algorithm is already present in numerics.py.
+
+
+
+\section{KSWCF}
+This should be a function called {\tt progeny\_2(data)} placed in the file kswcf.py, that takes {\tt data = [ [ $\gamma_{1}$, $\Omega(\gamma_{1})$  ] ,[$\gamma_{2}$, $\Omega(\gamma_{2})$] ]} and returns a list of new charges and corresponding degeneracies, \emph{excluding the parents}:
+{\tt [ ...  [ $n \gamma_{1}+ m \gamma_{2}$ , $\Omega(n \gamma_{1}+ m \gamma_{2})$  ]  ... ]}.
+A primitive example is provided in the file kswcf.py.
+
+
+\section{Rotation of the phase}
+A function that repeats the whole computation of primary k-walls, their intersections, generation of descendants, and iterations to get new intersections, new descendats etc.. for different phases.
+
+It will have arguments such as: the number of daughter generations to be considered, the phase, the numerical options for growing kwalls, etc.
+
+It's important that, at each phase, it \emph{stores the information about intersection points and their genealogy}. This information will then be used to construct full MS walls.
+
+
+\section{Genealogy}
+Not sure how to structure this yet. But it should be a function called {\tt build\_genealogy\_tree(intersection\_point)} that takes as argument an object of the class IntersectionPoint.
+It should use the attribute {\tt intersection\_point.parents} to recursively determine the trajectories from whom the point descends.
+It should eventually return a structure (type of it is to be determined) that contains the genealogy of such point, meaning which branch-points are the farthest ancestors of the intersection, and in which associative order, eg: {\tt [[BP1,BP2],BP3]}.
+Not sure if keeping track of branch-point ancestors will be enough, maybe not. Maybe should keep track of trajectories in the middle as well.
+
+\medskip
+
+The purpose of genealogy is to identify which intersections (occurring at different phases) belong to the same wall of marginal stability.
+
+
+\section{Construction of MS walls}
+Once the phase-rotation algorithm is working and the genealogy is ready, we should be able to group together intersection points coming from different phase-snapshots, and build analytic MS walls out of them. This will need some thinking
+
+
+\section{Branch cuts}
+In the function {\tt prepare\_branch\_locus} in file structure.py, should create an array of branch cuts called {\tt bcts} that is to be returned (see the function there).
+Each branch point will generate a branch cut, if we decide to pick straight lines, at a certain angle, then these cuts are already created correctly by the {\tt init} method of the {\tt BranchCut} class.
+It remains to
+\begin{itemize}
+\item tune the parameter {\tt branch\_cut\_cutoff} in file parameters.py (length of the branch cut)
+\item write the method {\tt check\_{cuts}} in the class {\tt Trajectory}, which is supposed to detect intersection of trajectories with cuts, and determine the {\tt Trajectory.splittings} (find exact point, add it to {\tt Trajectory.coordinates}, then the splitting contains the indices of these exact points. The corresponding kind of addition must be done to {\tt Trajectory.periods}) and determine the values of {\tt Trajectory.local\_{charge}} on segments of the trajectory between the various {\tt splittings}. See the dummy method in the Trajectory class.
+\end{itemize}
+
+
+
+\section{Charges of branch points}
+This should be an algorithm that, at the very beginning ---while creating the branch locus--- determines automatically which charges to assign to each branch point (hence to each branch cut).
+
+
+
+
+\end{document}  
