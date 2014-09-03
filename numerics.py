@@ -3,11 +3,8 @@ def find_singularities(g2, g3):
     import sympy as sym
     u = sym.Symbol('u')
     discriminant = sym.simplify(g2 ** 3 - 27 * g3 ** 2)
-
     print "discriminant: %s" % discriminant
-
     print "singularities: %s" % sym.solve(discriminant, u)
-
     return sym.solve(discriminant, u)
 
 def complexify(y):
@@ -21,6 +18,29 @@ def set_primary_bc(traj):
     u0 = complexify(coords[-1])
     eta0 = per[-1]
     d_eta0 = (per[-1]-per[-2]) / (complexify(coords[-1])-complexify(coords[-2]))
+    return [u0, eta0, d_eta0]
+
+def set_bc(intersection,charge):
+    """ employs data of class Trajectory to produce correctly formatted boundary conditions for grow_pf
+    Arguments: (intersection, charge)
+    intersection must be an instance of the IntersecionPoint class
+    charge must be the charge relative to the parents' charge basis, hence a list of length 2
+    """
+    u0 = intersection.locus
+
+    parents = intersection.parents
+    index_1 = intersection.index_1
+    index_2 = intersection.index_2
+    path_1 = map(complexify, parents[0].coordinates)
+    path_2 = map(complexify, parents[1].coordinates)
+    periods_1 = parents[0].periods
+    periods_2 = parents[1].periods
+    eta_1 = periods_1[index_1]
+    eta_2 = periods_2[index_2]
+    d_eta_1 = (periods_1[index_1] - periods_1[index_1-1]) / (path_1[index_1] - path_1[index_1-1])
+    d_eta_2 = (periods_2[index_2] - periods_2[index_2-1]) / (path_2[index_2] - path_2[index_2-1])
+    eta0 = eta_1 * charge[0] + eta_2 * charge[1]
+    d_eta0 = d_eta_1 * charge[0] + d_eta_2 * charge[1]
     return [u0, eta0, d_eta0]
 
 def grow_primary_kwall(u0, sign, g2, g3, theta, primary_options): 
@@ -98,7 +118,7 @@ def grow_pf(boundary_conditions, g2, g3, theta, options):
     # (d eta / du)_0 = boundary_conditions[2] 
     # ## They must all be given as complex numbers (Warning: u0 must be formatted to comply)
     # ## to this end, when calling this function from inside evolve() of a primary Kwall, 
-    # ## use set_primaery_bc(...)
+    # ## use set_primary_bc(...)
 
     u = sym.Symbol('u')
     x = sym.Symbol('x')
@@ -131,4 +151,34 @@ def grow_pf(boundary_conditions, g2, g3, theta, options):
     y = odeint(deriv, y0, time)
 
     return y
+
+
+#### A TEMPORARY function to find intersections, very limited and slow
+def find_intersections(trajectory_1, trajectory_2):
+    path_1 = trajectory_1.coordinates
+    path_2 = trajectory_2.coordinates
+    from numpy import linalg as LA
+    from numpy import array
+    distances = [[LA.norm(x - y) for x in path_1 ] for y in path_2 ]
+    min_dist = min(map(min, distances))
+    from parameters import intersection_range
+    if min_dist < intersection_range:
+        for i,x in enumerate(distances):
+            for j,y in enumerate(x):
+                if y == min_dist:
+                    index_1 = i
+                    index_2 = j
+                    point = complexify(list( ( array(path_1[index_1]) + array(path_2[index_2]) ) / 2 ))
+                    return [[point, index_1, index_2]]  
+                    ##### NOTE: the structure of the answer resembles the fact that there might be more than one intersection!
+                    ##### Also, it is assumed that there should be an algorithm that determines the exact intersection point
+                    ##### and inserts it into the trajectories' data, as well as computes the periods there, and the indices index_1,2 should be related to this new data point
+    else:
+        return []
+
+
+def dsz_pairing(gamma_1, gamma_2, dsz_matrix):
+    import numpy as np
+    return np.dot(np.dot(gamma_1,dsz_matrix),gamma_2)
+
 

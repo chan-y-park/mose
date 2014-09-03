@@ -1,5 +1,7 @@
 import cmath
 from numerics import *
+from kswcf import *
+from parameters import *
 
 class Trajectory:
     """
@@ -46,10 +48,10 @@ class Trajectory:
             ## for a *primary* kwall the boundary conditions are a bit particular:
             u0 = self.boundary_condition[0]
             sign = self.boundary_condition[1]
-            g2 = self.boundary_condition[2][0]
-            g3 = self.boundary_condition[2][1]
-            primary_options = self.boundary_condition[2][2]
-            options = self.boundary_condition[2][3]
+            # g2 = self.boundary_condition[2][0]  # obsolete: available from importing parameters.py
+            # g3 = self.boundary_condition[2][1]   # same as above
+            # primary_options = self.boundary_condition[2][2] # same as above
+            # options = self.boundary_condition[2][3] # same as above
             pw_data = grow_primary_kwall(u0, sign, g2, g3, self.phase, primary_options)
             self.coordinates = pw_data[0]
             self.periods = pw_data[1]
@@ -60,11 +62,10 @@ class Trajectory:
             self.periods = concatenate(( self.periods , [row[2] + 1j* row[3] for row in pw_data_pf] ))
             self.check_cuts()
         elif self.parents[0].__class__.__name__ == 'Trajectory':
-            YYYY
-            #print "Evolving trajectory"
-            self.coordinates = (0+0j, 1+1j, 2+2j)       # points of the trajectory, 
-            # must write algorithm to evolve
-            self.periods = (0, 2, 4)        # periods of the holomorphic one-form
+            pw_data_pf = grow_pf(self.boundary_condition, g2, g3, self.phase, options)
+            self.coordinates =  [ [row[0], row[1]] for row in pw_data_pf ]
+            self.periods =  [ row[2] + 1j* row[3] for row in pw_data_pf ] 
+            # print "I have created a new trajectory."
             self.check_cuts()
 
     def charge(self, point):
@@ -133,13 +134,23 @@ class BranchCut:
 class IntersectionPoint:
     """The IntersectionPoint class.
 
-    Attributes: locus, genealogy
-    Arguments: locus, parents (as list of trajectories, ie objects), genealogy
+    Attributes: 
+    locus (point on moduli space), 
+    index_1 (index of intersection point within parent number 1, important to determine the charge at intersection), 
+    index_2 (index of intersection point within parent number 2, important to determine the charge at intersection), 
+    genealogy
+
+    Arguments: 
+    data (as a triplet of [u, index_1, index_2]), 
+    parents (as list of trajectories, ie objects)    
     """
 
-    def __init__(self,locus,parents):
+    def __init__(self,data,parents):
+
         self.parents = parents
-        self.locus = locus
+        self.locus = data[0]
+        self.index_1 = data[1]
+        self.index_2 = data[2]
         self.genealogy = build_genealogy_tree(parents)
 
     def __str__(self):
@@ -148,13 +159,11 @@ class IntersectionPoint:
 
 
 
-
-
 def prepare_branch_locus(g2, g3, phase):
     """Find branch points and build branch cuts."""
-    fixed_charge = (0,0) ### Must update with actual charge at branch-point
+    fixed_charges = [ [1, 0], [-1, 2] ] ### Must update with actual charge at branch-point
     branch_point_loci = map(complex, find_singularities(g2, g3))
-    bpts = [BranchPoint(branch_point_loci[i], fixed_charge)  for i in range(len(branch_point_loci))]
+    bpts = [BranchPoint(branch_point_loci[i], fixed_charges[i])  for i in range(len(branch_point_loci))]
     bcts = [BranchCut(bpts[i], phase) for i in range(len(bpts))]
     return [bpts, bcts]
 
@@ -184,11 +193,28 @@ def build_first_generation(branch_points, phase, g2, g3, primary_options, option
 
 def new_intersections(kwalls,new_kwalls):
     """Find new wall-wall intersections"""
-    # here insert algorithm that computes all intersections of NEW kwalls with 
-    # ALL kwalls
-    int1 = IntersectionPoint(0+0j, [new_kwalls[0], new_kwalls[1]])
-    new_ints = [int1]
-    print "Evaluating intersections of NEW Kwalls with ALL Kwalls: found %d of them" % len(new_ints)
+
+    from parameters import dsz_matrix
+    new_ints = []
+
+    from parameters import intersection_range ## parameter related only to the temporary intersection algorithm
+    
+    for i_1, traj_1 in list(enumerate(kwalls)):
+        for i_2, traj_2 in list(enumerate(new_kwalls)):
+            if (dsz_pairing(traj_1.charge(0), traj_2.charge(0), dsz_matrix) != 0 and traj_1.parents != traj_2.parents):
+                intersections_list = find_intersections(traj_1, traj_2)
+                # print "\nclosest point between trajectories [%s, %s]: %s" % (i_1, i_2, intersections_list)
+                new_ints += [ IntersectionPoint(intersection, [traj_1, traj_2]) for intersection in intersections_list] 
+
+
+    for i_1, traj_1 in list(enumerate(new_kwalls)):
+        for i_2, traj_2 in list(enumerate(new_kwalls))[i_1+1 : ]:
+            if (dsz_pairing(traj_1.charge(0), traj_2.charge(0), dsz_matrix) != 0 and traj_1.parents != traj_2.parents):
+                intersections_list = find_intersections(traj_1, traj_2)
+                # print "\nclosest point between trajectories [%s, %s]: %s" % (i_1, i_2, intersections_list)
+                new_ints += [ IntersectionPoint(intersection, [traj_1, traj_2]) for intersection in intersections_list] 
+
+    print "\nEvaluating intersections of NEW Kwalls with ALL Kwalls: found %d of them" % len(new_ints)
     return new_ints
     
 
@@ -196,26 +222,48 @@ def new_intersections(kwalls,new_kwalls):
 
 def iterate(n,kwalls,new_kwalls,intersections):
     """Iteration"""
-    new_ints = new_intersections(kwalls, new_kwalls)
-    intersections = intersections + new_ints    
-    new_kwalls = build_new_walls(new_ints)
-    kwalls = kwalls + new_kwalls
-    # Make it repeat n times, once it works
+    for i in range(n):
+        new_ints = new_intersections(kwalls, new_kwalls)
+        intersections += new_ints
+        kwalls += new_kwalls
+        new_kwalls = build_new_walls(new_ints)
+
+    return kwalls, new_kwalls, intersections
 
 
 
 
-def build_new_walls(intersections):     
-    #the argument here will be provided directly by function new_intersections()
+def build_new_walls(new_intersections):     
     """Build K-walls from new intersections"""
-    # global t3
-    print "Constructing new walls"
-    # here insert algorithm that computes the new walls: 
-    # includes the KSWCF to see what new kwalls to create, 
-    # and must receive the appropriate boundary conditions for PF evolution
-    t3 = Trajectory((0,2), 1, 0, (12,35), "bc3")
-    new_walls = [t3]
-    #
+    
+    print "\nConstructing new walls"
+    new_walls = []
+    
+    from parameters import theta
+    from numpy import array
+
+    for intersection in new_intersections:
+        parents = intersection.parents
+        gamma_1 = parents[0].charge(intersection.index_1)
+        gamma_2 = parents[1].charge(intersection.index_2)
+        omega_1 = parents[0].degeneracy
+        omega_2 = parents[1].degeneracy
+        u_0 = intersection.locus
+        # print "gamma_1 = %s" % gamma_1
+        # print "gamma_2 = %s" % gamma_2
+        # print "omega_1 = %s" % omega_1
+        # print "omega_2 = %s" % omega_2
+        # print "u_0 = %s" % u_0
+   
+        progeny = progeny_2([[gamma_1, omega_1], [gamma_2, omega_2]])
+        for sibling in progeny:
+            charge = sibling[0] # this is the charge formatted wrt the basis of parent charges
+            actual_charge = list( charge[0] * array(gamma_1) + charge[1] * array(gamma_2) )
+            degeneracy = sibling[1]
+            boundary_condition = set_bc(intersection, charge)
+            # print "actual_charge, , degeneracy, theta, parents, boundary_condition = %s " % [actual_charge, degeneracy, theta, parents, boundary_condition]
+            new_walls.append( Trajectory(actual_charge, degeneracy, theta, parents, boundary_condition) )
+
     return new_walls
     
 
