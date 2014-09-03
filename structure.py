@@ -42,7 +42,8 @@ class Trajectory:
         return [z[1] for z in self.coordinates]
 
     def evolve(self):
-        print "\nEvolving trajectory %d " % Trajectory.count
+        if verb: 
+            print "\nEvolving trajectory %d " % Trajectory.count
         from numpy import concatenate
         if self.parents[0].__class__.__name__ == 'BranchPoint':
             ## for a *primary* kwall the boundary conditions are a bit particular:
@@ -146,6 +147,7 @@ class IntersectionPoint:
         self.index_1 = data[1]
         self.index_2 = data[2]
         self.genealogy = build_genealogy_tree(parents)
+        self.phase = parents[0].phase
 
     def __str__(self):
         return 'Intersection info: locus %s, parents (%s,%s) ' % \
@@ -186,11 +188,14 @@ def build_first_generation(branch_points, phase, g2, g3, primary_options, option
 def new_intersections(kwalls,new_kwalls):
     """Find new wall-wall intersections"""
 
-    from parameters import dsz_matrix
+    from parameters import dsz_matrix, verb
     new_ints = []
 
     from parameters import intersection_range ## parameter related only to the temporary intersection algorithm
     
+    if verb:
+        print "\nsearching intersections of %s overall kwalls with %s new_kwalls" % (len(kwalls)+len(new_kwalls), len(new_kwalls))
+
     ### note: I am excluding some cases from being checked for intersections, see the if statements below
     for i_1, traj_1 in list(enumerate(kwalls)):
         for i_2, traj_2 in list(enumerate(new_kwalls)):
@@ -205,7 +210,8 @@ def new_intersections(kwalls,new_kwalls):
                 intersections_list = find_intersections(traj_1, traj_2)
                 new_ints += [ IntersectionPoint(intersection, [traj_1, traj_2]) for intersection in intersections_list] 
 
-    print "\nEvaluating intersections of NEW Kwalls with ALL Kwalls: found %d of them" % len(new_ints)
+    if verb: 
+        print "\nEvaluating intersections of NEW Kwalls with ALL Kwalls: found %d of them" % len(new_ints)
     return new_ints
     
 
@@ -213,10 +219,13 @@ def new_intersections(kwalls,new_kwalls):
 
 def iterate(n,kwalls,new_kwalls,intersections):
     """Iteration"""
+    from parameters import verb
     for i in range(n):
         new_ints = new_intersections(kwalls, new_kwalls)
         intersections += new_ints
         kwalls += new_kwalls
+        if verb:
+            print "\ncreating new trajectories"
         new_kwalls = build_new_walls(new_ints)
 
     return kwalls, new_kwalls, intersections
@@ -266,3 +275,33 @@ def build_genealogy_tree(intersection_point):
     # same MS wall.
     # It will not be necessary to develop this until everything else is in place.
 
+
+def phase_scan(theta_range):
+    """Scans various values of theta, returns an array of IntersectionPoint objects.
+    The argument is of the form: theta_range = [theta_in, theta_fin, steps]"""
+    
+    from parameters import g2, g3, primary_options, options, kwalls, new_kwalls, intersections
+
+    
+    theta_in = theta_range[0]
+    theta_fin = theta_range[1]
+    steps = theta_range[2]
+
+    angles = [ theta_in + i * (theta_fin - theta_in) / steps  for i in range(steps+1)]
+    all_intersections = []
+    all_kwalls = []
+
+    for phase in angles:
+        print "\ncomputing phase %s" % phase
+        new_kwalls = []
+        kwalls = []
+        intersections = []
+        branch_locus = prepare_branch_locus(g2, g3, phase)
+        branch_points = branch_locus[0]
+        branch_cuts = branch_locus[1]
+        new_kwalls = build_first_generation(branch_points, phase, g2, g3, primary_options, options)
+        kwalls, new_kwalls, intersections = iterate(n_iter, kwalls, new_kwalls, intersections)
+        all_intersections.append(intersections)
+        all_kwalls.append(kwalls + new_kwalls)
+
+    return [all_intersections, all_kwalls]

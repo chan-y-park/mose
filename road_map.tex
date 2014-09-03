@@ -1,11 +1,13 @@
 \documentclass[11pt]{article}
-
+\usepackage{color}
 \title{Things to do}
 \author{Chan, Daniel, Pietro}
 %\date{}                                           % Activate to display a given date or no date
 
 \begin{document}
 \maketitle
+
+\tableofcontents
 
 \section{Intersection algorithm}
 This should be a function called \texttt{find\_intersections(trajectory\_1,trajectory\_2)} returning the intersection(s) of the two given trajectories. It shold be placed in the numerics.py file\\
@@ -26,12 +28,15 @@ This should be a function called {\tt progeny\_2(data)} placed in the file kswcf
 A primitive example is provided in the file kswcf.py.
 
 
-\section{Rotation of the phase}
-A function that repeats the whole computation of primary k-walls, their intersections, generation of descendants, and iterations to get new intersections, new descendats etc.. for different phases.
 
-It will have arguments such as: the number of daughter generations to be considered, the phase, the numerical options for growing kwalls, etc.
+\section{Rotation of the phase - {\color{red} \bf done}}
+A function called {\tt phase\_scan(theta\_range)} in structure.py, that repeats the whole computation of primary k-walls, their intersections, generation of descendants, and iterations to get new intersections, new descendats etc.. for different phases.\\
+The argument {\tt theta\_range} is of the form {\tt theta\_range = [theta\_in, theta\_fin, steps]}.
 
-It's important that, at each phase, it \emph{stores the information about intersection points and their genealogy}. This information will then be used to construct full MS walls.
+At each phase, it \emph{stores the information about intersection points and their genealogy}. This information will then be used to construct full MS walls.
+
+As of now, it keeps track of all intersections and all k-walls at every phase, and returns a big array containing them: this has the shape {\tt [  all\_ints , all\_trajs  ]} where {\tt all\_ints = [ ... [ int1, int2, ... ] ... ]} contains arrays of intersections of given phase and similarly {\tt all\_trajs = [ ... [ traj1, traj2, ... ] ... ]} contains arrays of trajectories of given phase.
+
 
 
 \section{Genealogy}
