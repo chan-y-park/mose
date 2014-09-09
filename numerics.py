@@ -1,10 +1,13 @@
 def find_singularities(g2, g3):
     """find the singularities on the Coulomb branch"""
     import sympy as sym
+    from parameters import verb
+
     u = sym.Symbol('u')
     discriminant = sym.simplify(g2 ** 3 - 27 * g3 ** 2)
-    print "discriminant: %s" % discriminant
-    print "singularities: %s" % sym.solve(discriminant, u)
+    if verb:
+        print "\ndiscriminant: %s" % discriminant
+        print "\nsingularities: %s" % sym.solve(discriminant, u)
     return sym.solve(discriminant, u)
 
 def complexify(y):
@@ -159,7 +162,7 @@ def find_intersections(trajectory_1, trajectory_2):
     path_2 = trajectory_2.coordinates
     from numpy import linalg as LA
     from numpy import array
-    distances = [[LA.norm(x - y) for x in path_1 ] for y in path_2 ]
+    distances = [[LA.norm(array(x) - array(y)) for x in path_2 ] for y in path_1 ]
     min_dist = min(map(min, distances))
     from parameters import intersection_range
     if min_dist < intersection_range:
