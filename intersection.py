@@ -163,14 +163,14 @@ class HitTable:
                     # missing an intersection when it is near the boundary
                     # of a bin.
                     try:
-                        self.put(prev_bin_key, curve_index, 
-                                    [t_i + self._bin_fill_offset,
-                                        t_n - self._bin_fill_offset])
+                        t_f = t_n - self._bin_fill_offset
+                        if t_i < t_f:
+                            self.put(prev_bin_key, curve_index, [t_i, t_f])
                     except KeyError:
                         # [x_n, y_n] is outside the intersection search range.
                         print e.value
                         pass
-                    t_i = t_n - 1
+                    t_i = t_n
                     prev_bin_key = bin_key
                 elif is_turning_point(curve, t_n):
                     try:
@@ -328,7 +328,7 @@ def find_intersection(list_of_curves, hit_table, search_range, bin_size):
             continue
         # more than two curves hit the bin.
         for curve_index_1, curve_index_2 in combinations(hit_table[bin_key], 2):
-            #print 'bin @ ' + str(hit_table.get_bin_location(bin_key))
+            #DEBUG: print 'bin @ ' + str(hit_table.get_bin_location(bin_key))
             # NOTE: to get self-intersection; use combinations_with_replacement.
             for t1_i, t1_f in hit_table[bin_key][curve_index_1]:
                 segment_1 = list_of_curves[curve_index_1][t1_i:t1_f + 1]

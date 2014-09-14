@@ -12,7 +12,7 @@ x1_max = 2      # maximum value of x range
 x1_num = 2000   # number of data points
 # End of parameters
 # Change this functional form to consider different curves.
-f1 = lambda x: 1.2*np.cos(1.5*x)
+f1 = lambda x: 1.2*np.cos(2.3*x)
 
 x1 = np.linspace(x1_min, x1_max, x1_num)
 y1 = f1(x1)
@@ -59,6 +59,7 @@ while yh < y_max:
 # End of drawing the bin lattice.
 
 # Construct a HitTable to record segmentation of curves.
+#ht = HitTable(plane_range, bin_size, bin_fill_offset=5)
 ht = HitTable(plane_range, bin_size)
 ht.fill(lc)
 
