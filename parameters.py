@@ -33,3 +33,5 @@ n_iter = 2
 theta_range = [0,np.pi,3]
 
 verb = True
+
+ks_filtration_degree = 6

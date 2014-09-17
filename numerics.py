@@ -42,8 +42,8 @@ def set_bc(intersection,charge):
     eta_2 = periods_2[index_2]
     d_eta_1 = (periods_1[index_1] - periods_1[index_1-1]) / (path_1[index_1] - path_1[index_1-1])
     d_eta_2 = (periods_2[index_2] - periods_2[index_2-1]) / (path_2[index_2] - path_2[index_2-1])
-    eta0 = eta_1 * charge[0] + eta_2 * charge[1]
-    d_eta0 = d_eta_1 * charge[0] + d_eta_2 * charge[1]
+    eta0 = eta_1 * complex(charge[0]) + eta_2 * complex(charge[1])  ### The use of complex() is necessary here, because sometimes the charge vector wil be deriving from an algorithm using sympy, and will turn j's into I's...
+    d_eta0 = d_eta_1 * complex(charge[0]) + d_eta_2 * complex(charge[1])  ### The use of complex() is necessary here, because sometimes the charge vector wil be deriving from an algorithm using sympy, and will turn j's into I's...
     return [u0, eta0, d_eta0]
 
 def grow_primary_kwall(u0, sign, g2, g3, theta, primary_options): 

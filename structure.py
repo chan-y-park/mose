@@ -1,6 +1,6 @@
 import cmath
 from numerics import *
-from kswcf import *
+from kswcf import progeny_2
 from parameters import *
 
 class Trajectory:
