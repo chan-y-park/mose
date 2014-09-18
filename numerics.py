@@ -24,10 +24,14 @@ def set_primary_bc(traj):
     return [u0, eta0, d_eta0]
 
 def set_bc(intersection,charge):
-    """ employs data of class Trajectory to produce correctly formatted boundary conditions for grow_pf
+    """ employs data of class Trajectory to produce correctly formatted 
+    boundary conditions for grow_pf. 
+    It also passes the argument "intersection" through, this will be employed
+    in the Trajectory class to keep track of genealogical data.
     Arguments: (intersection, charge)
     intersection must be an instance of the IntersecionPoint class
-    charge must be the charge relative to the parents' charge basis, hence a list of length 2
+    charge must be the charge relative to the parents' charge basis, 
+    hence a list of length 2
     """
     u0 = intersection.locus
 
@@ -44,7 +48,7 @@ def set_bc(intersection,charge):
     d_eta_2 = (periods_2[index_2] - periods_2[index_2-1]) / (path_2[index_2] - path_2[index_2-1])
     eta0 = eta_1 * complex(charge[0]) + eta_2 * complex(charge[1])  ### The use of complex() is necessary here, because sometimes the charge vector wil be deriving from an algorithm using sympy, and will turn j's into I's...
     d_eta0 = d_eta_1 * complex(charge[0]) + d_eta_2 * complex(charge[1])  ### The use of complex() is necessary here, because sometimes the charge vector wil be deriving from an algorithm using sympy, and will turn j's into I's...
-    return [u0, eta0, d_eta0]
+    return [u0, eta0, d_eta0, intersection]
 
 def grow_primary_kwall(u0, sign, g2, g3, theta, primary_options): 
     """ implementation of the ODE for evolving primary walls, valid in neighborhood of an A_1 singularity """

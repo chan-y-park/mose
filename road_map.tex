@@ -39,7 +39,7 @@ As of now, it keeps track of all intersections and all k-walls at every phase, a
 
 
 
-\section{Genealogy}
+\section{Genealogy - {\color{red} \bf done}}
 Not sure how to structure this yet. But it should be a function called {\tt build\_genealogy\_tree(intersection\_point)} that takes as argument an object of the class IntersectionPoint.
 It should use the attribute {\tt intersection\_point.parents} to recursively determine the trajectories from whom the point descends.
 It should eventually return a structure (type of it is to be determined) that contains the genealogy of such point, meaning which branch-points are the farthest ancestors of the intersection, and in which associative order, eg: {\tt [[BP1,BP2],BP3]}.
@@ -50,7 +50,7 @@ Not sure if keeping track of branch-point ancestors will be enough, maybe not. M
 The purpose of genealogy is to identify which intersections (occurring at different phases) belong to the same wall of marginal stability.
 
 
-\section{Construction of MS walls}
+\section{Construction of MS walls  - {\color{red} \bf in progress}}
 Once the phase-rotation algorithm is working and the genealogy is ready, we should be able to group together intersection points coming from different phase-snapshots, and build analytic MS walls out of them. This will need some thinking
 
 

@@ -24,7 +24,7 @@ class Trajectory:
         self.boundary_condition = boundary_condition
         self.initial_charge = initial_charge        # the initial charge
         self.color = color
-        # Make trajectory evolve automatically at this point?
+        self.initial_point = None       # to be defined below
         self.evolve()
         Trajectory.count += 1 
 
@@ -47,6 +47,7 @@ class Trajectory:
         from numpy import concatenate
         if self.parents[0].__class__.__name__ == 'BranchPoint':
             ## for a *primary* kwall the boundary conditions are a bit particular:
+            self.initial_point = self.parents[0]
             u0 = self.boundary_condition[0]
             sign = self.boundary_condition[1]
             pw_data = grow_primary_kwall(u0, sign, g2, g3, self.phase, primary_options)
@@ -59,7 +60,11 @@ class Trajectory:
             self.periods = concatenate(( self.periods , [row[2] + 1j* row[3] for row in pw_data_pf] ))
             self.check_cuts()
         elif self.parents[0].__class__.__name__ == 'Trajectory':
-            pw_data_pf = grow_pf(self.boundary_condition, g2, g3, self.phase, options)
+            ### recall that self.boundary_conditions in this case are set by set_bc(...)
+            ### and they are formatted as [u0, eta0, d_eta0, intersection]
+            ### the latter being an IntersectionPoint object
+            self.initial_point = self.boundary_condition[3]
+            pw_data_pf = grow_pf(self.boundary_condition[0:3], g2, g3, self.phase, options)
             self.coordinates =  [ [row[0], row[1]] for row in pw_data_pf ]
             self.periods =  [ row[2] + 1j* row[3] for row in pw_data_pf ] 
             self.check_cuts()
@@ -95,6 +100,7 @@ class BranchPoint:
         self.charge = charge
         self.locus = locus
         self.count = BranchPoint.count
+        self.genealogy = self
         BranchPoint.count += 1 
 
     def __str__(self):
@@ -147,12 +153,29 @@ class IntersectionPoint:
         self.locus = data[0]
         self.index_1 = data[1]
         self.index_2 = data[2]
-        self.genealogy = build_genealogy_tree(parents)
+        self.charges = [parents[0].charge(self.index_1), parents[1].charge(self.index_2)]
+        self.degeneracies = [parents[0].degeneracy, parents[1].degeneracy]
+        self.genealogy = build_genealogy_tree(self)
         self.phase = parents[0].phase
 
-    def __str__(self):
-        return 'Intersection info: locus %s, parents (%s,%s) ' % \
-        (self.locus, self.parents[0], self.parents[1])
+
+class MarginalStabilityWall:
+    """
+    Th MS wall class.
+    Attributes:
+    charges, degeneracy -- those of (any) two K-walls meeting theta_range
+    points -- the list of actual intersectionpoint objects
+    locus -- the list of points (UNSORTED FOR NOW)
+    """
+
+    count = 0
+
+    def __init__(self, all_intersections):
+        self.charges = all_intersections[0].charges
+        self.degeneracies = all_intersections[0].degeneracies
+        self.points = all_intersections
+        self.locus = [intersection.locus for intersection in all_intersections]
+        MarginalStabilityWall.count += 1
 
 
 
@@ -238,7 +261,6 @@ def build_new_walls(new_intersections):
     """Build K-walls from new intersections"""
     new_walls = []
     
-    from parameters import theta
     from numpy import array
 
     for intersection in new_intersections:
@@ -248,33 +270,50 @@ def build_new_walls(new_intersections):
         omega_1 = parents[0].degeneracy
         omega_2 = parents[1].degeneracy
         u_0 = intersection.locus
-        # print "gamma_1 = %s" % gamma_1
-        # print "gamma_2 = %s" % gamma_2
-        # print "omega_1 = %s" % omega_1
-        # print "omega_2 = %s" % omega_2
-        # print "u_0 = %s" % u_0
-   
+        phase = intersection.phase
         progeny = progeny_2([[gamma_1, omega_1], [gamma_2, omega_2]])
         for sibling in progeny:
             charge = sibling[0] # this is the charge formatted wrt the basis of parent charges
             actual_charge = list( charge[0] * array(gamma_1) + charge[1] * array(gamma_2) )
             degeneracy = sibling[1]
             boundary_condition = set_bc(intersection, charge)
-            # print "actual_charge, , degeneracy, theta, parents, boundary_condition = %s " % [actual_charge, degeneracy, theta, parents, boundary_condition]
-            new_walls.append( Trajectory(actual_charge, degeneracy, theta, parents, boundary_condition) )
+            new_walls.append( Trajectory(actual_charge, degeneracy, phase, parents, boundary_condition) )
 
     return new_walls
     
 
 
 
-def build_genealogy_tree(intersection_point):
-    return "this function will return the genealogy tree of an intersection \
+def build_genealogy_tree(intersection):
+    """
+    this function will return the genealogy tree of an intersection \
     in the form of a list such as [[BP1,BP2],BP3] for an intersection with the\
-    obvious history"
-    # Genealogy is crucial for identifying which points should belong to the 
-    # same MS wall.
-    # It will not be necessary to develop this until everything else is in place.
+    obvious history
+    """
+    
+    parents = intersection.parents
+    index_1 = intersection.index_1
+    index_2 = intersection.index_2
+    
+    ### determine who's mom and who's dad by relative orientation
+    delta_z_1 = complexify(parents[0].coordinates[index_1+1]) - complexify(parents[0].coordinates[index_1])
+    delta_z_2 = complexify(parents[1].coordinates[index_2+1]) - complexify(parents[1].coordinates[index_2])
+
+    if cmath.phase(delta_z_1 / delta_z_2) > 0:
+        dad = parents[0].initial_point
+        mom = parents[1].initial_point
+    else:
+        dad = parents[1].initial_point
+        mom = parents[0].initial_point
+
+    return [dad.genealogy, mom.genealogy] 
+
+
+
+def build_ms_walls(all_intersections):
+    return "TO DO"
+    ####### build MS walls based on 1) genealogies 2) charges of walls at the intersections
+
 
 
 def phase_scan(theta_range):
@@ -303,7 +342,7 @@ def phase_scan(theta_range):
         \nIteration number %s: computing phase %s\
         \n----------------------------------------------------------" % (iter_count, phase)
 
-        iter_count+1
+        iter_count += 1
         new_kwalls = []
         kwalls = []
         intersections = []
@@ -313,4 +352,6 @@ def phase_scan(theta_range):
         all_intersections += intersections
         all_kwalls += (kwalls + new_kwalls)
 
-    return [all_intersections, all_kwalls]
+    ms_walls = build_ms_walls(all_intersections)
+
+    return [all_intersections, all_kwalls, ms_walls]
