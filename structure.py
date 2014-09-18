@@ -293,16 +293,23 @@ def phase_scan(theta_range):
     all_kwalls = []
 
     branch_locus = prepare_branch_locus(g2, g3, theta_cuts)
-        branch_points = branch_locus[0]
-        branch_cuts = branch_locus[1]
+    branch_points = branch_locus[0]
+    branch_cuts = branch_locus[1]
+
+    iter_count = 1
 
     for phase in angles:
-        print "\ncomputing phase %s" % phase
+        print "\n----------------------------------------------------------\
+        \nIteration number %s: computing phase %s\
+        \n----------------------------------------------------------" % (iter_count, phase)
+
+        iter_count+1
         new_kwalls = []
         kwalls = []
         intersections = []
-        new_kwalls = build_first_generation(branch_points, phase, g2, g3, primary_options, options)
-        kwalls, new_kwalls, intersections = iterate(n_iter, kwalls, new_kwalls, intersections)
+        new_kwalls = build_first_generation(branch_points, phase, g2, g3)
+        kwalls, new_kwalls, intersections = iterate(n_iter, kwalls, new_kwalls, 
+            intersections)
         all_intersections += intersections
         all_kwalls += (kwalls + new_kwalls)
 
