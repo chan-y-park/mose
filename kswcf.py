@@ -6,6 +6,11 @@ from parameters import dsz_matrix as dsz
 from parameters import verb
 from numpy import array
 
+#### To enhance the speed, we will keep memory of those KSWCFs that have been 
+#### already computed once. 
+stored_keys = []    ## Its entries are of the form [m, omega_1, omega_2]
+stored_results = []     ## Its entries are the output of KS2(m, omega_1, omega_2)
+
 def progeny_2(data):
     #### The formatting of "data" should be as follows:
     #### [ [gamma_1 , omega_1]  ,  [gamma_2 , omega_2] ] 
@@ -134,6 +139,12 @@ def S(m, data, expr):
         temp = K(m, gamma, omega, temp)
     return temp
 
+
+def position_sublist(lst, sublst):
+    for i in range(len(lst)):
+        if sublst == lst[i]:
+            return i
+
 def KS2(m, omega_1, omega_2):    
     """
     Solves the basic KS identity: 
@@ -142,76 +153,92 @@ def KS2(m, omega_1, omega_2):
     < (1,0) , (0,1) > = m
     We use the procedure suggested in eq. (5.2) of WWC (wild wall crossing paper)
     """
-    ### The refeernce data: the LHS of the KSWCF
-    data = [ [[0,1], omega_2],   [[1,0],omega_1]]
-    var_x = S(m, data, x)
-    var_y = S(m, data, y)
 
-    ### Finding the RHS
-    ansatz = [ [[1,0],omega_1], [[0,1], omega_2]]
+    ### Start by checking if we already computed this
+    case = position_sublist(stored_keys, [m, omega_1, omega_2])
 
-    while True:
-        ans_x = S(m, ansatz, x)
-        ans_y = S(m, ansatz, y)
+    if not case == None:
+        return stored_results[case]
 
-        expr_x = t_min_degree(((var_x - ans_x) / x).expand()) 
-        # print "expr_x = %s" % expr_x
-        expr_y = t_min_degree(((var_y - ans_y) / y).expand()) 
-        # print "expr_y = %s" % expr_y
+    else:
+        ### The reference data: the LHS of the KSWCF
+        data = [ [[0,1], omega_2],   [[1,0],omega_1]]
+        var_x = S(m, data, x)
+        var_y = S(m, data, y)
 
-        if expr_x == 0 and expr_y ==0:
-            break
+        ### Finding the RHS
+        ansatz = [ [[1,0],omega_1], [[0,1], omega_2]]
 
-        else:
-            all_monomials_x = monomials_of_degree(t_degree(expr_x))
-            # print all_monomials_x
-            all_coefficients_x = [Poly(expr_x).coeff_monomial(mono) for mono in all_monomials_x]
-            # print all_coefficients_x
-            all_charges_x = charges_of_degree(t_degree(expr_x))
-            # print all_charges_x
-            all_degeneracies_x = [-all_coefficients_x[i] / (m * (-1)**(m * all_charges_x[i][0] * all_charges_x[i][1]) * all_charges_x[i][1]) for i in range(len(all_coefficients_x))]
-            # print all_degeneracies_x
+        while True:
+            ans_x = S(m, ansatz, x)
+            ans_y = S(m, ansatz, y)
 
-            all_monomials_y = monomials_of_degree(t_degree(expr_y))
-            # print all_monomials_y
-            all_coefficients_y = [Poly(expr_y).coeff_monomial(mono) for mono in all_monomials_y]
-            # print all_coefficients_y
-            all_charges_y = charges_of_degree(t_degree(expr_y))
-            # print all_charges_y
-            all_degeneracies_y = [-all_coefficients_y[i] / (- m * (-1)**(m * all_charges_y[i][0] * all_charges_y[i][1]) * all_charges_y[i][0]) for i in range(len(all_coefficients_y))]
-            # print all_degeneracies_y
+            expr_x = t_min_degree(((var_x - ans_x) / x).expand()) 
+            # print "expr_x = %s" % expr_x
+            expr_y = t_min_degree(((var_y - ans_y) / y).expand()) 
+            # print "expr_y = %s" % expr_y
 
-            all_states = []
-            for i in range(len(all_degeneracies_x)):
-                omega = all_degeneracies_x[i]
-                gamma = all_charges_x[i]
-                if omega == 0 or type(omega) is NaN:
-                    pass
-                else:
-                    all_states.append([gamma,int(omega)])
-            for i in range(len(all_degeneracies_y)):
-                omega = all_degeneracies_y[i]
-                gamma = all_charges_y[i]
-                if omega == 0 or type(omega) is NaN:
-                    pass
-                else:
-                    all_states.append([gamma,int(omega)])
+            if expr_x == 0 and expr_y ==0:
+                break
 
-            all_states = remove_duplicates(all_states)
-            # print "new states: %s" % all_states
+            else:
+                all_monomials_x = monomials_of_degree(t_degree(expr_x))
+                # print all_monomials_x
+                all_coefficients_x = [Poly(expr_x).coeff_monomial(mono) for mono in all_monomials_x]
+                # print all_coefficients_x
+                all_charges_x = charges_of_degree(t_degree(expr_x))
+                # print all_charges_x
+                all_degeneracies_x = [-all_coefficients_x[i] / (m * (-1)**(m * all_charges_x[i][0] * all_charges_x[i][1]) * all_charges_x[i][1]) for i in range(len(all_coefficients_x))]
+                # print all_degeneracies_x
 
-            ### Now add the newly found BPS states to the ansatz, and reorder according to charge slope
-            ansatz = ansatz + all_states
-            # print ansatz
-            decorated = [[(state[0][1]+0.01)/(state[0][0]+0.01), state] for i, state in enumerate(ansatz)] ## decorating a list of states by the charge slope, adding +0.01 to avoid dividing by zero
-            ansatz = [state for slope, state in sorted(decorated)]
-            # print ansatz
+                all_monomials_y = monomials_of_degree(t_degree(expr_y))
+                # print all_monomials_y
+                all_coefficients_y = [Poly(expr_y).coeff_monomial(mono) for mono in all_monomials_y]
+                # print all_coefficients_y
+                all_charges_y = charges_of_degree(t_degree(expr_y))
+                # print all_charges_y
+                all_degeneracies_y = [-all_coefficients_y[i] / (- m * (-1)**(m * all_charges_y[i][0] * all_charges_y[i][1]) * all_charges_y[i][0]) for i in range(len(all_coefficients_y))]
+                # print all_degeneracies_y
 
-    return ansatz
+                all_states = []
+                for i in range(len(all_degeneracies_x)):
+                    omega = all_degeneracies_x[i]
+                    gamma = all_charges_x[i]
+                    if omega == 0 or type(omega) is NaN:
+                        pass
+                    else:
+                        all_states.append([gamma,int(omega)])
+                for i in range(len(all_degeneracies_y)):
+                    omega = all_degeneracies_y[i]
+                    gamma = all_charges_y[i]
+                    if omega == 0 or type(omega) is NaN:
+                        pass
+                    else:
+                        all_states.append([gamma,int(omega)])
+
+                all_states = remove_duplicates(all_states)
+                # print "new states: %s" % all_states
+
+                ### Now add the newly found BPS states to the ansatz, and reorder according to charge slope
+                ansatz = ansatz + all_states
+                # print ansatz
+                decorated = [[(state[0][1]+0.01)/(state[0][0]+0.01), state] for i, state in enumerate(ansatz)] ## decorating a list of states by the charge slope, adding +0.01 to avoid dividing by zero
+                ansatz = [state for slope, state in sorted(decorated)]
+                # print ansatz
+
+        stored_keys.append([m, omega_1, omega_2])
+        stored_results.append(ansatz)
+
+        return ansatz
 
 
 ###### SOME TESTS #####
 
+# print KS2(2,1,1)
+# print KS2(3,1,1)
+
+# print stored_keys
+# print stored_results
 # print KS2(2,1,1)
 
 # data = [[[1,0], 1], [[-1,2], 1]] 
@@ -228,3 +255,4 @@ def KS2(m, omega_1, omega_2):
 # print progeny_2(data)
 
 # print KS2(3,1,1)
+

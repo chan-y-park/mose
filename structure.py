@@ -94,6 +94,7 @@ class BranchPoint:
     def __init__(self, locus, charge):
         self.charge = charge
         self.locus = locus
+        self.count = BranchPoint.count
         BranchPoint.count += 1 
 
     def __str__(self):
@@ -280,7 +281,7 @@ def phase_scan(theta_range):
     """Scans various values of theta, returns an array of IntersectionPoint objects.
     The argument is of the form: theta_range = [theta_in, theta_fin, steps]"""
     
-    from parameters import g2, g3, primary_options, options, kwalls, new_kwalls, intersections
+    from parameters import g2, g3, primary_options, options, kwalls, new_kwalls, intersections, theta_cuts
 
     
     theta_in = theta_range[0]
@@ -291,17 +292,18 @@ def phase_scan(theta_range):
     all_intersections = []
     all_kwalls = []
 
+    branch_locus = prepare_branch_locus(g2, g3, theta_cuts)
+        branch_points = branch_locus[0]
+        branch_cuts = branch_locus[1]
+
     for phase in angles:
         print "\ncomputing phase %s" % phase
         new_kwalls = []
         kwalls = []
         intersections = []
-        branch_locus = prepare_branch_locus(g2, g3, phase)
-        branch_points = branch_locus[0]
-        branch_cuts = branch_locus[1]
         new_kwalls = build_first_generation(branch_points, phase, g2, g3, primary_options, options)
         kwalls, new_kwalls, intersections = iterate(n_iter, kwalls, new_kwalls, intersections)
-        all_intersections.append(intersections)
-        all_kwalls.append(kwalls + new_kwalls)
+        all_intersections += intersections
+        all_kwalls += (kwalls + new_kwalls)
 
     return [all_intersections, all_kwalls]

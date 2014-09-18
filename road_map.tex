@@ -14,7 +14,7 @@ This should be a function called \texttt{find\_intersections(trajectory\_1,traje
 If the trajectories don't intersect, it should return {\tt []} otherwise it should return a list {\tt [[point, index\_1, index\_2], ...]} where
 \begin{itemize}
 \item {\tt point} is the exact point of intersection, given as a complex number 
-\item {\tt index\_1} is the index of the element of {\tt trajectory\_1.coordinates} that corresponds to the exact intersection point. (Same for {\tt index\_2}).
+\item {\tt index\_1} is the index of the element of {\tt trajectory\_1.coordinates} that corresponds to the exact intersection point. (Same for {\tt index\_2}). This is important because it will be used to determine the pertinent charge to use in computing progenie by means of the KSWCF. {\bf We are taking the shortcut of \emph{not} adding the actual point to the trajectory, so we introduce a tiny approximation. Keep in mind if trouble arises.}
 \item The exact point of intersection should be added to the lists {\tt trajectory\_1.coordinates} and {\tt trajectory\_2.coordinates}, at the appropriate point {\bf warning:} coordinates attributes in the Trajectory class are given as a 2-vector, not as a complex numer. 
 \item Moreover, the corresponding value of the period of $\eta$ for that trajectory should also be added to {\tt trajectory\_1.periods} (and same for trajectory\_2), this goes as a complex number.
 \end{itemize}
