@@ -167,7 +167,7 @@ def prepare_branch_locus(g2, g3, phase):
 
 
 
-def build_first_generation(branch_points, phase, g2, g3, primary_options, options):
+def build_first_generation(branch_points, phase, g2, g3):
     """Construct the primary Kwalls"""
     traj = []
     Trajectory.count = 0
