@@ -3,6 +3,13 @@ from numerics import *
 from kswcf import progeny_2
 from parameters import *
 
+# TODO: move the following import sentences to an appropriate location.
+import logging
+from parameters import INTERSECTION_SEARCH_RANGE, INTERSECTION_SEARCH_BIN_SIZE
+from intersection import (HitTable, NoIntersection, 
+                            find_intersection_of_segments)
+from itertools import combinations
+
 class Trajectory:
     """
     The trajectory class.
@@ -212,43 +219,97 @@ def build_first_generation(branch_points, phase, g2, g3):
 
 
 
-def new_intersections(kwalls,new_kwalls):
+def new_intersections(kwalls, new_kwalls, hit_table):
     """Find new wall-wall intersections"""
 
     from parameters import dsz_matrix, verb
     new_ints = []
+    i_0 = len(kwalls)
 
-    from parameters import intersection_range ## parameter related only to the temporary intersection algorithm
-    
-    if verb:
-        print "\nsearching intersections of %s overall kwalls with %s new_kwalls" % (len(kwalls)+len(new_kwalls), len(new_kwalls))
+    for i, traj in list(enumerate(new_kwalls)):
+        hit_table.fill(i_0+i, traj.coordinates)
 
-    ### note: I am excluding some cases from being checked for intersections, see the if statements below
-    for i_1, traj_1 in list(enumerate(kwalls)):
-        for i_2, traj_2 in list(enumerate(new_kwalls)):
-            if (dsz_pairing(traj_1.charge(0), traj_2.charge(0), dsz_matrix) != 0 and traj_1.parents != traj_2.parents and (not(traj_1 in traj_2.parents)) ):
-                intersections_list = find_intersections(traj_1, traj_2)
-                new_ints += [ IntersectionPoint(intersection, [traj_1, traj_2]) for intersection in intersections_list] 
+    for bin_key in hit_table:
 
+        if len(hit_table[bin_key]) == 1:
+            # Only one curve in the bin. Skip the rest.
+            continue
+        logging.debug('bin_key with hit: %s', bin_key)
+        # More than two curves hit the bin.
+        for i_1, i_2 in combinations(hit_table[bin_key], 2):
+            logging.debug('i_1, i_2 = %s, %s', i_1, i_2)
+            # NOTE Chan: to get self-intersection, use 
+            # combinations_with_replacement.
+            if i_1 < i_0 and i_2 < i_0:
+                # We checked this intersection already. Skip the rest.
+                continue
+            # At least one of the KWall is a new one.   
+            if i_1 >= i_0:
+                traj_1 = new_kwalls[i_1 - i_0]
+            else:
+                traj_1 = kwalls[i_1]
 
-    for i_1, traj_1 in list(enumerate(new_kwalls)):
-        for i_2, traj_2 in list(enumerate(new_kwalls))[i_1+1 : ]:
-            if (dsz_pairing(traj_1.charge(0), traj_2.charge(0), dsz_matrix) != 0 and traj_1.parents != traj_2.parents and not(traj_1 in traj_2.parents) and not(traj_2 in traj_1.parents)):
-                intersections_list = find_intersections(traj_1, traj_2)
-                new_ints += [ IntersectionPoint(intersection, [traj_1, traj_2]) for intersection in intersections_list] 
+            if i_2 >= i_0:
+                traj_2 = new_kwalls[i_2 - i_0]
+            else:
+                traj_2 = kwalls[i_2]
+
+            # NOTE Pietro: I am excluding some cases from being checked for 
+            # intersections, see the if statements below
+            if (dsz_pairing(traj_1.charge(0), traj_2.charge(0), 
+                            dsz_matrix) == 0 or \
+                traj_1.parents == traj_2.parents or \
+                traj_1 in traj_2.parents):
+                continue
+
+            list_of_intersection_points = []
+
+            for t1_i, t1_f in hit_table[bin_key][i_1]:
+                segment_1 = traj_1.coordinates[t1_i:t1_f + 1]
+                for t2_i, t2_f in hit_table[bin_key][i_2]:
+                    segment_2 = traj_2.coordinates[t2_i:t2_f + 1]
+                    logging.debug('i1_i, t1_f = %s, %s', t1_i, t1_f) 
+                    logging.debug('i2_i, t2_f = %s, %s', t2_i, t2_f) 
+                    try:
+                    # NOTE: we assume there is only one intersection
+                    # between two segments, hoping that we divided
+                    # the curves as many times as required for the
+                    # assumption to hold.
+                        intersection_point = \
+                            find_intersection_of_segments(
+                                segment_1, segment_2,
+                                hit_table.get_bin_location(bin_key),
+                                hit_table._bin_size
+                            )
+
+                        ipx, ipy = intersection_point
+                        index_1 = t1_i + \
+                                    min(range(len(segment_1)), 
+                                        key=lambda i: abs(segment_1[i, 1]-ipx))
+                        index_2 = t2_i + \
+                                    min(range(len(segment_2)), 
+                                        key=lambda i: abs(segment_2[i, 1]-ipx))
+                        list_of_intersection_points.append(
+                            [ipx + I*ipy, index_1, index_2]
+                        )
+                    except NoIntersection:
+                        pass
+
+            logging.debug('intersecion list: %s', list_of_intersection_points)
+
+            new_ints += [IntersectionPoint(intersection, [traj_1, traj_2]) \
+                            for intersection in list_of_intersection_points] 
 
     if verb: 
         print "\nEvaluating intersections of NEW Kwalls with ALL Kwalls: found %d of them" % len(new_ints)
     return new_ints
     
-
-
-
-def iterate(n,kwalls,new_kwalls,intersections):
+def iterate(n, kwalls, new_kwalls, intersections):
     """Iteration"""
     from parameters import verb
+    ht = HitTable(INTERSECTION_SEARCH_RANGE, INTERSECTION_SEARCH_BIN_SIZE)
     for i in range(n):
-        new_ints = new_intersections(kwalls, new_kwalls)
+        new_ints = new_intersections(kwalls, new_kwalls, ht)
         intersections += new_ints
         kwalls += new_kwalls
         if verb:
@@ -256,8 +317,6 @@ def iterate(n,kwalls,new_kwalls,intersections):
         new_kwalls = build_new_walls(new_ints)
 
     return kwalls, new_kwalls, intersections
-
-
 
 
 def build_new_walls(new_intersections):     
@@ -348,7 +407,8 @@ def phase_scan(theta_range):
     """Scans various values of theta, returns an array of IntersectionPoint objects.
     The argument is of the form: theta_range = [theta_in, theta_fin, steps]"""
     
-    from parameters import g2, g3, primary_options, options, kwalls, new_kwalls, intersections, theta_cuts
+    from parameters import (g2, g3, primary_options, options, kwalls, 
+                            new_kwalls, intersections, theta_cuts)
 
     
     theta_in = theta_range[0]
@@ -365,6 +425,7 @@ def phase_scan(theta_range):
 
     iter_count = 1
 
+
     for phase in angles:
         print "\n----------------------------------------------------------\
         \nIteration number %s: computing phase %s\
@@ -376,7 +437,7 @@ def phase_scan(theta_range):
         intersections = []
         new_kwalls = build_first_generation(branch_points, phase, g2, g3)
         kwalls, new_kwalls, intersections = iterate(n_iter, kwalls, new_kwalls, 
-            intersections)
+                                                    intersections)
         all_intersections += intersections
         all_kwalls += (kwalls + new_kwalls)
 

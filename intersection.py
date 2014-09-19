@@ -21,7 +21,7 @@ from math import ceil
 from itertools import combinations
 from warnings import warn
 
-from structure import Trajectory, IntersectionPoint
+#from structure import Trajectory, IntersectionPoint
 
 # Library version checks.
 if numpy_version < '1.9.0':
@@ -84,15 +84,15 @@ class HitTable:
         in list_of_curves.
     """
 
-    def __init__(self, plane_range=[[-1.0, 1.0], [-1.0, 1.0]], 
+    def __init__(self, search_range=[[-1.0, 1.0], [-1.0, 1.0]], 
                     bin_size=1.0, bin_fill_offset=0):
-        self._plane_range = plane_range
+        self._search_range = search_range
         self._bin_size = bin_size
         self._bin_fill_offset = bin_fill_offset
         self._hit_table = {}
         self._num_x_bin, self._num_y_bin = \
             map(lambda (r_min, r_max): int(ceil((r_max - r_min)/bin_size)), 
-                plane_range)
+                search_range)
 
     def __getitem__(self, key):
         return self._hit_table[key]
@@ -102,7 +102,7 @@ class HitTable:
 
     def get_bin_key(self, location):
         x_coord, y_coord = location
-        [[x_min, x_max], [y_min, y_max]] = self._plane_range
+        [[x_min, x_max], [y_min, y_max]] = self._search_range
 
         bin_key_x, bin_key_y = \
             map(lambda coord, r_min: int((coord - r_min)/self._bin_size),
@@ -111,7 +111,7 @@ class HitTable:
         return (bin_key_x, bin_key_y)
 
     def get_bin_location(self, bin_key):
-        [[x_min, x_max], [y_min, y_max]] = self._plane_range
+        [[x_min, x_max], [y_min, y_max]] = self._search_range
 
         location = map(lambda coord, r_min: coord * self._bin_size + r_min + \
                         0.5*self._bin_size, bin_key, [x_min, y_min])
@@ -147,50 +147,49 @@ class HitTable:
 
         self._hit_table[bin_key][curve_index].append(segment_range)
 
-    def fill(self, list_of_curves):
-        for curve_index, curve in enumerate(list_of_curves):
-            t_i = t_0 = 0
-            x_0, y_0 = curve[t_0]
-            prev_bin_key = self.get_bin_key([x_0, y_0])
-            for t_n, [x_n, y_n] in enumerate(curve):
-                bin_key = self.get_bin_key([x_n, y_n])
-                # Cut the curve into a segment where it goes over the current 
-                # bin or where it has a turning point.
-                if prev_bin_key != bin_key:
-                    # curve[t_n - 1] and curve[t_n] are in different bins. 
-                    # NOTE: bin_fill_offset = 0 gives segments that go over the
-                    # boundaries of bins. A nonzero offset can result in
-                    # missing an intersection when it is near the boundary
-                    # of a bin.
-                    try:
-                        t_f = t_n - self._bin_fill_offset
-                        if t_i < t_f:
-                            self.put(prev_bin_key, curve_index, [t_i, t_f])
-                    except KeyError:
-                        # [x_n, y_n] is outside the intersection search range.
-                        print e.value
-                        pass
-                    t_i = t_n
-                    prev_bin_key = bin_key
-                elif is_turning_point(curve, t_n):
-                    try:
-                        self.put(prev_bin_key, curve_index, [t_i, t_n])
-                    except KeyError as e:
-                        # [x_n, y_n] is outside the intersection search range.
-                        print e.value
-                        pass
-                    t_i = t_n
-                else:
-                    # curve[t_n] is not the end of the segment.
-                    continue
-            # Take care of the last segment, if any.
-            if t_i < t_n:
+    def fill(self, curve_index, curve):
+        t_i = t_0 = 0
+        x_0, y_0 = curve[t_0]
+        prev_bin_key = self.get_bin_key([x_0, y_0])
+        for t_n, [x_n, y_n] in enumerate(curve):
+            bin_key = self.get_bin_key([x_n, y_n])
+            # Cut the curve into a segment where it goes over the current 
+            # bin or where it has a turning point.
+            if prev_bin_key != bin_key:
+                # curve[t_n - 1] and curve[t_n] are in different bins. 
+                # NOTE: bin_fill_offset = 0 gives segments that go over the
+                # boundaries of bins. A nonzero offset can result in
+                # missing an intersection when it is near the boundary
+                # of a bin.
+                try:
+                    t_f = t_n - self._bin_fill_offset
+                    if t_i < t_f:
+                        self.put(prev_bin_key, curve_index, [t_i, t_f])
+                except KeyError:
+                    # [x_n, y_n] is outside the intersection search range.
+                    print e.value
+                    pass
+                t_i = t_n
+                prev_bin_key = bin_key
+            elif is_turning_point(curve, t_n):
                 try:
                     self.put(prev_bin_key, curve_index, [t_i, t_n])
                 except KeyError as e:
                     # [x_n, y_n] is outside the intersection search range.
                     print e.value
                     pass
+                t_i = t_n
+            else:
+                # curve[t_n] is not the end of the segment.
+                continue
+        # Take care of the last segment, if any.
+        if t_i < t_n:
+            try:
+                self.put(prev_bin_key, curve_index, [t_i, t_n])
+            except KeyError as e:
+                # [x_n, y_n] is outside the intersection search range.
+                print e.value
+                pass
 
 def is_turning_point(curve, t):
     """Check whether curve[t] is the turning point or not."""
@@ -316,37 +315,4 @@ def find_intersection_of_segments(segment_1, segment_2, bin_center, bin_size,
 
     return [intersection_x, float(intersection_y)]
 
-def find_intersection(list_of_curves, hit_table, search_range, bin_size):
-    """
-    Find intersection points of two curves on a real 2-dim plane.
-    Returns a list of intersection points
-    """
-    list_of_intersection_points = []
 
-    for bin_key in hit_table:
-        if len(hit_table[bin_key]) == 1:
-            continue
-        # more than two curves hit the bin.
-        for curve_index_1, curve_index_2 in combinations(hit_table[bin_key], 2):
-            #DEBUG: print 'bin @ ' + str(hit_table.get_bin_location(bin_key))
-            # NOTE: to get self-intersection; use combinations_with_replacement.
-            for t1_i, t1_f in hit_table[bin_key][curve_index_1]:
-                segment_1 = list_of_curves[curve_index_1][t1_i:t1_f + 1]
-                for t2_i, t2_f in hit_table[bin_key][curve_index_2]:
-                    segment_2 = list_of_curves[curve_index_2][t2_i:t2_f + 1]
-                    try:
-                    # NOTE: we assume there is only one intersection
-                    # between two segments, hoping that we divided
-                    # the curves as many times as required for the
-                    # assumption to hold.
-                        list_of_intersection_points.append(
-                            find_intersection_of_segments(
-                                segment_1, segment_2,
-                                hit_table.get_bin_location(bin_key),
-                                bin_size
-                            )
-                        )
-                    except NoIntersection:
-                        pass
-
-    return list_of_intersection_points

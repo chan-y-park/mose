@@ -4,7 +4,42 @@ import numpy as np
 import matplotlib.pyplot as plt
 from intersection import *
 from math import pi
+from itertools import combinations
 
+def find_intersections(list_of_curves, hit_table):
+    """
+    Find intersection points of two curves on a real 2-dim plane.
+    Returns a list of intersection points
+    """
+    list_of_intersection_points = []
+
+    for bin_key in hit_table:
+        if len(hit_table[bin_key]) == 1:
+            continue
+        # more than two curves hit the bin.
+        for curve_index_1, curve_index_2 in combinations(hit_table[bin_key], 2):
+            #DEBUG: print 'bin @ ' + str(hit_table.get_bin_location(bin_key))
+            # NOTE: to get self-intersection; use combinations_with_replacement.
+            for t1_i, t1_f in hit_table[bin_key][curve_index_1]:
+                segment_1 = list_of_curves[curve_index_1][t1_i:t1_f + 1]
+                for t2_i, t2_f in hit_table[bin_key][curve_index_2]:
+                    segment_2 = list_of_curves[curve_index_2][t2_i:t2_f + 1]
+                    try:
+                    # NOTE: we assume there is only one intersection
+                    # between two segments, hoping that we divided
+                    # the curves as many times as required for the
+                    # assumption to hold.
+                        list_of_intersection_points.append(
+                            find_intersection_of_segments(
+                                segment_1, segment_2,
+                                hit_table.get_bin_location(bin_key),
+                                hit_table._bin_size
+                            )
+                        )
+                    except NoIntersection:
+                        pass
+
+    return list_of_intersection_points
 # Curve 1
 # Parameters of the first curve.
 x1_min = -2     # minimum value of x range
@@ -61,7 +96,8 @@ while yh < y_max:
 # Construct a HitTable to record segmentation of curves.
 #ht = HitTable(plane_range, bin_size, bin_fill_offset=5)
 ht = HitTable(plane_range, bin_size)
-ht.fill(lc)
+for curve_index, curve in enumerate(lc):
+    ht.fill(curve_index, curve)
 
 # Now we have segments of curves. Draw them in different colors.
 for bin_key in ht:
@@ -72,7 +108,7 @@ for bin_key in ht:
             plt.plot(seg_x, seg_y, '-')
 
 # From the segments find intersection points.
-lip = find_intersection(lc, ht, plane_range, bin_size)
+lip = find_intersections(lc, ht)
 
 # Print and draw intersection points for illustration.
 print 'List of intersection points:'
@@ -89,3 +125,5 @@ plt.ylim(y_min, y_max)
 plt.axes().set_aspect('equal')
 
 plt.show()
+
+
