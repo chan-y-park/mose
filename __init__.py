@@ -26,11 +26,6 @@ g3 = u / 3 + 8 * (u ** 3) / 27
 
 theta = pi 
 
-# the options are for numerical integration: initial time, final time, number 
-# of steps.
-primary_options = [0.0, 1.0, 100]
-options = [0.0, 1.0, 100]
-
 # how far way from the singularity the locus of the branch cut extends
 branch_cut_cutoff = 10.0         
 
