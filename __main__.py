@@ -20,6 +20,7 @@ new_kwalls = build_first_generation(branch_points, theta, g2, g3)
 logging.info('Iterating %s times:', n_iter)
 
 kwalls, new_kwalls, intersections = iterate(n_iter, kwalls, new_kwalls, 
+                                            intersections)
 
 animate_trajectories(kwalls+new_kwalls, 1)
 
