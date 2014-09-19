@@ -237,7 +237,7 @@ def new_intersections(kwalls, new_kwalls, hit_table):
         logging.debug('bin_key with hit: %s', bin_key)
         # More than two curves hit the bin.
         for i_1, i_2 in combinations(hit_table[bin_key], 2):
-            logging.debug('i_1, i_2 = %s, %s', i_1, i_2)
+            logging.debug('i_0, i_1, i_2 = %s, %s, %s', i_0, i_1, i_2)
             # NOTE Chan: to get self-intersection, use 
             # combinations_with_replacement.
             if i_1 < i_0 and i_2 < i_0:
@@ -256,11 +256,11 @@ def new_intersections(kwalls, new_kwalls, hit_table):
 
             # NOTE Pietro: I am excluding some cases from being checked for 
             # intersections, see the if statements below
-            if (dsz_pairing(traj_1.charge(0), traj_2.charge(0), 
-                            dsz_matrix) == 0 or \
-                traj_1.parents == traj_2.parents or \
-                traj_1 in traj_2.parents):
-                continue
+            # if (dsz_pairing(traj_1.charge(0), traj_2.charge(0), 
+            #                 dsz_matrix) == 0 or \
+            #     traj_1.parents == traj_2.parents or \
+            #     traj_1 in traj_2.parents):
+            #     continue
 
             list_of_intersection_points = []
 
@@ -425,6 +425,7 @@ def phase_scan(theta_range):
 
     iter_count = 1
 
+    # from trajectory_animation import animate_trajectories
 
     for phase in angles:
         print "\n----------------------------------------------------------\
@@ -440,6 +441,8 @@ def phase_scan(theta_range):
                                                     intersections)
         all_intersections += intersections
         all_kwalls += (kwalls + new_kwalls)
+
+        # animate_trajectories(kwalls+new_kwalls, 1)
 
     if verb: 
         print "\n----------------------------------------------------------\
