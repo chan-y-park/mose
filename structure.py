@@ -173,7 +173,8 @@ class MarginalStabilityWall:
     count = 0
 
     def __init__(self, all_intersections):
-        self.charges = all_intersections[0].charges
+        self.charges = all_intersections[0].charges 
+        ### warning: self.charges is given in the format {'[-1, 2]', '[1, 0]'}
         self.degeneracies = all_intersections[0].degeneracies
         self.points = all_intersections
         self.locus = [intersection.locus for intersection in all_intersections]
