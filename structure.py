@@ -290,7 +290,7 @@ def new_intersections(kwalls, new_kwalls, hit_table):
                                     min(range(len(segment_2)), 
                                         key=lambda i: abs(segment_2[i, 1]-ipx))
                         list_of_intersection_points.append(
-                            [ipx + I*ipy, index_1, index_2]
+                            [ipx + 1j*ipy, index_1, index_2]
                         )
                     except NoIntersection:
                         pass
