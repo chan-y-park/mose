@@ -159,30 +159,29 @@ def grow_pf(boundary_conditions, g2, g3, theta, options):
 
     return y
 
-
 #### A TEMPORARY function to find intersections, very limited and slow
-def find_intersections(trajectory_1, trajectory_2):
-    path_1 = trajectory_1.coordinates
-    path_2 = trajectory_2.coordinates
-    from numpy import linalg as LA
-    from numpy import array
-    distances = [[LA.norm(array(x) - array(y)) for x in path_2 ] for y in path_1 ]
-    min_dist = min(map(min, distances))
-    from parameters import intersection_range
-    if min_dist < intersection_range:
-        for i,x in enumerate(distances):
-            for j,y in enumerate(x):
-                if y == min_dist:
-                    index_1 = i
-                    index_2 = j
-                    point = complexify(list( ( array(path_1[index_1]) + array(path_2[index_2]) ) / 2 ))
-                    return [[point, index_1, index_2]]  
-                    ##### NOTE: the structure of the answer resembles the fact that there might be more than one intersection!
-                    ##### Also, it is assumed that there should be an algorithm that determines the exact intersection point
-                    ##### and inserts it into the trajectories' data, as well as computes the periods there, and the indices index_1,2 should be related to this new data point
-    else:
-        return []
-
+#def find_intersections(trajectory_1, trajectory_2):
+#    path_1 = trajectory_1.coordinates
+#    path_2 = trajectory_2.coordinates
+#    from numpy import linalg as LA
+#    from numpy import array
+#    distances = [[LA.norm(array(x) - array(y)) for x in path_2 ] for y in path_1 ]
+#    min_dist = min(map(min, distances))
+#    from parameters import intersection_range
+#    if min_dist < intersection_range:
+#        for i,x in enumerate(distances):
+#            for j,y in enumerate(x):
+#                if y == min_dist:
+#                    index_1 = i
+#                    index_2 = j
+#                    point = complexify(list( ( array(path_1[index_1]) + array(path_2[index_2]) ) / 2 ))
+#                    return [[point, index_1, index_2]]  
+#                    ##### NOTE: the structure of the answer resembles the fact that there might be more than one intersection!
+#                    ##### Also, it is assumed that there should be an algorithm that determines the exact intersection point
+#                    ##### and inserts it into the trajectories' data, as well as computes the periods there, and the indices index_1,2 should be related to this new data point
+#    else:
+#        return []
+#
 
 def dsz_pairing(gamma_1, gamma_2, dsz_matrix):
     import numpy as np

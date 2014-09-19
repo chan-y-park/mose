@@ -37,3 +37,6 @@ theta_range = [0,np.pi,3]
 verb = True
 
 ks_filtration_degree = 4
+
+INTERSECTION_SEARCH_RANGE = [[-10, 10], [-10, 10]]
+INTERSECTION_SEARCH_BIN_SIZE = 0.3
