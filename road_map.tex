@@ -22,7 +22,7 @@ A very primitive intersection algorithm is already present in numerics.py.
 
 
 
-\section{KSWCF  - {\color{red} \bf done} ({\small \color{red} \bf Should improve speed at some point})}
+\section{KSWCF  - {\color{red} \bf done} ({\small \color{red} \bf can improve a bit more maybe})}
 This should be a function called {\tt progeny\_2(data)} placed in the file kswcf.py, that takes {\tt data = [ [ $\gamma_{1}$, $\Omega(\gamma_{1})$  ] ,[$\gamma_{2}$, $\Omega(\gamma_{2})$] ]} and returns a list of new charges and corresponding degeneracies, \emph{excluding the parents}:
 {\tt [ ...  [ $n \gamma_{1}+ m \gamma_{2}$ , $\Omega(n \gamma_{1}+ m \gamma_{2})$  ]  ... ]}.
 A primitive example is provided in the file kswcf.py.
@@ -50,7 +50,7 @@ Not sure if keeping track of branch-point ancestors will be enough, maybe not. M
 The purpose of genealogy is to identify which intersections (occurring at different phases) belong to the same wall of marginal stability.
 
 
-\section{Construction of MS walls  - {\color{red} \bf in progress}}
+\section{Construction of MS walls  - {\color{red} \bf done}}
 Once the phase-rotation algorithm is working and the genealogy is ready, we should be able to group together intersection points coming from different phase-snapshots, and build analytic MS walls out of them. This will need some thinking
 
 

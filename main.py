@@ -35,4 +35,4 @@ logging.basicConfig(level=logging.INFO, format='%(message)s')
 all_data = phase_scan(theta_range)
 all_intersections = all_data[0]
 all_kwalls = all_data[1]
-
+ms_walls = all_data[2]

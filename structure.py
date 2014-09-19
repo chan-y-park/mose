@@ -153,7 +153,9 @@ class IntersectionPoint:
         self.locus = data[0]
         self.index_1 = data[1]
         self.index_2 = data[2]
-        self.charges = [parents[0].charge(self.index_1), parents[1].charge(self.index_2)]
+        self.charges = {str(parents[0].charge(self.index_1)), str(parents[1].charge(self.index_2))}
+        ### note the { } and conversion to strings, 
+        ### since the charges are useful for classification purposes, mostly
         self.degeneracies = [parents[0].degeneracy, parents[1].degeneracy]
         self.genealogy = build_genealogy_tree(self)
         self.phase = parents[0].phase
@@ -310,9 +312,34 @@ def build_genealogy_tree(intersection):
 
 
 
+# def delete_duplicates(seq):
+#     """
+#     Takes a list and deletes the duplicates.
+#     """
+#     seen = []
+#     for x in seq:
+#         if not (x in seen):
+#             seen.append(x)
+#     return seen    
+
+
 def build_ms_walls(all_intersections):
-    return "TO DO"
-    ####### build MS walls based on 1) genealogies 2) charges of walls at the intersections
+    """
+    This function creates MS walls, by sifting through all the intersections.
+    These are clustered accoding to the genealogies and their charges.
+    """
+    ### to distinguish wall types, use certain data, defined in the following
+    data = [[x.charges, x.genealogy] for x in all_intersections]
+    seen = []
+    walls = []
+    for i in range(len(data)):
+        if not (data[i] in seen):
+            walls.append([all_intersections[i]]) #start a new wall
+            seen.append(data[i])
+        else:
+            walls[seen.index(data[i])].append(all_intersections[i])
+    return [MarginalStabilityWall(x) for x in walls]
+
 
 
 
@@ -352,6 +379,12 @@ def phase_scan(theta_range):
         all_intersections += intersections
         all_kwalls += (kwalls + new_kwalls)
 
+    if verb: 
+        print "\n----------------------------------------------------------\
+        \n Building MS walls\
+        \n----------------------------------------------------------"
     ms_walls = build_ms_walls(all_intersections)
 
     return [all_intersections, all_kwalls, ms_walls]
+
+
