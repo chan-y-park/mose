@@ -112,6 +112,19 @@ class HitTable:
             map(lambda coord, r_min: int((coord - r_min)/self._bin_size),
                 location, (x_min, y_min))
 
+        if not isinstance(bin_key_x, int):
+            logging.debug('x_coord = %.8f, x_min = %s, bin_size = %s',
+                            x_coord, x_min, self._bin_size)
+            raise TypeError('bin_key_x = {} is not an integer'
+                            '.'.format(bin_key_x))
+
+        if not isinstance(bin_key_y, int):
+            logging.debug('y_coord = %.8f, y_min = %s, bin_size = %s',
+                            y_coord, y_min, self._bin_size)
+            raise TypeError('bin_key_y = {} is not an integer'
+                            '.'.format(bin_key_y))
+            
+
         return (bin_key_x, bin_key_y)
 
     def get_bin_location(self, bin_key):
@@ -156,7 +169,12 @@ class HitTable:
         x_0, y_0 = curve[t_0]
         prev_bin_key = self.get_bin_key([x_0, y_0])
         for t_n, [x_n, y_n] in enumerate(curve):
-            bin_key = self.get_bin_key([x_n, y_n])
+            try:           
+                bin_key = self.get_bin_key([x_n, y_n])
+            except TypeError:
+                logging.debug('t_n, x_n, y_n = %d, %.8f, %.8f',
+                                t_n, x_n, y_n)
+                raise
             # Cut the curve into a segment where it goes over the current 
             # bin or where it has a turning point.
             if prev_bin_key != bin_key:
@@ -173,9 +191,11 @@ class HitTable:
                         t_i -= 1
                     if t_i < t_f:
                         self.put(prev_bin_key, curve_index, [t_i, t_f])
-                except KeyError:
+                except KeyError as e:
+                    logging.debug('prev_bin_key, bin_key = %s, %s',
+                                    prev_bin_key, bin_key)
                     # [x_n, y_n] is outside the intersection search range.
-                    print e.value
+                    print str(e)
                     pass
                 t_i = t_n
                 prev_bin_key = bin_key
@@ -184,7 +204,9 @@ class HitTable:
                     self.put(prev_bin_key, curve_index, [t_i, t_n])
                 except KeyError as e:
                     # [x_n, y_n] is outside the intersection search range.
-                    print e.value
+                    logging.debug('prev_bin_key, bin_key = %s, %s',
+                                    prev_bin_key, bin_key)
+                    print str(e)
                     pass
                 t_i = t_n
             else:
