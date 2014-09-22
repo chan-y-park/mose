@@ -168,6 +168,15 @@ class IntersectionPoint:
         self.genealogy = build_genealogy_tree(self)
         self.phase = parents[0].phase
 
+    def __eq__(self, other):
+        if (self.parents == other.parents and
+            self.index_1 == other.index_1 and
+            self.index_2 == other.index_2):
+            return True
+        else:
+            return False
+
+
 
 class MarginalStabilityWall:
     """
@@ -217,10 +226,27 @@ def build_first_generation(branch_points, phase, g2, g3):
     
     return traj
 
+def remove_duplicate_intersection(new_ilist, old_ilist):
+    """
+    Remove any duplicate in new_ilist1, then remove intersections 
+    of new_ilist that already exist in old_ilist
+    """
+    temp_ilist = new_ilist 
 
+    for intersection1, intersection2 in combinations(temp_ilist, 2):
+        if intersection1 == intersection2:
+            new_ilist.remove(intersection2)
+        else:
+            continue
 
+    temp_ilist = new_ilist 
 
-def new_intersections(kwalls, new_kwalls, hit_table):
+    for new_intersection in temp_ilist:
+        for intersection in old_ilist:
+            if new_intersection == intersection:
+                new_ilist.remove(new_intersection)
+
+def new_intersections(kwalls, new_kwalls, intersections, hit_table):
     """Find new wall-wall intersections"""
 
     from parameters import dsz_matrix, verb
@@ -235,10 +261,10 @@ def new_intersections(kwalls, new_kwalls, hit_table):
         if len(hit_table[bin_key]) == 1:
             # Only one curve in the bin. Skip the rest.
             continue
-        logging.debug('bin_key with hit: %s', bin_key)
         # More than two curves hit the bin.
+        logging.debug('bin_key with hit: %s', bin_key)
         for i_1, i_2 in combinations(hit_table[bin_key], 2):
-            logging.debug('i_0, i_1, i_2 = %s, %s, %s', i_0, i_1, i_2)
+            #logging.debug('i_0, i_1, i_2 = %s, %s, %s', i_0, i_1, i_2)
             # NOTE Chan: to get self-intersection, use 
             # combinations_with_replacement.
             if i_1 < i_0 and i_2 < i_0:
@@ -269,8 +295,8 @@ def new_intersections(kwalls, new_kwalls, hit_table):
                 segment_1 = traj_1.coordinates[t1_i:t1_f+1]
                 for t2_i, t2_f in hit_table[bin_key][i_2]:
                     segment_2 = traj_2.coordinates[t2_i:t2_f+1]
-                    logging.debug('i1_i, t1_f = %s, %s', t1_i, t1_f) 
-                    logging.debug('i2_i, t2_f = %s, %s', t2_i, t2_f) 
+                    logging.debug('t1_i, t1_f = %d, %d', t1_i, t1_f) 
+                    logging.debug('t2_i, t2_f = %d, %d', t2_i, t2_f) 
                     try:
                     # NOTE: we assume there is only one intersection
                     # between two segments, hoping that we divided
@@ -284,25 +310,52 @@ def new_intersections(kwalls, new_kwalls, hit_table):
                             )
 
                         ipx, ipy = intersection_point
-                        index_1 = t1_i + \
-                                    min(range(len(segment_1)), 
-                                        key=lambda i: abs(segment_1[i, 1]-ipx))
-                        index_2 = t2_i + \
-                                    min(range(len(segment_2)), 
-                                        key=lambda i: abs(segment_2[i, 1]-ipx))
+                        # Find where to put the intersection point in the
+                        # given segment. It should be put AFTER the index
+                        # found below.
+                        dt_1 = \
+                            min(range(len(segment_1)), 
+                                key=lambda i: abs(segment_1[i, 0]-ipx))
+                        logging.debug('dt_1 = %d', dt_1)
+                        if dt_1-1 >=0 and (
+                            (segment_1[dt_1, 0] < ipx < segment_1[dt_1-1, 0]) 
+                            or
+                            (segment_1[dt_1, 0] > ipx > segment_1[dt_1-1, 0])
+                            ):
+                            dt_1 -= 1
+                        index_1 = t1_i + dt_1 
+
+                        dt_2 = \
+                            min(range(len(segment_2)), 
+                                key=lambda i: abs(segment_2[i, 0]-ipx))
+                        logging.debug('dt_2 = %d', dt_2)
+                        if dt_2-1 >=0 and (
+                            (segment_2[dt_2, 0] < ipx < segment_2[dt_2-1, 0]) 
+                            or
+                            (segment_2[dt_2, 0] > ipx > segment_2[dt_2-1, 0])
+                            ):
+                            dt_2 -= 1
+                        index_2 = t2_i + dt_2 
+                        
+                        logging.debug('intersecion point: (%.8f, %.8f) '
+                                        'at index_1 = %d, index_2 = %d',
+                                        ipx, ipy, index_1, index_2)
                         list_of_intersection_points.append(
                             [ipx + 1j*ipy, index_1, index_2]
                         )
                     except NoIntersection:
                         pass
 
-            logging.debug('intersecion list: %s', list_of_intersection_points)
+
 
             new_ints += [IntersectionPoint(intersection, [traj_1, traj_2]) \
                             for intersection in list_of_intersection_points] 
 
-    if verb: 
-        print "\nEvaluating intersections of NEW Kwalls with ALL Kwalls: found %d of them" % len(new_ints)
+    remove_duplicate_intersection(new_ints, intersections)
+
+    logging.info('Evaluating intersections of NEW Kwalls with ALL Kwalls: '
+                    'found %d of them.', len(new_ints))
+
     return new_ints
     
 def iterate(n, kwalls, new_kwalls, intersections):
@@ -310,17 +363,13 @@ def iterate(n, kwalls, new_kwalls, intersections):
     from parameters import verb
     ht = HitTable(INTERSECTION_SEARCH_RANGE, INTERSECTION_SEARCH_BIN_SIZE)
     for i in range(n):
-        new_ints = new_intersections(kwalls, new_kwalls, ht)
+        new_ints = new_intersections(kwalls, new_kwalls, intersections, ht)
         intersections += new_ints
         kwalls += new_kwalls
         if verb:
             print "\ncreating new trajectories"
         new_kwalls = build_new_walls(new_ints)
 
-    kwallplot(kwalls+new_kwalls, INTERSECTION_SEARCH_RANGE, 
-                bin_size=INTERSECTION_SEARCH_BIN_SIZE, 
-                intersection_points=intersections,
-                hit_table=ht, mark_data_plot=True)
     return kwalls, new_kwalls, intersections
 
 
@@ -447,7 +496,13 @@ def phase_scan(theta_range):
         all_intersections += intersections
         all_kwalls += (kwalls + new_kwalls)
 
-        # animate_trajectories(kwalls+new_kwalls, 1)
+        kwallplot(kwalls+new_kwalls, INTERSECTION_SEARCH_RANGE,
+                    branch_points=branch_points) 
+        #kwallplot(kwalls+new_kwalls, INTERSECTION_SEARCH_RANGE,
+        #            bin_size=INTERSECTION_SEARCH_BIN_SIZE,
+        #            intersection_points=intersections,
+        #            hit_table=ht, mark_data_plot=True) 
+
 
     if verb: 
         print "\n----------------------------------------------------------\

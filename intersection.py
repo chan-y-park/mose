@@ -245,8 +245,10 @@ def find_intersection_of_segments(segment_1, segment_2, bin_center, bin_size,
     x2_i, y2_i = segment_2[0]
     x2_f, y2_f = segment_2[-1]
 
-    logging.debug('[x1_i, x1_f] = %s', [x1_i, x1_f])
-    logging.debug('[x2_i, x2_f] = %s', [x2_i, x2_f])
+    logging.debug('x1_i, x1_f = %.8f, %.8f', x1_i, x1_f)
+    logging.debug('y1_i, y1_f = %.8f, %.8f', y1_i, y1_f)
+    logging.debug('x2_i, x2_f = %.8f, %.8f', x2_i, x2_f)
+    logging.debug('y2_i, y2_f = %.8f, %.8f', y2_i, y2_f)
     bin_center_x, bin_center_y = bin_center
 
     x1_interval = Interval(*sorted([x1_i, x1_f]))
@@ -269,8 +271,8 @@ def find_intersection_of_segments(segment_1, segment_2, bin_center, bin_size,
         logging.debug('x_range = %s, y_range = %s', x_range, y_range)
         raise NoIntersection() 
 
-    logging.debug('x_range = [%s, %s]', x_range.start, x_range.end)
-    logging.debug('y_range = [%s, %s]', y_range.start, y_range.end)
+    logging.debug('x_range = [%.8f, %.8f]', x_range.start, x_range.end)
+    logging.debug('y_range = [%.8f, %.8f]', y_range.start, y_range.end)
 
     f1 = interp1d(*zip(*segment_1))
     f2 = interp1d(*zip(*segment_2))
@@ -281,12 +283,12 @@ def find_intersection_of_segments(segment_1, segment_2, bin_center, bin_size,
         intersection_x = brentq(delta_f12, x_range.start, x_range.end)
         intersection_y = f1(intersection_x)
     except ValueError:
-        logging.debug('f1(x_range.start), f1(x_range.end) = %s, %s',
+        logging.debug('f1(x_range.start), f1(x_range.end) = %.8f, %.8f',
                         f1(x_range.start), f1(x_range.end))
-        logging.debug('f2(x_range.start), f2(x_range.end) = %s, %s',
+        logging.debug('f2(x_range.start), f2(x_range.end) = %.8f, %.8f',
                         f2(x_range.start), f2(x_range.end))
         logging.debug('delta_f12(x_range.start), delta_f12(x_range.end) '
-                        '= %s, %s', delta_f12(x_range.start), 
+                        '= %.8f, %.8f', delta_f12(x_range.start), 
                         delta_f12(x_range.end))
         """
         (f1 - f2) has the same sign at x_range.start & x_range.end
@@ -323,9 +325,9 @@ def find_intersection_of_segments(segment_1, segment_2, bin_center, bin_size,
         x0 = 0.5*(x_range.start + x_range.end)
 
         try:
-            logging.debug('try newton with x0 = %s.', x0)
+            logging.debug('try newton with x0 = %.8f.', x0)
             intersection_x = newton(delta_f12, x0, maxiter = newton_maxiter)
-            logging.debug('intersection_x = %s.', intersection_x)
+            logging.debug('intersection_x = %.8f.', intersection_x)
         except RuntimeError:
             # Newton's method fails to converge; declare no intersection
             raise NoIntersection()

@@ -6,7 +6,7 @@ complex 1-dimensional moduli space.
 from matplotlib import pyplot
 
 def kwallplot(kwalls, plot_range, bin_size=0, intersection_points=[],
-                hit_table={}, mark_data_plot=False): 
+                hit_table={}, mark_data_plot=False, branch_points=[]): 
 
     # Range on the plane to search for intersections
     [[x_min, x_max], [y_min, y_max]] = plot_range
@@ -29,12 +29,21 @@ def kwallplot(kwalls, plot_range, bin_size=0, intersection_points=[],
             pyplot.axhline(y = yh, linewidth=0.5, color='0.75')
     # End of drawing the bin lattice.
 
+    # Plot branch points
+    if(len(branch_points)>0):
+        for bp in branch_points:
+            bpx = bp.locus.real 
+            bpy = bp.locus.imag 
+            pyplot.plot(bpx, bpy, 'x', markeredgewidth=2, markersize=8, 
+                        color='k')
+    # End of plotting branch points
+
     # Plot intersection points
     if(len(intersection_points)>0):
         for ip in intersection_points:
             ipx = ip.locus.real 
             ipy = ip.locus.imag 
-            pyplot.plot(ipx, ipy, '+', markeredgewidth=2, markersize=10, 
+            pyplot.plot(ipx, ipy, '+', markeredgewidth=2, markersize=8, 
                         color='k')
     # End of plotting intersection points
 
