@@ -70,3 +70,34 @@ def kwallplot(kwalls, plot_range, bin_size=0, intersection_points=[],
 
 
 
+
+
+def ms_plot(ms_walls): 
+    """
+    Plots MS walls.
+    """
+    # Range on the plane to search for intersections
+    from parameters import INTERSECTION_SEARCH_RANGE as plot_range
+    [[x_min, x_max], [y_min, y_max]] = plot_range
+
+    # Plot setting.
+    pyplot.xlim(x_min, x_max)
+    pyplot.ylim(y_min, y_max)
+    pyplot.axes().set_aspect('equal')
+
+    count = 0
+    colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
+
+    # Plot intersection points
+    for wall in ms_walls:
+        count += 1
+        for ip in wall.points:
+            ipx = ip.locus.real
+            ipy = ip.locus.imag
+            pyplot.plot(ipx, ipy, colors[count % len(colors)]+'o', 
+                markersize=4)
+    # End of plotting intersection points
+
+    pyplot.show()
+
+

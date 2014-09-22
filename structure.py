@@ -469,7 +469,7 @@ def phase_scan(theta_range):
     theta_fin = theta_range[1]
     steps = theta_range[2]
 
-    angles = [ theta_in + i * (theta_fin - theta_in) / steps  for i in range(steps+1)]
+    angles = [ theta_in + i * (theta_fin - theta_in) / steps  for i in range(steps)]
     all_intersections = []
     all_kwalls = []
 
@@ -496,8 +496,8 @@ def phase_scan(theta_range):
         all_intersections += intersections
         all_kwalls += (kwalls + new_kwalls)
 
-        kwallplot(kwalls+new_kwalls, INTERSECTION_SEARCH_RANGE,
-                    branch_points=branch_points) 
+        # kwallplot(kwalls+new_kwalls, INTERSECTION_SEARCH_RANGE,
+        #             branch_points=branch_points) 
         #kwallplot(kwalls+new_kwalls, INTERSECTION_SEARCH_RANGE,
         #            bin_size=INTERSECTION_SEARCH_BIN_SIZE,
         #            intersection_points=intersections,

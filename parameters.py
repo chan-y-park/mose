@@ -8,8 +8,8 @@ g2 = 1 + 4 * (u ** 2) / 3
 g3 = u / 3 + 8 * (u ** 3) / 27
 
 theta_cuts = 3.14159265359 / 2  ### the angle at which branch-cuts should be oriented
-#theta =   0.942477796077  ### the phase of K-wall evolution
-theta =   0  ### the phase of K-wall evolution
+theta =   2.35619449019   ### the phase of K-wall evolution
+# theta =   0  ### the phase of K-wall evolution
 
 # the options are for numerical integration: initial time, final time, number of steps
 primary_options = [0.0, 1.0, 100]
@@ -33,7 +33,7 @@ intersections = []
 
 n_iter = 2
 
-theta_range = [0,np.pi,10]
+theta_range = [0,np.pi,100]
 
 verb = True
 

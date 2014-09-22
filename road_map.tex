@@ -70,5 +70,15 @@ This should be an algorithm that, at the very beginning ---while creating the br
 
 
 
+\section{Storing Data}
+When running a long computation, involving probing several (such as O(100)) phases, it would be good to store all data on a separate file.
+In particular, we should 
+\begin{itemize}
+	\item Create an external file(s) whose name contains date and time
+	\item Store data in such a way that it is retrievable: just need to store the output of the function {\texttt{phase\_scan}}
+	\item Write a module for retrieving (reloading in the RAM) the above data ready for analysis
+\end{itemize}
+
+
 
 \end{document}  
