@@ -12,7 +12,7 @@ theta =   0.942477796077  ### the phase of K-wall evolution
 
 # the options are for numerical integration: initial time, final time, number of steps
 primary_options = [0.0, 1.0, 100]
-options = [0.0, 2.0, 150]
+options = [0.0, 2.0, 400]
 
 
 # how far way from the singularity the locus of the branch cut extends
@@ -39,4 +39,5 @@ verb = True
 ks_filtration_degree = 4
 
 INTERSECTION_SEARCH_RANGE = [[-10, 10], [-10, 10]]
-INTERSECTION_SEARCH_BIN_SIZE = 0.7
+INTERSECTION_SEARCH_BIN_SIZE = .2 
+#INTERSECTION_SEARCH_BIN_SIZE = .7 

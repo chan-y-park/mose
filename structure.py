@@ -6,6 +6,7 @@ from parameters import *
 # TODO: move the following import sentences to an appropriate location.
 import logging
 from parameters import INTERSECTION_SEARCH_RANGE, INTERSECTION_SEARCH_BIN_SIZE
+from msplot import kwallplot
 from intersection import (HitTable, NoIntersection, 
                             find_intersection_of_segments)
 from itertools import combinations
@@ -256,18 +257,18 @@ def new_intersections(kwalls, new_kwalls, hit_table):
 
             # NOTE Pietro: I am excluding some cases from being checked for 
             # intersections, see the if statements below
-            # if (dsz_pairing(traj_1.charge(0), traj_2.charge(0), 
-            #                 dsz_matrix) == 0 or \
-            #     traj_1.parents == traj_2.parents or \
-            #     traj_1 in traj_2.parents):
-            #     continue
+            if (dsz_pairing(traj_1.charge(0), traj_2.charge(0), 
+                            dsz_matrix) == 0 or \
+                traj_1.parents == traj_2.parents or \
+                traj_1 in traj_2.parents):
+                continue
 
             list_of_intersection_points = []
 
             for t1_i, t1_f in hit_table[bin_key][i_1]:
-                segment_1 = traj_1.coordinates[t1_i:t1_f + 1]
+                segment_1 = traj_1.coordinates[t1_i:t1_f+1]
                 for t2_i, t2_f in hit_table[bin_key][i_2]:
-                    segment_2 = traj_2.coordinates[t2_i:t2_f + 1]
+                    segment_2 = traj_2.coordinates[t2_i:t2_f+1]
                     logging.debug('i1_i, t1_f = %s, %s', t1_i, t1_f) 
                     logging.debug('i2_i, t2_f = %s, %s', t2_i, t2_f) 
                     try:
@@ -316,6 +317,10 @@ def iterate(n, kwalls, new_kwalls, intersections):
             print "\ncreating new trajectories"
         new_kwalls = build_new_walls(new_ints)
 
+    kwallplot(kwalls+new_kwalls, INTERSECTION_SEARCH_RANGE, 
+                bin_size=INTERSECTION_SEARCH_BIN_SIZE, 
+                intersection_points=intersections,
+                hit_table=ht, mark_data_plot=True)
     return kwalls, new_kwalls, intersections
 
 

@@ -7,6 +7,7 @@ NumPy 1.9.0
 SciPy 0.14.0
 SymPy 0.7.5
 """
+import logging
 from numpy import __version__ as numpy_version
 from scipy import __version__ as scipy_version
 from sympy import __version__ as sympy_version
@@ -100,6 +101,9 @@ class HitTable:
     def __iter__(self):
         return self._hit_table.iterkeys()
 
+    def __len__(self):
+        return len(self._hit_table)
+
     def get_bin_key(self, location):
         x_coord, y_coord = location
         [[x_min, x_max], [y_min, y_max]] = self._search_range
@@ -163,6 +167,10 @@ class HitTable:
                 # of a bin.
                 try:
                     t_f = t_n - self._bin_fill_offset
+                    if t_i > 0:
+                        # Again, this makes the segment to go over the
+                        # current bin by one step.
+                        t_i -= 1
                     if t_i < t_f:
                         self.put(prev_bin_key, curve_index, [t_i, t_f])
                 except KeyError:
@@ -237,6 +245,8 @@ def find_intersection_of_segments(segment_1, segment_2, bin_center, bin_size,
     x2_i, y2_i = segment_2[0]
     x2_f, y2_f = segment_2[-1]
 
+    logging.debug('[x1_i, x1_f] = %s', [x1_i, x1_f])
+    logging.debug('[x2_i, x2_f] = %s', [x2_i, x2_f])
     bin_center_x, bin_center_y = bin_center
 
     x1_interval = Interval(*sorted([x1_i, x1_f]))
@@ -256,16 +266,28 @@ def find_intersection_of_segments(segment_1, segment_2, bin_center, bin_size,
         y_range.is_FiniteSet):
         # The segments and the bin do not share a domain and therefore
         # there is no intersection.
+        logging.debug('x_range = %s, y_range = %s', x_range, y_range)
         raise NoIntersection() 
+
+    logging.debug('x_range = [%s, %s]', x_range.start, x_range.end)
+    logging.debug('y_range = [%s, %s]', y_range.start, y_range.end)
 
     f1 = interp1d(*zip(*segment_1))
     f2 = interp1d(*zip(*segment_2))
     delta_f12 = lambda x: f1(x) - f2(x)
 
     try:
+        logging.debug('try brentq.')
         intersection_x = brentq(delta_f12, x_range.start, x_range.end)
         intersection_y = f1(intersection_x)
     except ValueError:
+        logging.debug('f1(x_range.start), f1(x_range.end) = %s, %s',
+                        f1(x_range.start), f1(x_range.end))
+        logging.debug('f2(x_range.start), f2(x_range.end) = %s, %s',
+                        f2(x_range.start), f2(x_range.end))
+        logging.debug('delta_f12(x_range.start), delta_f12(x_range.end) '
+                        '= %s, %s', delta_f12(x_range.start), 
+                        delta_f12(x_range.end))
         """
         (f1 - f2) has the same sign at x_range.start & x_range.end
         use Newton's method instead, and for that purpose interpolate
@@ -293,6 +315,7 @@ def find_intersection_of_segments(segment_1, segment_2, bin_center, bin_size,
 
         intersection_x = newton(delta_f12, x0, delta_f12_prime(x0))
         """
+        logging.debug('try BarycentricInterpolator.')
         f1 = BarycentricInterpolator(*zip(*segment_1))
         f2 = BarycentricInterpolator(*zip(*segment_2))
         delta_f12 = lambda x: f1(x) - f2(x)
@@ -300,7 +323,9 @@ def find_intersection_of_segments(segment_1, segment_2, bin_center, bin_size,
         x0 = 0.5*(x_range.start + x_range.end)
 
         try:
+            logging.debug('try newton with x0 = %s.', x0)
             intersection_x = newton(delta_f12, x0, maxiter = newton_maxiter)
+            logging.debug('intersection_x = %s.', intersection_x)
         except RuntimeError:
             # Newton's method fails to converge; declare no intersection
             raise NoIntersection()

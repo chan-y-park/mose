@@ -1,7 +1,7 @@
 import logging
 
 from structure import build_first_generation, iterate, prepare_branch_locus, phase_scan
-from trajectory_animation import animate_trajectories
+#from trajectory_animation import animate_trajectories
 from parameters import *
 
 logging.basicConfig(level=logging.DEBUG, format='%(message)s')
@@ -28,7 +28,8 @@ logging.info('\nIterating %s times:', n_iter)
 kwalls, new_kwalls, intersections = iterate(n_iter, kwalls, new_kwalls, 
                                            intersections)
 
-animate_trajectories(kwalls+new_kwalls, 1)
+
+#animate_trajectories(kwalls+new_kwalls, 1)
 
 # all_data = phase_scan(theta_range)
 # all_intersections = all_data[0]
