@@ -1,5 +1,6 @@
 \documentclass[11pt]{article}
 \usepackage{color}
+\usepackage{fullpage}
 \title{Things to do}
 \author{Chan, Daniel, Pietro}
 %\date{}                                           % Activate to display a given date or no date
@@ -9,7 +10,7 @@
 
 \tableofcontents
 
-\section{Intersection algorithm}
+\section{Intersection algorithm  - {\color{red} \bf done}}
 This should be a function called \texttt{find\_intersections(trajectory\_1,trajectory\_2)} returning the intersection(s) of the two given trajectories. It shold be placed in the numerics.py file\\
 If the trajectories don't intersect, it should return {\tt []} otherwise it should return a list {\tt [[point, index\_1, index\_2], ...]} where
 \begin{itemize}
@@ -22,7 +23,7 @@ A very primitive intersection algorithm is already present in numerics.py.
 
 
 
-\section{KSWCF  - {\color{red} \bf done} ({\small \color{red} \bf can improve a bit more maybe})}
+\section{KSWCF  - {\color{red} \bf done} {\tiny \bf (maybe can improve a bit more)}}
 This should be a function called {\tt progeny\_2(data)} placed in the file kswcf.py, that takes {\tt data = [ [ $\gamma_{1}$, $\Omega(\gamma_{1})$  ] ,[$\gamma_{2}$, $\Omega(\gamma_{2})$] ]} and returns a list of new charges and corresponding degeneracies, \emph{excluding the parents}:
 {\tt [ ...  [ $n \gamma_{1}+ m \gamma_{2}$ , $\Omega(n \gamma_{1}+ m \gamma_{2})$  ]  ... ]}.
 A primitive example is provided in the file kswcf.py.
@@ -78,6 +79,36 @@ In particular, we should
 	\item Store data in such a way that it is retrievable: just need to store the output of the function {\texttt{phase\_scan}}
 	\item Write a module for retrieving (reloading in the RAM) the above data ready for analysis
 \end{itemize}
+
+
+
+
+\section{Refined numerical issues with evolution  - {\color{red} \bf done}}
+Trajectories evolve according to the PF equations, these are governed by a matrix which becomes singular at the singular locus of the moduli space (since they contain the discriminant).
+The {\texttt{odeint}} algorithm will get into trouble integrating PF in the neighborhood of these points.
+In particular, the problems seem to consist in trajectories bending abruptly when they run close to singularities.
+
+\medskip
+
+\noindent Possible solutions:
+\begin{itemize}
+	\item Once a trajectory was evolved, search backwards to see if it passed near a singularity. If it did, cut it in a neighborhood of the singular point (where it enters a disk of radius $\epsilon$ centered there), then invoke a new evolution algorithm (such as that of primay k-walls), then revert back to PF.
+	\item Once a trajectory was evolved, search backwards to see if it passed near a singularity. If it did, erase the trajectory before next iteration, so it cannot create bogus offsprings due to bad numerics (e.g. the bending will make it intersect k-walls it wasn't supposed to meet).
+\end{itemize}
+
+The first possibility seems better, however the evolution method of primary walls will likely run into trouble too, recall the behavior of that method near a MS wall (which certainly would be met by the evolving kwall, when crossing the disc centered around the singular point).
+
+
+The second possibility might be numerically heavy, but it could be greatly improved by tracking e.g. the determinant of the PF matrix, and using that as a red flag, instead of computing distances from singularities. It would clearly leave an unexplored area nearby a singularity, however this can be fixed by the idea of section \ref{sec:bp-to-int}
+
+\bigskip
+
+{\color{blue} \noindent{\bf Note: } solved with the second option. Introduced a parameter called {\tt{TRAJECTORY\_SINGULARITY\_THRESHOLD}} that controls the value of the {\bf determinant of the picard-fuchs matrix} along the trajectory's evolution, above which a trajectory is deemed too close to a singularity. To start with, this threshold is set to be $10^{6}$.}
+
+
+
+\section{Enhancing MS walls}\label{sec:bp-to-int}
+A very simple thing to do: from the genealogy data of an MS wall it should be possible to tell whether the wall starts/ends at certain singularities. Then, make a module that creates new intersection-like objects from data of those singularities, and add these to the MS wall. 
 
 
 

@@ -16,7 +16,7 @@ class Trajectory:
     The trajectory class.
 
     Attributes: coordinates, periods, degeneracy, phase, charge, parents, \
-    boundary_condition, count (shared).
+    boundary_condition, count (shared), singular.
     Methods: evolve, terminate (?).
     Arguments of the instance: (initial_charge, degeneracy, phase, parents, \
     boundary_condition)
@@ -63,7 +63,9 @@ class Trajectory:
             self.periods = pw_data[1]
             # now switch to picard-fuchs evolution
             bc = set_primary_bc(self)
-            pw_data_pf = grow_pf(bc, g2, g3, self.phase, options)
+            pf_evolution = grow_pf(bc, g2, g3, self.phase, options)
+            pw_data_pf = pf_evolution[0]
+            self.singular = pf_evolution[1]
             self.coordinates = concatenate(( self.coordinates, [ [row[0], row[1]] for row in pw_data_pf ] ))
             self.periods = concatenate(( self.periods , [row[2] + 1j* row[3] for row in pw_data_pf] ))
             self.check_cuts()
@@ -72,7 +74,9 @@ class Trajectory:
             ### and they are formatted as [u0, eta0, d_eta0, intersection]
             ### the latter being an IntersectionPoint object
             self.initial_point = self.boundary_condition[3]
-            pw_data_pf = grow_pf(self.boundary_condition[0:3], g2, g3, self.phase, options)
+            pf_evolution = grow_pf(self.boundary_condition[0:3], g2, g3, self.phase, options)
+            pw_data_pf = pf_evolution[0]
+            self.singular = pf_evolution[1]
             self.coordinates =  [ [row[0], row[1]] for row in pw_data_pf ]
             self.periods =  [ row[2] + 1j* row[3] for row in pw_data_pf ] 
             self.check_cuts()
@@ -214,15 +218,23 @@ def build_first_generation(branch_points, phase, g2, g3):
     """Construct the primary Kwalls"""
     traj = []
     Trajectory.count = 0
-    bp = branch_points[0]
+    # bp = branch_points[0]
     colors = ['r','b','g','k']
     
     for i in range(len(branch_points)):
         bp = branch_points[i]
-        traj.append(Trajectory(bp.charge, 1, phase, [bp], [bp.locus, +1],colors[i]))
+        new_trajectory = Trajectory(bp.charge, 1, phase, [bp], [bp.locus, +1],colors[i])
+        if (not new_trajectory.singular): 
+            traj.append(new_trajectory)
+        elif verb:
+            print "\n**************\nSINGULAR TRAJECTORY! WILL BE DROPPED\n**************\n"
     for i in range(len(branch_points)):
         bp = branch_points[i]
-        traj.append(Trajectory(bp.charge, 1, phase, [bp], [bp.locus, -1],colors[i]))
+        new_trajectory = Trajectory(bp.charge, 1, phase, [bp], [bp.locus, -1],colors[i])
+        if (not new_trajectory.singular): 
+            traj.append(new_trajectory)
+        elif verb:
+            print "\n**************\nSINGULAR TRAJECTORY! WILL BE DROPPED\n**************\n"
     
     return traj
 
@@ -393,7 +405,11 @@ def build_new_walls(new_intersections):
             actual_charge = list( charge[0] * array(gamma_1) + charge[1] * array(gamma_2) )
             degeneracy = sibling[1]
             boundary_condition = set_bc(intersection, charge)
-            new_walls.append( Trajectory(actual_charge, degeneracy, phase, parents, boundary_condition) )
+            new_trajectory = Trajectory(actual_charge, degeneracy, phase, parents, boundary_condition)
+            if (not new_trajectory.singular):
+                new_walls.append(new_trajectory)
+            elif verb:
+                print "\n**************\nSINGULAR TRAJECTORY! WILL BE DROPPED\n**************\n"
 
     return new_walls
     
