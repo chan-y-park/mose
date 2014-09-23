@@ -9,12 +9,12 @@ from trajectory_animation import animate_trajectories
 # Program options
 #---------------------------------------------------------------------------
 
-LOGGING_FORMAT = '%(levelname)s:%(module)s@(%(lineno)d): %(message)s'
 LOGGING_LEVEL = logging.DEBUG
-#LOGGING_LEVEL = logging.INFO
-#LOGGING_LEVEL = logging.WARNING
+logging.basicConfig(level=logging.DEBUG, 
+                    format='%(module)s@%(lineno)d: %(message)s')
+#logging.basicConfig(level=logging.INFO, format='%(message)s')
+#logging.basicConfig(level=logging.WARNING, format='%(message)s')
 
-logging.basicConfig(level=LOGGING_LEVEL, format=LOGGING_FORMAT)
 
 #---------------------------------------------------------------------------
 # Default parameters
