@@ -1,9 +1,10 @@
+import logging
+
 from sympy.abc import x, y, t
 from sympy import Subs, series, LT, degree_list, Poly, degree
 from sympy.core.numbers import NaN
 from parameters import ks_filtration_degree as max_deg
 from parameters import dsz_matrix as dsz
-from parameters import verb
 from numpy import array
 
 #### To enhance the speed, we will keep memory of those KSWCFs that have been 
@@ -20,13 +21,11 @@ def progeny_2(data):
     omega_1 = data[0][1]
     omega_2 = data[1][1]
 
-    if verb:
-        print "\ncomputing the progeny of : %s and %s" % (gamma_1, gamma_2)
+    logging.info('computing the progeny of : %s and %s', gamma_1, gamma_2)
 
     pairing_matrix = array(dsz) ### turning the list into a matrix of numpy
     m = gamma_1.dot(pairing_matrix.dot(gamma_2))
-    if verb:
-        print "\nintersection pairing : %s" % m
+    logging.info('intersection pairing : %s', m)
 
     if m == 0:
         spectrum = []

@@ -1,13 +1,14 @@
+import logging
+
 def find_singularities(g2, g3):
     """find the singularities on the Coulomb branch"""
     import sympy as sym
-    from parameters import verb, TRAJECTORY_SINGULARITY_THRESHOLD
+    from parameters import TRAJECTORY_SINGULARITY_THRESHOLD
 
     u = sym.Symbol('u')
     discriminant = sym.simplify(g2 ** 3 - 27 * g3 ** 2)
-    if verb:
-        print "\ndiscriminant: %s" % discriminant
-        print "\nsingularities: %s" % sym.solve(discriminant, u)
+    logging.info('discriminant: %s', discriminant)
+    logging.info('singularities: %s', sym.solve(discriminant, u))
     return sym.solve(discriminant, u)
 
 def complexify(y):
@@ -50,6 +51,7 @@ def set_bc(intersection,charge):
     d_eta0 = d_eta_1 * complex(charge[0]) + d_eta_2 * complex(charge[1])  ### The use of complex() is necessary here, because sometimes the charge vector wil be deriving from an algorithm using sympy, and will turn j's into I's...
     return [u0, eta0, d_eta0, intersection]
 
+#TODO: move grow_primary_kwall() to structure 
 def grow_primary_kwall(u0, sign, g2, g3, theta, primary_options): 
     """ implementation of the ODE for evolving primary walls, valid in neighborhood of an A_1 singularity """
     import sympy as sym

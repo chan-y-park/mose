@@ -3,11 +3,11 @@ import logging
 import numpy
 from itertools import combinations
 
-#from numerics import *
+from numerics import *
 from kswcf import progeny_2
-#from parameters import *
+from parameters import *
 
-from parameters import INTERSECTION_SEARCH_RANGE, INTERSECTION_SEARCH_BIN_SIZE
+#from parameters import INTERSECTION_SEARCH_RANGE, INTERSECTION_SEARCH_BIN_SIZE
 from msplot import kwallplot
 from intersection import (HitTable, NoIntersection, 
                             find_intersection_of_segments)
@@ -59,17 +59,17 @@ class Trajectory:
             # a bit particular:
             self.initial_point = self.parents[0]
             u0, sign = self.boundary_condition
-            pw_data = grow_primary_kwall(u0, sign, g2, g3, self.phase, 
-                                            primary_options)
-            self.coordinates = pw_data[0]
-            self.periods = pw_data[1]
+            self.coordinates, self.periods = \
+                grow_primary_kwall(u0, sign, g2, g3, self.phase, 
+                                    primary_options)
+
             # now switch to picard-fuchs evolution
             bc = set_primary_bc(self)
             pf_evolution = grow_pf(bc, g2, g3, self.phase, options)
             pw_data_pf = pf_evolution[0]
             self.singular = pf_evolution[1]
             self.coordinates = numpy.concatenate(( self.coordinates, [ [row[0], row[1]] for row in pw_data_pf ] ))
-            self.periods = concatenate(( self.periods , [row[2] + 1j* row[3] for row in pw_data_pf] ))
+            self.periods = numpy.concatenate(( self.periods , [row[2] + 1j* row[3] for row in pw_data_pf] ))
             self.check_cuts()
         elif self.parents[0].__class__.__name__ == 'Trajectory':
             ### recall that self.boundary_conditions in this case are set by set_bc(...)
@@ -247,16 +247,23 @@ def build_first_generation(branch_points, phase, g2, g3):
         new_trajectory = Trajectory(bp.charge, 1, phase, [bp], [bp.locus, +1],colors[i])
         if (not new_trajectory.singular): 
             traj.append(new_trajectory)
-        elif verb:
-            print "\n**************\nSINGULAR TRAJECTORY! WILL BE DROPPED\n**************\n"
+        else:
+            logging.info(
+                            '**************\n'
+                            'SINGULAR TRAJECTORY! WILL BE DROPPED\n'
+                            '**************\n'
+                        )
     for i in range(len(branch_points)):
         bp = branch_points[i]
         new_trajectory = Trajectory(bp.charge, 1, phase, [bp], [bp.locus, -1],colors[i])
         if (not new_trajectory.singular): 
             traj.append(new_trajectory)
-        elif verb:
-            print "\n**************\nSINGULAR TRAJECTORY! WILL BE DROPPED\n**************\n"
-    
+        else:
+            logging.info(
+                            '**************\n'
+                            'SINGULAR TRAJECTORY! WILL BE DROPPED\n'
+                            '**************\n'
+                        )
     return traj
 
 def remove_duplicate_intersection(new_ilist, old_ilist):
@@ -282,7 +289,7 @@ def remove_duplicate_intersection(new_ilist, old_ilist):
 def new_intersections(kwalls, new_kwalls, intersections, hit_table):
     """Find new wall-wall intersections"""
 
-    from parameters import dsz_matrix, verb
+    from parameters import dsz_matrix
     new_ints = []
     i_0 = len(kwalls)
 
@@ -393,14 +400,12 @@ def new_intersections(kwalls, new_kwalls, intersections, hit_table):
     
 def iterate(n, kwalls, new_kwalls, intersections):
     """Iteration"""
-    from parameters import verb
     ht = HitTable(INTERSECTION_SEARCH_RANGE, INTERSECTION_SEARCH_BIN_SIZE)
     for i in range(n):
         new_ints = new_intersections(kwalls, new_kwalls, intersections, ht)
         intersections += new_ints
         kwalls += new_kwalls
-        if verb:
-            print "\ncreating new trajectories"
+        logging.info('creating new trajectories')
         new_kwalls = build_new_walls(new_ints)
 
     return kwalls, new_kwalls, intersections
@@ -429,9 +434,12 @@ def build_new_walls(new_intersections):
             new_trajectory = Trajectory(actual_charge, degeneracy, phase, parents, boundary_condition)
             if (not new_trajectory.singular):
                 new_walls.append(new_trajectory)
-            elif verb:
-                print "\n**************\nSINGULAR TRAJECTORY! WILL BE DROPPED\n**************\n"
-
+            else:
+                logging.info(
+                                '**************\n'
+                                'SINGULAR TRAJECTORY! WILL BE DROPPED\n'
+                                '**************\n'
+                            )
     return new_walls
     
 
@@ -502,8 +510,7 @@ def phase_scan(theta_range):
     The argument is of the form: theta_range = [theta_in, theta_fin, steps]
     """
     
-    from parameters import (g2, g3, primary_options, options, kwalls, 
-                            new_kwalls, intersections, theta_cuts)
+    from parameters import (g2, g3, primary_options, options, theta_cuts)
 
     
     theta_in = theta_range[0]
@@ -544,11 +551,11 @@ def phase_scan(theta_range):
         #            intersection_points=intersections,
         #            hit_table=ht, mark_data_plot=True) 
 
-
-    if verb: 
-        print "\n----------------------------------------------------------\
-        \n Building MS walls\
-        \n----------------------------------------------------------"
+    logging.info(
+                    '-----------------\n'
+                    'Building MS walls\n'
+                    '-----------------'
+                )
     ms_walls = build_ms_walls(all_intersections)
 
     return [all_intersections, all_kwalls, ms_walls]
