@@ -6,8 +6,8 @@ from parameters import *
 from msplot import ms_plot, kwallplot
 
 LOGGING_FORMAT = '%(module)s@%(lineno)d: %(message)s'
-logging.basicConfig(level=logging.DEBUG, format=LOGGING_FORMAT)
-#logging.basicConfig(level=logging.INFO, format='%(message)s')
+#logging.basicConfig(level=logging.DEBUG, format=LOGGING_FORMAT)
+logging.basicConfig(level=logging.INFO, format='%(message)s')
 #logging.basicConfig(level=logging.WARNING)
 
 

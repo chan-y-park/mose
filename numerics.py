@@ -117,6 +117,7 @@ def grow_pf(boundary_conditions, g2, g3, theta, options):
     from operator import itemgetter
     from cmath import exp, pi, phase
     from numpy import array, linspace
+    from numpy.linalg import det
     from scipy.integrate import odeint
 
     # # NOTE: the argument boundary_conditions should be passed in the following form:
@@ -153,9 +154,11 @@ def grow_pf(boundary_conditions, g2, g3, theta, options):
         eta_1 = z_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
         d_eta_1 = z_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
         return array([z_1.real, z_1.imag, eta_1.real, eta_1.imag, d_eta_1.real, d_eta_1.imag])
+        # the following rescaled matrix will not blow up at singularities, but it will not reach the singularities either..
+        # return abs(det(matrix)) * array([z_1.real, z_1.imag, eta_1.real, eta_1.imag, d_eta_1.real, d_eta_1.imag])
 
     time = linspace(options[0],options[1],options[2])
-    y = odeint(deriv, y0, time)
+    y = odeint(deriv, y0, time, mxstep=5000000)
 
     return y
 

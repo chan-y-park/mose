@@ -12,7 +12,7 @@ theta =   2.35619449019   ### the phase of K-wall evolution
 # theta =   0  ### the phase of K-wall evolution
 
 # the options are for numerical integration: initial time, final time, number of steps
-primary_options = [0.0, 1.0, 100]
+primary_options = [0.0, 1.0, 101]
 options = [0.0, 2.0, 400]
 
 
