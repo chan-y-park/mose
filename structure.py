@@ -1,25 +1,27 @@
 import cmath
-from numerics import *
-from kswcf import progeny_2
-from parameters import *
-
-# TODO: move the following import sentences to an appropriate location.
 import logging
+import numpy
+from itertools import combinations
+
+#from numerics import *
+from kswcf import progeny_2
+#from parameters import *
+
 from parameters import INTERSECTION_SEARCH_RANGE, INTERSECTION_SEARCH_BIN_SIZE
 from msplot import kwallplot
 from intersection import (HitTable, NoIntersection, 
                             find_intersection_of_segments)
-from itertools import combinations
 
+# TODO: class definitions will remain in structure.py
 class Trajectory:
     """
     The trajectory class.
 
-    Attributes: coordinates, periods, degeneracy, phase, charge, parents, \
-    boundary_condition, count (shared), singular.
+    Attributes: coordinates, periods, degeneracy, phase, charge, 
+    parents, boundary_condition, count (shared), singular.
     Methods: evolve, terminate (?).
-    Arguments of the instance: (initial_charge, degeneracy, phase, parents, \
-    boundary_condition)
+    Arguments of the instance: (initial_charge, degeneracy, phase, 
+    parents, boundary_condition)
     """
 
     count = 0
@@ -30,15 +32,16 @@ class Trajectory:
         self.phase = phase
         self.parents = parents
         self.boundary_condition = boundary_condition
-        self.initial_charge = initial_charge        # the initial charge
+        self.initial_charge = initial_charge
         self.color = color
         self.initial_point = None       # to be defined below
         self.evolve()
         Trajectory.count += 1 
 
     def __str__(self):
-        return 'Trajectory info: initial charge %s , degeneracy %d, etc... ' % \
-        (self.initial_charge, self.degeneracy)
+        return ('Trajectory info: initial charge {}, '
+                'degeneracy {}, etc... '.format(self.initial_charge, 
+                                                self.degeneracy))
 
     def get_color(self):
         return self.color
@@ -50,15 +53,14 @@ class Trajectory:
         return [z[1] for z in self.coordinates]
 
     def evolve(self):
-        if verb: 
-            print "\nEvolving trajectory %d " % Trajectory.count
-        from numpy import concatenate
+        logging.info('Evolving trajectory %d', Trajectory.count)
         if self.parents[0].__class__.__name__ == 'BranchPoint':
-            ## for a *primary* kwall the boundary conditions are a bit particular:
+            # For a *primary* kwall the boundary conditions are 
+            # a bit particular:
             self.initial_point = self.parents[0]
-            u0 = self.boundary_condition[0]
-            sign = self.boundary_condition[1]
-            pw_data = grow_primary_kwall(u0, sign, g2, g3, self.phase, primary_options)
+            u0, sign = self.boundary_condition
+            pw_data = grow_primary_kwall(u0, sign, g2, g3, self.phase, 
+                                            primary_options)
             self.coordinates = pw_data[0]
             self.periods = pw_data[1]
             # now switch to picard-fuchs evolution
@@ -66,7 +68,7 @@ class Trajectory:
             pf_evolution = grow_pf(bc, g2, g3, self.phase, options)
             pw_data_pf = pf_evolution[0]
             self.singular = pf_evolution[1]
-            self.coordinates = concatenate(( self.coordinates, [ [row[0], row[1]] for row in pw_data_pf ] ))
+            self.coordinates = numpy.concatenate(( self.coordinates, [ [row[0], row[1]] for row in pw_data_pf ] ))
             self.periods = concatenate(( self.periods , [row[2] + 1j* row[3] for row in pw_data_pf] ))
             self.check_cuts()
         elif self.parents[0].__class__.__name__ == 'Trajectory':
@@ -472,10 +474,13 @@ def build_ms_walls(all_intersections):
 
 
 
-
+#TODO: phase_scan should be the new __main__
 def phase_scan(theta_range):
-    """Scans various values of theta, returns an array of IntersectionPoint objects.
-    The argument is of the form: theta_range = [theta_in, theta_fin, steps]"""
+    """
+    Scans various values of theta, returns an array of 
+    IntersectionPoint objects.
+    The argument is of the form: theta_range = [theta_in, theta_fin, steps]
+    """
     
     from parameters import (g2, g3, primary_options, options, kwalls, 
                             new_kwalls, intersections, theta_cuts)
