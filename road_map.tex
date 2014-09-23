@@ -83,7 +83,7 @@ In particular, we should
 
 
 
-\section{Refined numerical issues with evolution}
+\section{Refined numerical issues with evolution  - {\color{red} \bf done}}
 Trajectories evolve according to the PF equations, these are governed by a matrix which becomes singular at the singular locus of the moduli space (since they contain the discriminant).
 The {\texttt{odeint}} algorithm will get into trouble integrating PF in the neighborhood of these points.
 In particular, the problems seem to consist in trajectories bending abruptly when they run close to singularities.
@@ -100,6 +100,11 @@ The first possibility seems better, however the evolution method of primary wall
 
 
 The second possibility might be numerically heavy, but it could be greatly improved by tracking e.g. the determinant of the PF matrix, and using that as a red flag, instead of computing distances from singularities. It would clearly leave an unexplored area nearby a singularity, however this can be fixed by the idea of section \ref{sec:bp-to-int}
+
+\bigskip
+
+{\color{blue} \noindent{\bf Note: } solved with the second option. Introduced a parameter called {\tt{TRAJECTORY\_SINGULARITY\_THRESHOLD}} that controls the value of the {\bf determinant of the picard-fuchs matrix} along the trajectory's evolution, above which a trajectory is deemed too close to a singularity. To start with, this threshold is set to be $10^{6}$.}
+
 
 
 \section{Enhancing MS walls}\label{sec:bp-to-int}

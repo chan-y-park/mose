@@ -1,7 +1,7 @@
 def find_singularities(g2, g3):
     """find the singularities on the Coulomb branch"""
     import sympy as sym
-    from parameters import verb
+    from parameters import verb, TRAJECTORY_SINGULARITY_THRESHOLD
 
     u = sym.Symbol('u')
     discriminant = sym.simplify(g2 ** 3 - 27 * g3 ** 2)
@@ -111,14 +111,15 @@ def grow_primary_kwall(u0, sign, g2, g3, theta, primary_options):
 def grow_pf(boundary_conditions, g2, g3, theta, options): 
     """ implementation of the growth of kwalls by means of picard-fuchs ODEs """
     import sympy as sym
-    from sympy import N
+    from sympy import N, diff
     from sympy import mpmath as mp
-    from sympy import diff
     from operator import itemgetter
     from cmath import exp, pi, phase
     from numpy import array, linspace
     from numpy.linalg import det
     from scipy.integrate import odeint
+    from parameters import TRAJECTORY_SINGULARITY_THRESHOLD
+    global singularity_check
 
     # # NOTE: the argument boundary_conditions should be passed in the following form:
     # u_0 = boundary_conditions[0] 
@@ -137,16 +138,21 @@ def grow_pf(boundary_conditions, g2, g3, theta, options):
     from sympy.utilities.lambdify import lambdify
     pf_matrix = lambdify(u, [ [0, 1] , [ sym.simplify(  ( -(3 * g2 * (delta ** 2) / (16 * (Delta**2)) ) + ( (diff(delta,u) * diff(Delta,u)) / (12 * delta * Delta) ) - ( (diff(Delta, u, 2)) / (12 * Delta) ) + ( ((diff(Delta, u)) ** 2) / (144 * (Delta ** 2) ) ) ) ) , sym.simplify( ( (diff(delta,u) / delta) - (diff(Delta,u) / Delta) ) ) ] ] )
 
+    singularity_check= False
     t0 = 0
     y0 = map(N, array([(boundary_conditions[0]).real,(boundary_conditions[0]).imag,\
         (boundary_conditions[1]).real,(boundary_conditions[1]).imag,\
         (boundary_conditions[2]).real,(boundary_conditions[2]).imag]) )
 
     def deriv(y,t):
+        global singularity_check
         z = y[0] + 1j * y[1]
         eta = y[2] + 1j * y[3]
         d_eta = y[4] + 1j * y[5]
         matrix = pf_matrix(z)
+        if abs(det(matrix)) > TRAJECTORY_SINGULARITY_THRESHOLD:
+            singularity_check = True
+
         #### A confusing point to bear in mind: here we are solving the ode with respect to 
         #### time t, but d_eta is understood to be (d eta / d u), with its own 
         #### appropriate b.c. and so on!
@@ -160,7 +166,7 @@ def grow_pf(boundary_conditions, g2, g3, theta, options):
     time = linspace(options[0],options[1],options[2])
     y = odeint(deriv, y0, time, mxstep=5000000)
 
-    return y
+    return [y, singularity_check]
 
 #### A TEMPORARY function to find intersections, very limited and slow
 #def find_intersections(trajectory_1, trajectory_2):

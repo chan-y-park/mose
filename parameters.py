@@ -39,6 +39,11 @@ verb = True
 
 ks_filtration_degree = 4
 
+### The following parameter controls what value of abs(det(pf_matrix)) wilL
+### raise an exception to determine that a singularity ran too close to a 
+### singularity, and should be dropped.
+TRAJECTORY_SINGULARITY_THRESHOLD = 10 ** 6 
+
 INTERSECTION_SEARCH_RANGE = [[-10, 10], [-10, 10]]
 INTERSECTION_SEARCH_BIN_SIZE = .2 
 #INTERSECTION_SEARCH_BIN_SIZE = .7 
