@@ -5,8 +5,9 @@ from structure import build_first_generation, iterate, prepare_branch_locus, pha
 from parameters import *
 from msplot import ms_plot, kwallplot
 
-#logging.basicConfig(level=logging.DEBUG, format='%(message)s')
-logging.basicConfig(level=logging.INFO, format='%(message)s')
+LOGGING_FORMAT = '%(module)s@%(lineno)d: %(message)s'
+logging.basicConfig(level=logging.DEBUG, format=LOGGING_FORMAT)
+#logging.basicConfig(level=logging.INFO, format='%(message)s')
 #logging.basicConfig(level=logging.WARNING)
 
 
