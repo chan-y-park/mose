@@ -1,9 +1,9 @@
 import logging
 
 from structure import build_first_generation, iterate, prepare_branch_locus, phase_scan
-#from trajectory_animation import animate_trajectories
+# from trajectory_animation import animate_trajectories
 from parameters import *
-from msplot import ms_plot
+from msplot import ms_plot, kwallplot
 
 #logging.basicConfig(level=logging.DEBUG, format='%(message)s')
 logging.basicConfig(level=logging.INFO, format='%(message)s')
@@ -29,7 +29,10 @@ logging.info('\nIterating %s times:', n_iter)
 kwalls, new_kwalls, intersections = iterate(n_iter, kwalls, new_kwalls, 
                                           intersections)
 
-#animate_trajectories(kwalls+new_kwalls, 1)
+# animate_trajectories(kwalls+new_kwalls, 1)
+
+kwallplot(kwalls+new_kwalls, INTERSECTION_SEARCH_RANGE,
+            branch_points=branch_points) 
 
 # all_data = phase_scan(theta_range)
 # all_intersections = all_data[0]
