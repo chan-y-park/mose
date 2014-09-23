@@ -1,9 +1,18 @@
 \documentclass[11pt]{article}
 \usepackage{color}
+\usepackage{hyperref}
 \usepackage{fullpage}
 \title{Things to do}
 \author{Chan, Daniel, Pietro}
 %\date{}                                           % Activate to display a given date or no date
+
+\usepackage{xcolor}
+\hypersetup{
+    colorlinks,
+    linkcolor={blue!50!black},
+    citecolor={green!50!black},
+    urlcolor={blue!80!black}
+}
 
 \begin{document}
 \maketitle
@@ -78,6 +87,8 @@ In particular, we should
 	\item Create an external file(s) whose name contains date and time
 	\item Store data in such a way that it is retrievable: just need to store the output of the function {\texttt{phase\_scan}}
 	\item Write a module for retrieving (reloading in the RAM) the above data ready for analysis
+	\item Bonus: write a module that (using the external data) will create a separate folder, containing snapshots of the k-walls on the moduli space for all scanned phases
+	\item Extra bonus: write a module that uses the above screenshots to provide a window with a slider tool and lets you browse the k-wall evolution. This is quite useful for debugging and checking the numerics (esp. the undesired bending of k-wall at critical phases)
 \end{itemize}
 
 
@@ -108,8 +119,11 @@ The second possibility might be numerically heavy, but it could be greatly impro
 
 
 \section{Enhancing MS walls}\label{sec:bp-to-int}
+\subsection{Adding endpoints  - {\color{red} \bf done}}
 A very simple thing to do: from the genealogy data of an MS wall it should be possible to tell whether the wall starts/ends at certain singularities. Then, make a module that creates new intersection-like objects from data of those singularities, and add these to the MS wall. 
 
+\subsection{Interpolating function}
+Replace numerical data points with anapproximate interpolating function to have a nice smooth MS-wall. A simpler alternative is just to draw a line matching all the dots, although it won't be as nice.
 
 
 \end{document}  
