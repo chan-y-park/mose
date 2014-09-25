@@ -65,20 +65,27 @@ class Trajectory:
 
             # now switch to picard-fuchs evolution
             bc = set_primary_bc(self)
-            pf_evolution = grow_pf(bc, g2, g3, self.phase, options)
-            pw_data_pf = pf_evolution[0]
-            self.singular = pf_evolution[1]
-            self.coordinates = numpy.concatenate(( self.coordinates, [ [row[0], row[1]] for row in pw_data_pf ] ))
-            self.periods = numpy.concatenate(( self.periods , [row[2] + 1j* row[3] for row in pw_data_pf] ))
+            pw_data_pf, self.singular = grow_pf(bc, g2, g3, self.phase, 
+                                                options)
+            self.coordinates = numpy.concatenate(
+                (self.coordinates, 
+                    [[row[0], row[1]] for row in pw_data_pf])
+            )
+            self.periods = numpy.concatenate(
+                (self.periods ,
+                    [row[2] + 1j* row[3] for row in pw_data_pf])
+            )
             self.check_cuts()
+
         elif self.parents[0].__class__.__name__ == 'Trajectory':
-            ### recall that self.boundary_conditions in this case are set by set_bc(...)
-            ### and they are formatted as [u0, eta0, d_eta0, intersection]
-            ### the latter being an IntersectionPoint object
+            ### recall that self.boundary_conditions in this case are set 
+            ### by set_bc(...) and they are formatted as 
+            ### [u0, eta0, d_eta0, intersection], the latter being an 
+            ### IntersectionPoint object
             self.initial_point = self.boundary_condition[3]
-            pf_evolution = grow_pf(self.boundary_condition[0:3], g2, g3, self.phase, options)
-            pw_data_pf = pf_evolution[0]
-            self.singular = pf_evolution[1]
+            pw_data_pf, self.singular = \
+                grow_pf(self.boundary_condition[0:3], 
+                        g2, g3, self.phase, options)
             self.coordinates =  [ [row[0], row[1]] for row in pw_data_pf ]
             self.periods =  [ row[2] + 1j* row[3] for row in pw_data_pf ] 
             self.check_cuts()
