@@ -233,7 +233,7 @@ class MarginalStabilityWall:
 
 def prepare_branch_locus(g2, g3, phase):
     """Find branch points and build branch cuts."""
-    fixed_charges = [ [1, 0], [-1, 2] ] ### Must update with actual charge at branch-point
+    from parameters import fixed_charges
     branch_point_loci = map(complex, find_singularities(g2, g3))
     bpts = [BranchPoint(branch_point_loci[i], fixed_charges[i])  for i in range(len(branch_point_loci))]
     bcts = [BranchCut(bpts[i], phase) for i in range(len(bpts))]

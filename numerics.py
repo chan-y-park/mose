@@ -87,11 +87,13 @@ def grow_primary_kwall(u0, sign, g2, g3, theta, primary_options):
         f2 = e1
         f3 = e2
 
+    print [f1, f2, f3]
+
     from sympy.utilities.lambdify import lambdify
     import scipy
     eta_1_part_1 = lambdify(u, sym.expand( (sign)* ( 4 * (f3 - f1) ** (-0.5) )), mp) 
     eta_1_part_2 = lambdify(u, (sym.expand( (f2 - f1) / (f3 - f1)  ) ), mp)
-    def eta_1(z): 
+    def eta_1(z):
         return eta_1_part_1(z) * mp.ellipk( eta_1_part_2(z) ) / 2
 
     eta0 = eta_1(u0)
