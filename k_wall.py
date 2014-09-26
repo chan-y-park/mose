@@ -1,57 +1,89 @@
-import logging
-
-def find_singularities(g2, g3):
-    """find the singularities on the Coulomb branch"""
-    import sympy as sym
-    from parameters import TRAJECTORY_SINGULARITY_THRESHOLD
-
-    u = sym.Symbol('u')
-    discriminant = sym.simplify(g2 ** 3 - 27 * g3 ** 2)
-    logging.info('discriminant: %s', discriminant)
-    logging.info('singularities: %s', sym.solve(discriminant, u))
-    return sym.solve(discriminant, u)
-
-def complexify(y):
-    """ complexifies an array of two reals """
-    return y[0] + 1j * y[1]
-
-def set_primary_bc(traj):
-    """ employs data of class Trajectory to produce correctly formatted boundary conditions for grow_pf """
-    coords = traj.coordinates
-    per = traj.periods
-    u0 = complexify(coords[-1])
-    eta0 = per[-1]
-    d_eta0 = (per[-1]-per[-2]) / (complexify(coords[-1])-complexify(coords[-2]))
-    return [u0, eta0, d_eta0]
-
-def set_bc(intersection,charge):
-    """ employs data of class Trajectory to produce correctly formatted 
-    boundary conditions for grow_pf. 
-    It also passes the argument "intersection" through, this will be employed
-    in the Trajectory class to keep track of genealogical data.
-    Arguments: (intersection, charge)
-    intersection must be an instance of the IntersecionPoint class
-    charge must be the charge relative to the parents' charge basis, 
-    hence a list of length 2
+class KWall:
     """
-    u0 = intersection.locus
+    The K-wall class.
 
-    parents = intersection.parents
-    index_1 = intersection.index_1
-    index_2 = intersection.index_2
-    path_1 = map(complexify, parents[0].coordinates)
-    path_2 = map(complexify, parents[1].coordinates)
-    periods_1 = parents[0].periods
-    periods_2 = parents[1].periods
-    eta_1 = periods_1[index_1]
-    eta_2 = periods_2[index_2]
-    d_eta_1 = (periods_1[index_1] - periods_1[index_1-1]) / (path_1[index_1] - path_1[index_1-1])
-    d_eta_2 = (periods_2[index_2] - periods_2[index_2-1]) / (path_2[index_2] - path_2[index_2-1])
-    eta0 = eta_1 * complex(charge[0]) + eta_2 * complex(charge[1])  ### The use of complex() is necessary here, because sometimes the charge vector wil be deriving from an algorithm using sympy, and will turn j's into I's...
-    d_eta0 = d_eta_1 * complex(charge[0]) + d_eta_2 * complex(charge[1])  ### The use of complex() is necessary here, because sometimes the charge vector wil be deriving from an algorithm using sympy, and will turn j's into I's...
-    return [u0, eta0, d_eta0, intersection]
+    Attributes: coordinates, periods, degeneracy, phase, charge, 
+    parents, boundary_condition, count (shared), singular.
+    Methods: evolve, terminate (?).
+    Arguments of the instance: (initial_charge, degeneracy, phase, 
+    parents, boundary_condition)
+    """
 
-#TODO: move grow_primary_kwall() to structure 
+    count = 0
+
+    def __init__(self, initial_charge, degeneracy, phase, parents, 
+                 boundary_condition, color='b'):
+        self.degeneracy = degeneracy
+        self.phase = phase
+        self.parents = parents
+        self.boundary_condition = boundary_condition
+        self.initial_charge = initial_charge
+        self.color = color
+        self.initial_point = None       # to be defined below
+        self.evolve()
+        Trajectory.count += 1 
+
+    def __str__(self):
+        return ('Trajectory info: initial charge {}, '
+                'degeneracy {}, etc... '.format(self.initial_charge, 
+                                                self.degeneracy))
+
+    def get_color(self):
+        return self.color
+    
+    def get_xcoordinates(self):
+        return [z[0] for z in self.coordinates]
+
+    def get_ycoordinates(self):
+        return [z[1] for z in self.coordinates]
+
+    def evolve(self):
+        logging.info('Evolving trajectory %d', Trajectory.count)
+        if self.parents[0].__class__.__name__ == 'BranchPoint':
+            # For a *primary* kwall the boundary conditions are 
+            # a bit particular:
+            self.initial_point = self.parents[0]
+            u0, sign = self.boundary_condition
+            self.coordinates, self.periods = \
+                grow_primary_kwall(u0, sign, g2, g3, self.phase, 
+                                    primary_options)
+
+            # now switch to picard-fuchs evolution
+            bc = set_primary_bc(self)
+            pf_evolution = grow_pf(bc, g2, g3, self.phase, options)
+            pw_data_pf = pf_evolution[0]
+            self.singular = pf_evolution[1]
+            self.coordinates = numpy.concatenate(( self.coordinates, [ [row[0], row[1]] for row in pw_data_pf ] ))
+            self.periods = numpy.concatenate(( self.periods , [row[2] + 1j* row[3] for row in pw_data_pf] ))
+            self.check_cuts()
+        elif self.parents[0].__class__.__name__ == 'Trajectory':
+            ### recall that self.boundary_conditions in this case are set by set_bc(...)
+            ### and they are formatted as [u0, eta0, d_eta0, intersection]
+            ### the latter being an IntersectionPoint object
+            self.initial_point = self.boundary_condition[3]
+            pf_evolution = grow_pf(self.boundary_condition[0:3], g2, g3, self.phase, options)
+            pw_data_pf = pf_evolution[0]
+            self.singular = pf_evolution[1]
+            self.coordinates =  [ [row[0], row[1]] for row in pw_data_pf ]
+            self.periods =  [ row[2] + 1j* row[3] for row in pw_data_pf ] 
+            self.check_cuts()
+
+    def charge(self, point):
+        return self.initial_charge
+        # to be updated by taking into account branch-cuts, 
+        # will use data in self.splittings
+
+    def check_cuts(self):
+        #print "Checking intersections with cuts, determining charges"
+        self.splittings = (55, 107, 231) 
+        self.local_charge = (self.initial_charge, (2,1), (0,-1), (1,1))
+        # determine at which points the wall crosses a cut, for instance
+        # (55,107,231) would mean that we change charge 3 times
+        # hence self.splittings would have length, 3 while
+        # self.local_charge would have length 4.
+        # local charges are determined one the branch-cut data is given,
+        # perhaps computed by an external function.
+
 def grow_primary_kwall(u0, sign, g2, g3, theta, primary_options): 
     """ implementation of the ODE for evolving primary walls, valid in neighborhood of an A_1 singularity """
     import sympy as sym
@@ -108,7 +140,6 @@ def grow_primary_kwall(u0, sign, g2, g3, theta, primary_options):
     y = odeint(deriv, y0, time)
 
     return [y , map( complex, map( eta_1 , map(complexify, y) ) ) ]
-
 
 def grow_pf(boundary_conditions, g2, g3, theta, options): 
     """ implementation of the growth of kwalls by means of picard-fuchs ODEs """
@@ -170,32 +201,13 @@ def grow_pf(boundary_conditions, g2, g3, theta, options):
 
     return [y, singularity_check]
 
-#### A TEMPORARY function to find intersections, very limited and slow
-#def find_intersections(trajectory_1, trajectory_2):
-#    path_1 = trajectory_1.coordinates
-#    path_2 = trajectory_2.coordinates
-#    from numpy import linalg as LA
-#    from numpy import array
-#    distances = [[LA.norm(array(x) - array(y)) for x in path_2 ] for y in path_1 ]
-#    min_dist = min(map(min, distances))
-#    from parameters import intersection_range
-#    if min_dist < intersection_range:
-#        for i,x in enumerate(distances):
-#            for j,y in enumerate(x):
-#                if y == min_dist:
-#                    index_1 = i
-#                    index_2 = j
-#                    point = complexify(list( ( array(path_1[index_1]) + array(path_2[index_2]) ) / 2 ))
-#                    return [[point, index_1, index_2]]  
-#                    ##### NOTE: the structure of the answer resembles the fact that there might be more than one intersection!
-#                    ##### Also, it is assumed that there should be an algorithm that determines the exact intersection point
-#                    ##### and inserts it into the trajectories' data, as well as computes the periods there, and the indices index_1,2 should be related to this new data point
-#    else:
-#        return []
-#
-
-def dsz_pairing(gamma_1, gamma_2, dsz_matrix):
-    import numpy as np
-    return np.dot(np.dot(gamma_1,dsz_matrix),gamma_2)
+def set_primary_bc(traj):
+    """ employs data of class Trajectory to produce correctly formatted boundary conditions for grow_pf """
+    coords = traj.coordinates
+    per = traj.periods
+    u0 = complexify(coords[-1])
+    eta0 = per[-1]
+    d_eta0 = (per[-1]-per[-2]) / (complexify(coords[-1])-complexify(coords[-2]))
+    return [u0, eta0, d_eta0]
 
 
