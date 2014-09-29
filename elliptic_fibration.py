@@ -22,7 +22,6 @@ def find_singularities(g2, g3):
     """
     find the singularities on the Coulomb branch
     """
-
     u = sym.Symbol('u')
     discriminant = sym.simplify(g2 ** 3 - 27 * g3 ** 2)
     logging.info('discriminant: %s', discriminant)

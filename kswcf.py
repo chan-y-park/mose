@@ -3,8 +3,9 @@ import logging
 from sympy.abc import x, y, t
 from sympy import Subs, series, LT, degree_list, Poly, degree
 from sympy.core.numbers import NaN
-from parameters import KS_FILTRATION_DEGREE
 from numpy import array
+
+from config import KS_FILTRATION_DEGREE
 
 # To enhance the speed, we will keep memory of those KSWCFs that have been 
 # already computed once. 
@@ -173,11 +174,6 @@ def progeny_2(data, dsz):
         #return [[(state[0][0] * gamma_2 + 
         #           state[0][1] * gamma_1).tolist(), state[1]] 
         #           for state in spectrum[1:-1]]
-
-#def matrix_multiply(a,b):
-#    zip_b = zip(*b)
-#    return [[sum(ele_a*ele_b for ele_a, ele_b in zip(row_a, col_b)) 
-#             for col_b in zip_b] for row_a in a]
 
 def t_expand(expr, max_deg):
     """

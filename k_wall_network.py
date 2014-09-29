@@ -5,7 +5,7 @@ from intersection import HitTable
 from intersection_point import find_new_intersections
 from misc import complexify
 from kswcf import progeny_2
-from parameters import DSZ_MATRIX
+from config import DSZ_MATRIX
 
 class KWallNetwork:
     def __init__(self, theta, fibration, max_range, bin_size):

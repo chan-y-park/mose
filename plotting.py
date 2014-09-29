@@ -72,12 +72,11 @@ def plot_k_wall_network(k_wall_network, plot_range=[], plot_bin=False,
 
     pyplot.show()
 
-def ms_plot(ms_walls): 
+def ms_plot(ms_walls, plot_range): 
     """
     Plots MS walls.
     """
     # Range on the plane to search for intersections
-    from parameters import INTERSECTION_SEARCH_RANGE as plot_range
     [[x_min, x_max], [y_min, y_max]] = plot_range
 
     # Plot setting.

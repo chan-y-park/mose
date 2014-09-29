@@ -1,4 +1,6 @@
 """
+A general intersection module.
+
 Objects and functions to find intersections of real 1-dim curves 
 on a real 2-dim plane.
 
@@ -94,9 +96,10 @@ class HitTable:
         self._bin_size = bin_size
         self._bin_fill_offset = bin_fill_offset
         self._hit_table = {}
-        self._num_x_bin, self._num_y_bin = \
-            map(lambda (r_min, r_max): int(ceil((r_max - r_min)/bin_size)), 
-                search_range)
+        self._num_x_bin, self._num_y_bin = map(
+            lambda (r_min, r_max): int(ceil((r_max - r_min)/bin_size)), 
+            search_range
+        )
 
     def __getitem__(self, key):
         return self._hit_table[key]
@@ -117,9 +120,10 @@ class HitTable:
         x_coord, y_coord = location
         [[x_min, x_max], [y_min, y_max]] = self._search_range
 
-        bin_key_x, bin_key_y = \
-            map(lambda coord, r_min: int((coord - r_min)/self._bin_size),
-                location, (x_min, y_min))
+        bin_key_x, bin_key_y = map(
+            lambda coord, r_min: int((coord - r_min)/self._bin_size),
+            location, (x_min, y_min)
+        )
 
         if not isinstance(bin_key_x, int):
             logging.debug('x_coord = %.8f, x_min = %s, bin_size = %s',
@@ -139,8 +143,11 @@ class HitTable:
     def get_bin_location(self, bin_key):
         [[x_min, x_max], [y_min, y_max]] = self._search_range
 
-        location = map(lambda coord, r_min: coord * self._bin_size + r_min + \
-                        0.5*self._bin_size, bin_key, [x_min, y_min])
+        location = map(
+            lambda coord, r_min: (coord * self._bin_size + r_min + 
+                                    0.5*self._bin_size), 
+            bin_key, [x_min, y_min]
+        )
         
         return location
 
@@ -149,7 +156,8 @@ class HitTable:
         if bin_key not in self._hit_table:
             bin_key_x, bin_key_y = bin_key
             # Check if bin_key is not a tuple of two integers.
-            if not isinstance(bin_key_x, int) or not isinstance(bin_key_y, int):
+            if (not isinstance(bin_key_x, int) or 
+                not isinstance(bin_key_y, int)):
                 raise KeyError('bin_key ' + str(bin_key) + 
                                     ' not a tuple of two integers.')
             # Check if bin_key is within the search range.

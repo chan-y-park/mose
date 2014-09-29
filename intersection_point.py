@@ -1,22 +1,31 @@
+"""
+Find intersections of K-walls and package each of them into 
+IntersectionPoint class.
+
+Uses general-purpose module, intersection.py
+"""
 import logging
 from itertools import combinations
 from misc import dsz_pairing
-from parameters import DSZ_MATRIX
+from config import DSZ_MATRIX
 from intersection import NoIntersection, find_intersection_of_segments
 from genealogy import build_genealogy_tree
 
 class IntersectionPoint:
-    """The IntersectionPoint class.
+    """
+    The IntersectionPoint class.
 
     Attributes: 
-    locus (point on moduli space), 
-    index_1 (index of intersection point within parent number 1, important to determine the charge at intersection), 
-    index_2 (index of intersection point within parent number 2, important to determine the charge at intersection), 
+        locus (point on moduli space), 
+        index_1 (index of intersection point within parent number 1, 
+                    important to determine the charge at intersection), 
+        index_2 (index of intersection point within parent number 2, 
+                    important to determine the charge at intersection), 
     genealogy
 
     Arguments: 
-    data (as a triplet of [u, index_1, index_2]), 
-    parents (as list of trajectories, ie objects)    
+        data (as a triplet of [u, index_1, index_2]), 
+        parents (as list of trajectories, ie objects)    
     """
 
     def __init__(self,data,parents):
@@ -25,7 +34,10 @@ class IntersectionPoint:
         self.locus = data[0]
         self.index_1 = data[1]
         self.index_2 = data[2]
-        self.charges = {str(parents[0].charge(self.index_1)), str(parents[1].charge(self.index_2))}
+        self.charges = {
+            str(parents[0].charge(self.index_1)), 
+            str(parents[1].charge(self.index_2))
+        }
         ### note the { } and conversion to strings, 
         ### since the charges are useful for classification purposes, mostly
         self.degeneracies = [parents[0].degeneracy, parents[1].degeneracy]
@@ -114,38 +126,39 @@ def find_new_intersections(kwalls, new_kwalls, intersections, hit_table):
                     # between two segments, hoping that we divided
                     # the curves as many times as required for the
                     # assumption to hold.
-                        intersection_point = \
-                            find_intersection_of_segments(
+                        intersection_point = find_intersection_of_segments(
                                 segment_1, segment_2,
                                 hit_table.get_bin_location(bin_key),
                                 hit_table._bin_size
-                            )
+                        )
 
                         ipx, ipy = intersection_point
                         # Find where to put the intersection point in the
                         # given segment. It should be put AFTER the index
                         # found below.
-                        dt_1 = \
-                            min(range(len(segment_1)), 
-                                key=lambda i: abs(segment_1[i, 0]-ipx))
+                        dt_1 = min(
+                            range(len(segment_1)), 
+                            key=lambda i: abs(segment_1[i, 0]-ipx)
+                        )
                         logging.debug('dt_1 = %d', dt_1)
-                        if dt_1-1 >=0 and (
+                        if (dt_1-1 >=0) and (
                             (segment_1[dt_1, 0] < ipx < segment_1[dt_1-1, 0]) 
                             or
                             (segment_1[dt_1, 0] > ipx > segment_1[dt_1-1, 0])
-                            ):
+                        ):
                             dt_1 -= 1
                         index_1 = t1_i + dt_1 
 
-                        dt_2 = \
-                            min(range(len(segment_2)), 
-                                key=lambda i: abs(segment_2[i, 0]-ipx))
+                        dt_2 = min(
+                            range(len(segment_2)), 
+                            key=lambda i: abs(segment_2[i, 0]-ipx)
+                        )
                         logging.debug('dt_2 = %d', dt_2)
-                        if dt_2-1 >=0 and (
+                        if (dt_2-1 >=0) and (
                             (segment_2[dt_2, 0] < ipx < segment_2[dt_2-1, 0]) 
                             or
                             (segment_2[dt_2, 0] > ipx > segment_2[dt_2-1, 0])
-                            ):
+                        ):
                             dt_2 -= 1
                         index_2 = t2_i + dt_2 
                         
@@ -160,8 +173,10 @@ def find_new_intersections(kwalls, new_kwalls, intersections, hit_table):
 
 
 
-            new_ints += [IntersectionPoint(intersection, [traj_1, traj_2]) \
-                            for intersection in list_of_intersection_points] 
+            new_ints += [
+                IntersectionPoint(intersection, [traj_1, traj_2]) 
+                for intersection in list_of_intersection_points
+            ] 
 
     remove_duplicate_intersection(new_ints, intersections)
 

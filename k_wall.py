@@ -4,8 +4,6 @@ import scipy
 import sympy as sym
 import cmath
 
-#from sympy import N, diff
-#from sympy import mpmath as mp
 from sympy.utilities.lambdify import lambdify
 from operator import itemgetter
 from cmath import exp, pi
@@ -15,8 +13,7 @@ from scipy.integrate import odeint
 
 from branch import BranchPoint
 from misc import complexify
-from parameters import TRAJECTORY_SINGULARITY_THRESHOLD
-from parameters import PF_ODEINT_MXSTEP 
+from config import TRAJECTORY_SINGULARITY_THRESHOLD, PF_ODEINT_MXSTEP 
 
 class KWall(object):
     """

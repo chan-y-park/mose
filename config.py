@@ -1,12 +1,6 @@
+#TODO: Consider using ConfigParser
 import sympy as sym
-import numpy as np
-
-from sympy import mpmath as mp
 from math import pi
-
-#---------------------------------------------------------------------------
-# constant parameters
-#---------------------------------------------------------------------------
 
 u = sym.Symbol('u')
 g2 = 1 + 4*(u ** 2)/3
@@ -42,7 +36,7 @@ NINT_RANGE = [0.0, 2.0, 400]
 
 # Range of the phase to scan:
 # [initial phase, final phase, number of steps]
-THETA_RANGE = [0, np.pi, 8]
+THETA_RANGE = [0, pi, 8]
 
 # Number of iterations to construct additional K-walls
 N_ITERATIONS = 2

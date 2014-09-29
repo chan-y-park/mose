@@ -5,7 +5,7 @@ directory 'mose'.
 import logging
 import sys, getopt
 
-from parameters import (
+from config import (
     g2, g3, 
     FIXED_CHARGES, THETA_CUTS, BRANCH_CUT_CUTOFF, N_ITERATIONS, 
     PRIMARY_NINT_RANGE, NINT_RANGE,
@@ -26,15 +26,32 @@ generate_multiple_networks = False
 
 try:
     opts, args = getopt.getopt(sys.argv[1:], 'l:s:f', 
-                                ['debug', 'info', 'warning']) 
+                                ['logging_level=']) 
+
+    if len(opts) == 0:
+        print("""usage: python -m mose [OPTION]
+
+    -l LEVEL, --logging_level=LEVEL:
+        set logging level to LEVEL.
+
+    -s THETA:
+        produce a single K-wall network at the phase of THETA
+        and plot the K-wall network.
+
+    -f:
+        produce K-wall networks and plot walls of marginal
+        stability."""
+        )
+
     for opt, arg in opts:
-        if (opt == '-l'and arg == 'debug') or opt == '--debug':
-            logging_level = logging.DEBUG
-            logging_format='%(module)s@%(lineno)d: %(message)s'
-        elif (opt == '-l'and arg == 'info') or opt == '--info':
-            logging_level = logging.INFO
-        elif (opt == '-l'and arg == 'warning') or opt == '--warning':
-            logging_level = logging.WARNING
+        if (opt == '-l' or opt == '--logging_level'):
+            if arg == 'debug':
+                logging_level = logging.DEBUG
+                logging_format='%(module)s@%(lineno)d: %(message)s'
+            elif arg == 'info':
+                logging_level = logging.INFO
+            elif arg == 'warning':
+                logging_level = logging.WARNING
 
         if opt == '-s':
             # Generate a single K-wall network at a phase
@@ -65,4 +82,4 @@ elif generate_multiple_networks == True:
         THETA_RANGE
     )
     ms_walls = build_ms_walls(k_wall_networks)
-    ms_plot(ms_walls)
+    ms_plot(ms_walls, INTERSECTION_SEARCH_RANGE)
