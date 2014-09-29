@@ -1,25 +1,23 @@
+import logging
 import sympy as sym
+from branch import BranchPoint, BranchCut
 
 class EllipticFibration:
-    def __init__(g2, g3, theta_cuts):
-        self.branch_points, self.branch_cuts = \
-            prepare_branch_locus(g2, g3, theta_cuts)
+    def __init__(self, g2, g3, branch_point_charges,
+                    branch_cut_phase, branch_cut_cutoff):
 
+        self.g2 = g2
+        self.g3 = g3
+        branch_point_loci = map(complex, find_singularities(g2, g3))
+        self.branch_points = [
+            BranchPoint(branch_point_loci[i], branch_point_charges[i])  
+            for i in range(len(branch_point_loci))
+        ]
+        self.branch_cuts = [
+            BranchCut(bp, branch_cut_phase, branch_cut_cutoff) 
+            for bp in self.branch_points
+        ]
 
-def prepare_branch_locus(g2, g3, phase):
-    """
-    Find branch points and build branch cuts.
-    """
-    # TODO: Must update with actual charge at branch-point
-    fixed_charges = [[1, 0], [-1, 2]] 
-
-    branch_point_loci = map(complex, find_singularities(g2, g3))
-    bpts = [BranchPoint(branch_point_loci[i], fixed_charges[i])  
-                for i in range(len(branch_point_loci))]
-    bcts = [BranchCut(bpts[i], phase) for i in range(len(bpts))]
-
-    return [bpts, bcts]
-    
 def find_singularities(g2, g3):
     """
     find the singularities on the Coulomb branch

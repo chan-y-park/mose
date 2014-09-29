@@ -5,37 +5,64 @@ directory 'mose'.
 import logging
 import sys, getopt
 
-from parameters import g2, g3, THETA_CUTS, THETA_RANGE, N_ITERATIONS
+from parameters import (
+    g2, g3, 
+    FIXED_CHARGES, THETA_CUTS, BRANCH_CUT_CUTOFF, N_ITERATIONS, 
+    PRIMARY_NINT_RANGE, NINT_RANGE,
+    INTERSECTION_SEARCH_RANGE, INTERSECTION_SEARCH_BIN_SIZE,
+    THETA_RANGE
+)
 from elliptic_fibration import EllipticFibration
-from construction import construct_k_wall_networks 
-from plotting import ms_plot
+from k_wall_network import KWallNetwork, construct_k_wall_networks
+from marginal_stability_wall import build_ms_walls
+from plotting import plot_k_wall_network, ms_plot
+
+# Default logging
+logging_level = logging.WARNING
+logging_format='%(message)s'
+
+generate_single_network = False
+generate_multiple_networks = False
 
 try:
-    opts, args = getopt.getopt(argv[1:], 'm:', 
+    opts, args = getopt.getopt(sys.argv[1:], 'l:s:f', 
                                 ['debug', 'info', 'warning']) 
-except getopt.GetOptError:
-    print 'Unknown options.'
-
     for opt, arg in opts:
-        if (opt == '-m'and arg == 'debug') or opt == '--debug':
+        if (opt == '-l'and arg == 'debug') or opt == '--debug':
             logging_level = logging.DEBUG
             logging_format='%(module)s@%(lineno)d: %(message)s'
-        elif (opt == '-m'and arg == 'info') or opt == '--info':
+        elif (opt == '-l'and arg == 'info') or opt == '--info':
             logging_level = logging.INFO
-            logging_format='%(message)s'
-        elif (opt == '-m'and arg == 'warning') or opt == '--warning':
+        elif (opt == '-l'and arg == 'warning') or opt == '--warning':
             logging_level = logging.WARNING
-            logging_format='%(message)s'
-        else:
-            logging_level = logging.WARNING
-            logging_format='%(message)s'
+
+        if opt == '-s':
+            # Generate a single K-wall network at a phase
+            phase = float(arg)
+            generate_single_network = True 
+        elif opt == '-f':
+            # Generate K-wall networks at various phases
+            generate_multiple_networks = True
+
+except getopt.GetoptError:
+    print 'Unknown options.'
 
 logging.basicConfig(level=logging_level, format=logging_format)
 
-fibration = EllipticFibration(g2, g3, THETA_CUTS)
+fibration = EllipticFibration(g2, g3, FIXED_CHARGES,
+                                THETA_CUTS, BRANCH_CUT_CUTOFF)
 
-k_wall_networks = construct_k_wall_networks(THETA_RANGE, N_ITERATIONS)
+if generate_single_network == True:
+    kwn = KWallNetwork(phase, fibration, INTERSECTION_SEARCH_RANGE,
+                        INTERSECTION_SEARCH_BIN_SIZE)
+    kwn.grow(PRIMARY_NINT_RANGE, NINT_RANGE, N_ITERATIONS)
+    plot_k_wall_network(kwn) 
 
-ms_walls = build_ms_walls(k_wall_networks)
-
-ms_plot(ms_walls)
+elif generate_multiple_networks == True:
+    k_wall_networks = construct_k_wall_networks(
+        fibration, INTERSECTION_SEARCH_RANGE, INTERSECTION_SEARCH_BIN_SIZE,
+        PRIMARY_NINT_RANGE, NINT_RANGE, N_ITERATIONS,
+        THETA_RANGE
+    )
+    ms_walls = build_ms_walls(k_wall_networks)
+    ms_plot(ms_walls)

@@ -5,10 +5,14 @@ complex 1-dimensional moduli space.
 
 from matplotlib import pyplot
 
-def kwallplot(kwalls, plot_range, bin_size=0, intersection_points=[],
-                hit_table={}, mark_data_plot=False, branch_points=[]): 
+def plot_k_wall_network(k_wall_network, plot_range=[], plot_bin=False, 
+                        plot_intersections=False, 
+                        display_data_points=False,
+                        display_segments=False): 
 
     # Range on the plane to search for intersections
+    if(plot_range == []):
+        plot_range = k_wall_network.hit_table.get_search_range()
     [[x_min, x_max], [y_min, y_max]] = plot_range
 
     # Plot setting.
@@ -17,7 +21,8 @@ def kwallplot(kwalls, plot_range, bin_size=0, intersection_points=[],
     pyplot.axes().set_aspect('equal')
 
     # Draw a lattice of bins for visualization.
-    if(bin_size > 0):
+    if(plot_bin == True):
+        bin_size = k_wall_network.hit_table.get_bin_size()
         xv = x_min
         while xv < x_max:
             xv += bin_size
@@ -30,17 +35,16 @@ def kwallplot(kwalls, plot_range, bin_size=0, intersection_points=[],
     # End of drawing the bin lattice.
 
     # Plot branch points
-    if(len(branch_points)>0):
-        for bp in branch_points:
-            bpx = bp.locus.real 
-            bpy = bp.locus.imag 
-            pyplot.plot(bpx, bpy, 'x', markeredgewidth=2, markersize=8, 
-                        color='k')
+    for bp in k_wall_network.fibration.branch_points:
+        bpx = bp.locus.real 
+        bpy = bp.locus.imag 
+        pyplot.plot(bpx, bpy, 'x', markeredgewidth=2, markersize=8, 
+                    color='k')
     # End of plotting branch points
 
     # Plot intersection points
-    if(len(intersection_points)>0):
-        for ip in intersection_points:
+    if(plot_intersections == True):
+        for ip in k_wall_network.intersections:
             ipx = ip.locus.real 
             ipy = ip.locus.imag 
             pyplot.plot(ipx, ipy, '+', markeredgewidth=2, markersize=8, 
@@ -48,8 +52,8 @@ def kwallplot(kwalls, plot_range, bin_size=0, intersection_points=[],
     # End of plotting intersection points
 
     # If we have segments of curves, draw them in different colors.
-    if(len(hit_table)>0):
-        for bin_key in hit_table:
+    if(display_segments == True):
+        for bin_key in k_wall_network.hit_table:
             for curve_index in hit_table[bin_key]:
                 for t_i, t_f in hit_table[bin_key][curve_index]:
                     seg_xcoords, seg_ycoords = \
@@ -57,20 +61,16 @@ def kwallplot(kwalls, plot_range, bin_size=0, intersection_points=[],
                             zip(*kwalls[curve_index].coordinates[t_i: t_f + 1])
                         ] 
                     pyplot.plot(seg_xcoords, seg_ycoords, '-')
-                    if(mark_data_plot == True):
+                    if(display_data_points == True):
                         pyplot.plot(seg_xcoords, seg_ycoords, 'o', color='b')
     else:
-        for trajectory in kwalls:
-            xcoords, ycoords = [list(c) for c in zip(*trajectory.coordinates)] 
+        for k_wall in k_wall_network.k_walls:
+            xcoords, ycoords = [list(c) for c in zip(*k_wall.coordinates)] 
             pyplot.plot(xcoords, ycoords, '-', color='b')
-        if(mark_data_plot == True):
+        if(display_data_points == True):
             pyplot.plot(xcoords, ycoords, 'o', color='b')
 
     pyplot.show()
-
-
-
-
 
 def ms_plot(ms_walls): 
     """

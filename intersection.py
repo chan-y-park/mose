@@ -107,6 +107,12 @@ class HitTable:
     def __len__(self):
         return len(self._hit_table)
 
+    def get_search_range(self):
+        return self._search_range
+
+    def get_bin_size(self):
+        return self._bin_size
+
     def get_bin_key(self, location):
         x_coord, y_coord = location
         [[x_min, x_max], [y_min, y_max]] = self._search_range

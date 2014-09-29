@@ -27,7 +27,7 @@ DSZ_MATRIX = [[0, 1], [-1, 0]]
 # The following parameter controls what value of abs(det(pf_matrix)) wilL
 # raise an exception to determine that a singularity ran too close to a 
 # singularity, and should be dropped.
-TRAJECTORY_SINGULARITY_THRESHOLD = 10 ** 6 
+TRAJECTORY_SINGULARITY_THRESHOLD = 10**6 
 
 # The range on the moduli space to search for intersections between 
 # K-walls. By default this is also the plot range.
@@ -37,8 +37,8 @@ INTERSECTION_SEARCH_BIN_SIZE = .2
 
 # Options for numerical integration: 
 # [initial time, final time, number of steps]
-PRIMARY_N_INT_RANGE = [0.0, 1.0, 101]
-N_INT_RANGE = [0.0, 2.0, 400]
+PRIMARY_NINT_RANGE = [0.0, 1.0, 101]
+NINT_RANGE = [0.0, 2.0, 400]
 
 # Range of the phase to scan:
 # [initial phase, final phase, number of steps]
@@ -47,3 +47,7 @@ THETA_RANGE = [0, np.pi, 8]
 # Number of iterations to construct additional K-walls
 N_ITERATIONS = 2
 
+# TODO: Must update with actual charge at branch-point
+FIXED_CHARGES = [[1, 0], [-1, 2]] 
+
+PF_ODEINT_MXSTEP = 5000000

@@ -1,3 +1,5 @@
+import logging
+
 class MarginalStabilityWall:
     """
     Th MS wall class.
@@ -38,11 +40,14 @@ class MarginalStabilityWall:
         if gen[1].__class__.__name__ == 'BranchPoint':
             self.points.append(gen[1])
 
-def build_ms_walls(all_intersections):
+def build_ms_walls(k_wall_networks):
     """
     This function creates MS walls, by sifting through all the intersections.
     These are clustered accoding to the genealogies and their charges.
     """
+    all_intersections = []
+    for kwn in k_wall_networks:
+        all_intersections += kwn.intersections
     ### to distinguish wall types, use certain data, defined in the following
     data = [[x.charges, x.genealogy] for x in all_intersections]
     seen = []

@@ -1,5 +1,9 @@
+import logging
 from itertools import combinations
+from misc import dsz_pairing
 from parameters import DSZ_MATRIX
+from intersection import NoIntersection, find_intersection_of_segments
+from genealogy import build_genealogy_tree
 
 class IntersectionPoint:
     """The IntersectionPoint class.
@@ -92,8 +96,8 @@ def find_new_intersections(kwalls, new_kwalls, intersections, hit_table):
             # NOTE Pietro: I am excluding some cases from being checked for 
             # intersections, see the if statements below
             if (dsz_pairing(traj_1.charge(0), traj_2.charge(0), 
-                            dsz_matrix) == 0 or \
-                traj_1.parents == traj_2.parents or \
+                    DSZ_MATRIX) == 0 or                 
+                traj_1.parents == traj_2.parents or 
                 traj_1 in traj_2.parents):
                 continue
 
