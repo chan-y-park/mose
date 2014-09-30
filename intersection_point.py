@@ -11,21 +11,23 @@ from config import DSZ_MATRIX
 from intersection import NoIntersection, find_intersection_of_segments
 from genealogy import build_genealogy_tree
 
+
+
+
 class IntersectionPoint:
-    """
-    The IntersectionPoint class.
+    """The IntersectionPoint class.
 
     Attributes: 
-        locus (point on moduli space), 
-        index_1 (index of intersection point within parent number 1, 
-                    important to determine the charge at intersection), 
-        index_2 (index of intersection point within parent number 2, 
-                    important to determine the charge at intersection), 
-    genealogy
+    - locus (point on moduli space), 
+    - index_1 (index of intersection point within parent number 1, 
+      important to determine the charge at intersection); 
+    - index_2 (index of intersection point within parent number 2, 
+      important to determine the charge at intersection); 
+    - genealogy
 
     Arguments: 
-        data (as a triplet of [u, index_1, index_2]), 
-        parents (as list of trajectories, ie objects)    
+    data (as a triplet of [u, index_1, index_2]), 
+    parents (as list of trajectories, ie objects)    
     """
 
     def __init__(self,data,parents):
@@ -34,10 +36,8 @@ class IntersectionPoint:
         self.locus = data[0]
         self.index_1 = data[1]
         self.index_2 = data[2]
-        self.charges = {
-            str(parents[0].charge(self.index_1)), 
-            str(parents[1].charge(self.index_2))
-        }
+        self.charges = {str(parents[0].charge(self.index_1)), \
+                                        str(parents[1].charge(self.index_2))}
         ### note the { } and conversion to strings, 
         ### since the charges are useful for classification purposes, mostly
         self.degeneracies = [parents[0].degeneracy, parents[1].degeneracy]

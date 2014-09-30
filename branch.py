@@ -1,6 +1,7 @@
+
+
 class BranchPoint:
-    """
-    The BranchPoint class.
+    """The BranchPoint class.
 
     Attributes: locus, charge
     Arguments: locus, charge
@@ -18,6 +19,8 @@ class BranchPoint:
     def __str__(self):
         return 'Branch point info: charge %s, locus %s ' % \
         (self.charge, self.locus)
+
+
 
 class BranchCut:
     """

@@ -10,6 +10,8 @@ from cmath import exp, pi
 from numpy import array, linspace
 from numpy.linalg import det
 from scipy.integrate import odeint
+from sympy import diff, N, simplify
+from sympy import mpmath as mp
 
 from branch import BranchPoint
 from misc import complexify
@@ -93,36 +95,27 @@ class KWall(object):
         x = sym.Symbol('x')
 
         Delta = sym.simplify(g2 ** 3 - 27 * g3 ** 2)
-        delta = sym.simplify(3*(g3)*sym.diff(g2, u) - 
-                                2*(g2)*sym.diff(g3, u))
-        pf_matrix_10 = \
-            sym.simplify((-(3*g2*(delta ** 2)/(16 * (Delta**2))) + 
-                            ((sym.diff(delta,u) * 
-                                sym.diff(Delta,u)) / (12*delta*Delta)) - 
-                            ((sym.diff(Delta, u, 2))/(12*Delta)) + 
-                            (((sym.diff(Delta, u))**2)/(144*(Delta**2))))
-            )
-        pf_matrix_11 = sym.simplify(((sym.diff(delta,u)/delta) - 
-                                        (sym.diff(Delta,u)/Delta)))
+        delta = sym.simplify(3 * (g3) * diff(g2, u) - 2 * (g2) * diff(g3, u))
 
-        pf_matrix = lambdify(u, [[0, 1], [pf_matrix_10, pf_matrix_11]])
+        
+        pf_matrix = lambdify(u, [ [0, 1] , \
+            [ sym.simplify(  ( -(3 * g2 * (delta ** 2) / (16 * (Delta**2)) ) + \
+                ( (diff(delta,u) * diff(Delta,u)) / (12 * delta * Delta) ) - \
+                ( (diff(Delta, u, 2)) / (12 * Delta) ) + ( ((diff(Delta, u)) ** 2)\
+                / (144 * (Delta ** 2) ) ) ) ) , \
+            sym.simplify( ( (diff(delta,u) / delta) - (diff(Delta,u) / Delta) ) ) \
+            ] \
+            ] )
 
-        #singularity_check= False
+        singularity_check= False
         t0 = 0
-        y0 = map(sym.N, 
-            array(
-                [(boundary_conditions[0]).real,
-                    (boundary_conditions[0]).imag,
-                    (boundary_conditions[1]).real,
-                    (boundary_conditions[1]).imag,
-                    (boundary_conditions[2]).real,
-                    (boundary_conditions[2]).imag]
-            )
-        )
+        y0 = map(N, array([ \
+            (boundary_conditions[0]).real,(boundary_conditions[0]).imag,\
+            (boundary_conditions[1]).real,(boundary_conditions[1]).imag,\
+            (boundary_conditions[2]).real,(boundary_conditions[2]).imag]) )
 
         # TODO: No other way but to define deriv() here?
         def deriv(y,t):
-            #global singularity_check
             z = y[0] + 1j * y[1]
             eta = y[2] + 1j * y[3]
             d_eta = y[4] + 1j * y[5]
@@ -130,20 +123,17 @@ class KWall(object):
             if abs(det(matrix)) > TRAJECTORY_SINGULARITY_THRESHOLD:
                 self.singular = True
 
-            #NOTE: A confusing point to bear in mind: here we are solving 
-            # the ode with respect to time t, but d_eta is understood to be 
-            # (d eta / d u), with its own  appropriate b.c. and so on!
-            z_1 = exp( 1j * ( theta + pi - cmath.phase( eta ) ) )
+            #### A confusing point to bear in mind: here we are solving the ode with respect to 
+            #### time t, but d_eta is understood to be (d eta / d u), with its own 
+            #### appropriate b.c. and so on!
+            ### NOTE THE FOLLOWING TWO OPTIONS FOR DERIVATIVE OF z
+            z_1 = exp( 1j * ( theta + pi ) ) / eta
+            # z_1 = exp( 1j * ( theta + pi - phase( eta ) ) )
             eta_1 = z_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
             d_eta_1 = z_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
-            return array([z_1.real, z_1.imag, eta_1.real, eta_1.imag, 
-                            d_eta_1.real, d_eta_1.imag])
-            # the following rescaled matrix will not blow up at singularities, 
-            # but it will not reach the singularities either..
-            #return (abs(det(matrix)) * 
-            #           array([z_1.real, z_1.imag, eta_1.real, 
-            #                   eta_1.imag, d_eta_1.real, d_eta_1.imag])
-            #       )
+            return array([z_1.real, z_1.imag, eta_1.real, eta_1.imag, d_eta_1.real, d_eta_1.imag])
+            # the following rescaled matrix will not blow up at singularities, but it will not reach the singularities either..
+            # return abs(det(matrix)) * array([z_1.real, z_1.imag, eta_1.real, eta_1.imag, d_eta_1.real, d_eta_1.imag])
 
         time = linspace(*nint_range)
         y = odeint(deriv, y0, time, mxstep=PF_ODEINT_MXSTEP)
@@ -194,14 +184,17 @@ class PrimaryKWall(KWall):
             f2 = e1
             f3 = e2
 
-        eta_1_part_1 = lambdify(u, sym.expand((sign)*(4*(f3 - f1)**(-0.5))), 
-                                sym.mpmath) 
-        eta_1_part_2 = lambdify(u, sym.expand((f2 - f1) / (f3 - f1)), 
-                                sym.mpmath)
+        
 
         #TODO: No other way but to define eta_1(), deriv() here?
-        def eta_1(z): 
-            return eta_1_part_1(z) * sym.mpmath.ellipk(eta_1_part_2(z))/2
+        # eta_1_part_1 = lambdify(u, simplify(sym.expand((sign) * (4 * (f3 - f1) ** (-0.5)))), mp) 
+        # eta_1_part_2 = lambdify(u, simplify(sym.expand((f2 - f1) / (f3 - f1))), mp)
+        eta_1_part_1 = lambdify(u, simplify(sym.expand(sign * 4 * (f3 - f1) ** (-0.5))),\
+                                                                modules="numpy") 
+        eta_1_part_2 = lambdify(u, simplify(sym.expand((f2 - f1) / (f3 - f1))),\
+                                                                modules="numpy") 
+        def eta_1(z):
+            return complex(eta_1_part_1(z) * mp.ellipk( eta_1_part_2(z) ) / 2)
 
         eta0 = eta_1(u0)
         bc = [u0, eta0]
@@ -290,24 +283,80 @@ class DescendantKWall(KWall):
 
         u_0 = intersection.locus
         parents = intersection.parents
-        index_1 = intersection.index_1
-        index_2 = intersection.index_2
+        
+        # index_1 = intersection.index_1
+        # index_2 = intersection.index_2
+        # path_1 = map(complexify, parents[0].coordinates)
+        # path_2 = map(complexify, parents[1].coordinates)
+        # periods_1 = parents[0].periods
+        # periods_2 = parents[1].periods
+        # eta_1 = periods_1[index_1]
+        # eta_2 = periods_2[index_2]
+        # d_eta_1 = ((periods_1[index_1] - periods_1[index_1-1]) / 
+        #             (path_1[index_1] - path_1[index_1-1]))
+        # d_eta_2 = ((periods_2[index_2] - periods_2[index_2-1]) / 
+        #             (path_2[index_2] - path_2[index_2-1]))
+        # # NOTE: The use of complex() is necessary here, because sometimes 
+        # # the charge vector wil be deriving from an algorithm using sympy, 
+        # # and will turn j's into I's...
+        # eta_0 = eta_1*complex(charge[0]) + eta_2*complex(charge[1])  
+        # d_eta_0 = d_eta_1*complex(charge[0]) + d_eta_2*complex(charge[1])
+
+        # self.boundary_condition = [u_0, eta_0, d_eta_0]
+
+
+        ### a parameter related to handling  0 / 0 cases of d_eta_1, d_eta_2
+        ### specifies how far backwards one should scan in case two consecutive 
+        ### steps of a kwall have same position and periods
+        n_trials = 3
+
+        if intersection.index_1 > n_trials:
+            index_1 = intersection.index_1
+        else:
+            index_1 = ntrials ## since we need to use 'index_1 - 1 ' later on
+        if intersection.index_2 > n_trials:
+            index_2 = intersection.index_2
+        else:
+            index_2 = ntrials ## since we need to use 'index_2 - 1 ' later on
         path_1 = map(complexify, parents[0].coordinates)
         path_2 = map(complexify, parents[1].coordinates)
         periods_1 = parents[0].periods
         periods_2 = parents[1].periods
         eta_1 = periods_1[index_1]
         eta_2 = periods_2[index_2]
-        d_eta_1 = ((periods_1[index_1] - periods_1[index_1-1]) / 
-                    (path_1[index_1] - path_1[index_1-1]))
-        d_eta_2 = ((periods_2[index_2] - periods_2[index_2-1]) / 
-                    (path_2[index_2] - path_2[index_2-1]))
-        # NOTE: The use of complex() is necessary here, because sometimes 
-        # the charge vector wil be deriving from an algorithm using sympy, 
-        # and will turn j's into I's...
-        eta_0 = eta_1*complex(charge[0]) + eta_2*complex(charge[1])  
-        d_eta_0 = d_eta_1*complex(charge[0]) + d_eta_2*complex(charge[1])
+        
+        # d_eta_1 = (periods_1[index_1] - periods_1[index_1-1]) / (path_1[index_1] - path_1[index_1-1])
+        # d_eta_2 = (periods_2[index_2] - periods_2[index_2-1]) / (path_2[index_2] - path_2[index_2-1])
+        
+        ### substituted the above two lines with the following, 
+        ### since in some cases you get 0 / 0 = 'nan'
+        
+        for i in range(n_trials):
+            i += 1      # start from i = 1
+            if (periods_1[index_1] == periods_1[index_1-i] and path_1[index_1] == path_1[index_1-i]):
+                if i < n_trials: 
+                    pass
+                elif i == n_trials:
+                    print "\n*******\nProblem: cannot compute derivative of \
+                    periods for trajectory number %s" % parents[0].count
+            else:
+                d_eta_1 = (periods_1[index_1] - periods_1[index_1-i]) / (path_1[index_1] - path_1[index_1-i])
+                break
 
+        for i in range(n_trials):
+            i += 1      # start from i = 1
+            if (periods_2[index_2] == periods_2[index_2-i] and path_2[index_2] == path_2[index_2-i]):
+                if i < n_trials: 
+                    pass
+                elif i == n_trials:
+                    print "\n*******\nProblem: cannot compute derivative of \
+                    periods for trajectory number %s" % parents[1].count
+            else:
+                d_eta_2 = (periods_2[index_2] - periods_2[index_2-i]) / (path_2[index_2] - path_2[index_2-i])
+                break
+        
+        eta_0 = eta_1 * complex(charge[0]) + eta_2 * complex(charge[1])  ### The use of complex() is necessary here, because sometimes the charge vector wil be deriving from an algorithm using sympy, and will turn j's into I's...
+        d_eta_0 = d_eta_1 * complex(charge[0]) + d_eta_2 * complex(charge[1])  ### The use of complex() is necessary here, because sometimes the charge vector wil be deriving from an algorithm using sympy, and will turn j's into I's...
         self.boundary_condition = [u_0, eta_0, d_eta_0]
 
     def evolve(self, nint_range):

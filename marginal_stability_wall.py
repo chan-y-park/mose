@@ -12,19 +12,19 @@ class MarginalStabilityWall:
     Note: intersections are not sorted, moreover (depending on the case)
     MS walls are enhanced with singularities on which they end. 
     Such singularities are added at the end of the argument all_intersections, 
-    they are given as instances of the branch-point class, and are NOT converted 
-    to intersection-point objects.
+    they are given as instances of the branch-point class, and are NOT 
+    converted to intersection-point objects.
     """
 
     count = 0
 
     def __init__(self, all_intersections):
         self.charges = all_intersections[0].charges 
-        # WARNING: self.charges is given in the format {'[-1, 2]', '[1, 0]'}
+        ### warning: self.charges is given in the format {'[-1, 2]', '[1, 0]'}
         self.degeneracies = all_intersections[0].degeneracies
         self.genealogy = all_intersections[0].genealogy
         self.points = all_intersections
-        # enhance_ms_wall() enhances the self.points attribute, 
+        # the following enhances the self.points attribute, 
         # possibly by adding branch-points
         self.enhance_ms_wall()     
         self.locus = [point.locus for point in self.points]
@@ -39,6 +39,7 @@ class MarginalStabilityWall:
             self.points.append(gen[0])
         if gen[1].__class__.__name__ == 'BranchPoint':
             self.points.append(gen[1])
+
 
 def build_ms_walls(k_wall_networks):
     """

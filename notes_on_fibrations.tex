@@ -1,0 +1,67 @@
+\documentclass[11pt]{article}
+\usepackage{color}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{fullpage}
+\usepackage{comment}
+\title{Some notes on the fibrations}
+\author{Chan, Daniel, Pietro}
+%\date{}                                           % Activate to display a given date or no date
+\newcommand{\be}{\begin{equation}}
+\newcommand{\ee}{\end{equation}}
+
+
+\usepackage{xcolor}
+\hypersetup{
+    colorlinks,
+    linkcolor={blue!50!black},
+    citecolor={green!50!black},
+    urlcolor={blue!80!black}
+}
+
+\begin{document}
+\maketitle
+\begin{center}
+	Some notes on the conventions used for fibration data within our code.
+\end{center}
+\tableofcontents
+
+
+\section{$SU(2)$ $N_{f}=1$}
+
+From section 2 of 9706145 (Bilal-Ferrari)
+\be
+	y^{2} = x^{2}(x-u) + {m \Lambda^{3}\over 4} x - {\Lambda^{6}\over 64}
+\ee
+rescaling $y$ by a factor of $2$, and shifting $z \to z + u/3$ brings this into Weierstrass normal form
+\be
+\begin{split}
+	y^{2} & = 4z^{3} - g_{2}(u) z - g_{3}(u) \\
+	g_{2}(u) & = -\Lambda ^3 m+\frac{4 u^2}{3}\\
+	g_{3}(u) & = \frac{\Lambda ^6}{16}-\frac{ \Lambda ^3 m u}{3} +\frac{8 u^3}{27}
+\end{split}
+\ee
+which is the form appearing in the code.
+
+\begin{comment}
+From section 10.2 of GMN2
+\be
+	\lambda^{2} = \left( {\Lambda^{2} \over z^{3}} + {3 u\over z^{2}} + {2 m \Lambda^{} \over z^{}} + \Lambda^{2} \right)\, dz^{2}
+\ee
+upon a proper ($z$-dependent) rescaling od $\Lambda$, we may identify the elliptic curve
+\be
+	y^{2} = 4z^{3} + {8m\over \Lambda}z^{2}+{12 u\over \Lambda^{2}} z + 4
+\ee
+shifting $z \to z - 2m / 3\Lambda$ brings this into Weierstrass normal form
+\be
+\begin{split}
+	y^{2} & = 4z^{3} - g_{2}(u) z - g_{3}(u) \\
+	g_{2}(u) & = {16 m^{2} \over 3\Lambda^{2}} - {12 u \over \Lambda^{2}} \\
+	g_{3}(u) & = {8 m u \over \Lambda^{3}} - {64 m^{3} \over 27 \Lambda^{3}} 
+\end{split}
+\ee
+which is the form appearing in the code.
+\end{comment}
+
+
+\end{document}  
