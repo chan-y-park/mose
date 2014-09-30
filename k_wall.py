@@ -40,6 +40,8 @@ class KWall(object):
         self.fibration = fibration
         self.color = color
         self.singular = False
+        logging.info('Evolving K-wall %d', KWall.count)
+        KWall.count += 1
 
     def __str__(self):
         return ('KWall info: initial charge {}, '
