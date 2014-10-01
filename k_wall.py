@@ -157,7 +157,7 @@ class KWall(object):
             # the following rescaled matrix will not blow up at singularities, 
             # but it will not reach the singularities either..
             # return abs(det(matrix)) * array([z_1.real, z_1.imag, 
-            #               eta_1.real, eta_1.imag, d_eta_1.real, d_eta_1.imag])
+            #              eta_1.real, eta_1.imag, d_eta_1.real, d_eta_1.imag])
 
         time = linspace(*nint_range)
         y = odeint(deriv, y0, time, mxstep=PF_ODEINT_MXSTEP)
