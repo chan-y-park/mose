@@ -22,7 +22,7 @@ class KWallNetwork:
         primary_k_walls = []
 
         for bp in self.fibration.branch_points:
-            logging.info('Evolving primary K-wall #{}', 
+            logging.info('Evolving primary K-wall #%d', 
                             len(primary_k_walls))
             k_wall = PrimaryKWall(
                 bp.charge,      #initial_charge 
@@ -45,6 +45,8 @@ class KWallNetwork:
                     """
                 )
 
+            logging.info('Evolving primary K-wall #%d', 
+                            len(primary_k_walls))
             k_wall = PrimaryKWall(
                 bp.charge,      #initial_charge 
                 1,              #degeneracy 
@@ -72,17 +74,19 @@ class KWallNetwork:
 
         new_k_walls = primary_k_walls 
         for i in range(n_iterations):
+            logging.info('Iteration #%d', i)
+            logging.debug('len(k_walls) = %d', len(self.k_walls))
             new_intersections = find_new_intersections(
                 self.k_walls, new_k_walls, self.intersections, self.hit_table
             )
             self.intersections += new_intersections
             self.k_walls += new_k_walls
-            logging.info('creating new K-walls from intersections.')
+            new_k_walls = []
+            logging.info('Creating new K-walls from intersections.')
 
             # Build K-walls from new intersections.
         
             for intersection in new_intersections:
-                new_k_walls = []
                 parents = intersection.parents
                 gamma_1 = parents[0].charge(intersection.index_1)
                 gamma_2 = parents[1].charge(intersection.index_2)
@@ -94,6 +98,7 @@ class KWallNetwork:
                     [[gamma_1, omega_1], [gamma_2, omega_2]],
                     DSZ_MATRIX
                 )
+                logging.debug('progeny = %s', progeny)
                 for sibling in progeny:
                     # the charge formatted wrt the basis of parent charges
                     charge, degeneracy = sibling 
@@ -120,6 +125,8 @@ class KWallNetwork:
                             **************
                             """
                         )
+        # End of iterations.
+        self.k_walls += new_k_walls
 
 def construct_k_wall_networks(fibration, max_range, bin_size,
                                 primary_nint_range, nint_range, n_iterations,

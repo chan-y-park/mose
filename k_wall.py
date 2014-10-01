@@ -40,7 +40,7 @@ class KWall(object):
         self.fibration = fibration
         self.color = color
         self.singular = False
-        logging.info('Evolving K-wall %d', KWall.count)
+        logging.info('Creating K-wall #%d', KWall.count)
         KWall.count += 1
 
     def __str__(self):
@@ -78,8 +78,6 @@ class KWall(object):
         implementation of the growth of kwalls 
         by means of picard-fuchs ODEs 
         """
-        #global singularity_check
-
         # NOTE: the argument boundary_conditions should be passed 
         # in the following form:
         #   u_0 = boundary_conditions[0] 
@@ -100,21 +98,37 @@ class KWall(object):
         delta = sym.simplify(3 * (g3) * diff(g2, u) - 2 * (g2) * diff(g3, u))
 
         
-        pf_matrix = lambdify(u, [ [0, 1] , \
-            [ sym.simplify(  ( -(3 * g2 * (delta ** 2) / (16 * (Delta**2)) ) + \
-                ( (diff(delta,u) * diff(Delta,u)) / (12 * delta * Delta) ) - \
-                ( (diff(Delta, u, 2)) / (12 * Delta) ) + ( ((diff(Delta, u)) ** 2)\
-                / (144 * (Delta ** 2) ) ) ) ) , \
-            sym.simplify( ( (diff(delta,u) / delta) - (diff(Delta,u) / Delta) ) ) \
-            ] \
-            ] )
+        pf_matrix = lambdify(u, 
+            [
+                [0, 1], 
+                [
+                    sym.simplify(
+                        (-(3*g2*(delta**2) / (16*(Delta**2))) + 
+                        ((diff(delta,u) * diff(Delta,u)) / (12*delta*Delta)) - 
+                        ((diff(Delta, u, 2)) / (12*Delta)) + 
+                        (((diff(Delta, u))**2) / (144 * (Delta**2) ) ) ) 
+                    ), 
+                    sym.simplify( 
+                        ( (diff(delta,u) / delta) - (diff(Delta,u) / Delta) ) 
+                    ) 
+                ]
+            ] 
+        )
 
         singularity_check= False
         t0 = 0
-        y0 = map(N, array([ \
-            (boundary_conditions[0]).real,(boundary_conditions[0]).imag,\
-            (boundary_conditions[1]).real,(boundary_conditions[1]).imag,\
-            (boundary_conditions[2]).real,(boundary_conditions[2]).imag]) )
+        y0 = map(N, 
+            array(
+                [
+                    (boundary_conditions[0]).real,
+                    (boundary_conditions[0]).imag,
+                    (boundary_conditions[1]).real,
+                    (boundary_conditions[1]).imag,
+                    (boundary_conditions[2]).real,
+                    (boundary_conditions[2]).imag
+                ]
+            )    
+        )
 
         # TODO: No other way but to define deriv() here?
         def deriv(y,t):
@@ -125,17 +139,25 @@ class KWall(object):
             if abs(det(matrix)) > TRAJECTORY_SINGULARITY_THRESHOLD:
                 self.singular = True
 
-            #### A confusing point to bear in mind: here we are solving the ode with respect to 
-            #### time t, but d_eta is understood to be (d eta / d u), with its own 
-            #### appropriate b.c. and so on!
+            # A confusing point to bear in mind: here we are solving the 
+            # ode with respect to time t, but d_eta is understood to be 
+            # (d eta / d u), with its own  appropriate b.c. and so on!
             ### NOTE THE FOLLOWING TWO OPTIONS FOR DERIVATIVE OF z
             z_1 = exp( 1j * ( theta + pi ) ) / eta
             # z_1 = exp( 1j * ( theta + pi - phase( eta ) ) )
             eta_1 = z_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
             d_eta_1 = z_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
-            return array([z_1.real, z_1.imag, eta_1.real, eta_1.imag, d_eta_1.real, d_eta_1.imag])
-            # the following rescaled matrix will not blow up at singularities, but it will not reach the singularities either..
-            # return abs(det(matrix)) * array([z_1.real, z_1.imag, eta_1.real, eta_1.imag, d_eta_1.real, d_eta_1.imag])
+            return array(
+                    [
+                        z_1.real, z_1.imag, 
+                        eta_1.real, eta_1.imag, 
+                        d_eta_1.real, d_eta_1.imag
+                    ]
+            )
+            # the following rescaled matrix will not blow up at singularities, 
+            # but it will not reach the singularities either..
+            # return abs(det(matrix)) * array([z_1.real, z_1.imag, 
+            #               eta_1.real, eta_1.imag, d_eta_1.real, d_eta_1.imag])
 
         time = linspace(*nint_range)
         y = odeint(deriv, y0, time, mxstep=PF_ODEINT_MXSTEP)
@@ -189,12 +211,14 @@ class PrimaryKWall(KWall):
         
 
         #TODO: No other way but to define eta_1(), deriv() here?
-        # eta_1_part_1 = lambdify(u, simplify(sym.expand((sign) * (4 * (f3 - f1) ** (-0.5)))), mp) 
-        # eta_1_part_2 = lambdify(u, simplify(sym.expand((f2 - f1) / (f3 - f1))), mp)
-        eta_1_part_1 = lambdify(u, simplify(sym.expand(sign * 4 * (f3 - f1) ** (-0.5))),\
-                                                                modules="numpy") 
-        eta_1_part_2 = lambdify(u, simplify(sym.expand((f2 - f1) / (f3 - f1))),\
-                                                                modules="numpy") 
+        eta_1_part_1 = lambdify(u, 
+            simplify(sym.expand(sign * 4 * (f3 - f1) ** (-0.5))), 
+            modules="numpy"
+        ) 
+        eta_1_part_2 = lambdify(u, 
+            simplify(sym.expand((f2 - f1) / (f3 - f1))),
+            modules="numpy"
+        ) 
         def eta_1(z):
             return complex(eta_1_part_1(z) * mp.ellipk( eta_1_part_2(z) ) / 2)
 
@@ -315,11 +339,11 @@ class DescendantKWall(KWall):
         if intersection.index_1 > n_trials:
             index_1 = intersection.index_1
         else:
-            index_1 = ntrials ## since we need to use 'index_1 - 1 ' later on
+            index_1 = n_trials ## since we need to use 'index_1 - 1 ' later on
         if intersection.index_2 > n_trials:
             index_2 = intersection.index_2
         else:
-            index_2 = ntrials ## since we need to use 'index_2 - 1 ' later on
+            index_2 = n_trials ## since we need to use 'index_2 - 1 ' later on
         path_1 = map(complexify, parents[0].coordinates)
         path_2 = map(complexify, parents[1].coordinates)
         periods_1 = parents[0].periods
@@ -327,38 +351,50 @@ class DescendantKWall(KWall):
         eta_1 = periods_1[index_1]
         eta_2 = periods_2[index_2]
         
-        # d_eta_1 = (periods_1[index_1] - periods_1[index_1-1]) / (path_1[index_1] - path_1[index_1-1])
-        # d_eta_2 = (periods_2[index_2] - periods_2[index_2-1]) / (path_2[index_2] - path_2[index_2-1])
+        # d_eta_1 = ((periods_1[index_1] - periods_1[index_1-1]) / 
+        #               (path_1[index_1] - path_1[index_1-1]))
+        # d_eta_2 = ((periods_2[index_2] - periods_2[index_2-1]) / 
+        #               (path_2[index_2] - path_2[index_2-1]))
         
         ### substituted the above two lines with the following, 
         ### since in some cases you get 0 / 0 = 'nan'
         
         for i in range(n_trials):
             i += 1      # start from i = 1
-            if (periods_1[index_1] == periods_1[index_1-i] and path_1[index_1] == path_1[index_1-i]):
+            if (periods_1[index_1] == periods_1[index_1-i] and 
+                path_1[index_1] == path_1[index_1-i]):
                 if i < n_trials: 
                     pass
                 elif i == n_trials:
                     print "\n*******\nProblem: cannot compute derivative of \
                     periods for trajectory number %s" % parents[0].count
             else:
-                d_eta_1 = (periods_1[index_1] - periods_1[index_1-i]) / (path_1[index_1] - path_1[index_1-i])
+                d_eta_1 = ((periods_1[index_1] - periods_1[index_1-i]) / 
+                            (path_1[index_1] - path_1[index_1-i]))
                 break
 
         for i in range(n_trials):
             i += 1      # start from i = 1
-            if (periods_2[index_2] == periods_2[index_2-i] and path_2[index_2] == path_2[index_2-i]):
+            if (periods_2[index_2] == periods_2[index_2-i] 
+                    and path_2[index_2] == path_2[index_2-i]):
                 if i < n_trials: 
                     pass
                 elif i == n_trials:
                     print "\n*******\nProblem: cannot compute derivative of \
                     periods for trajectory number %s" % parents[1].count
             else:
-                d_eta_2 = (periods_2[index_2] - periods_2[index_2-i]) / (path_2[index_2] - path_2[index_2-i])
+                d_eta_2 = ((periods_2[index_2] - periods_2[index_2-i]) / 
+                            (path_2[index_2] - path_2[index_2-i]))
                 break
         
-        eta_0 = eta_1 * complex(charge[0]) + eta_2 * complex(charge[1])  ### The use of complex() is necessary here, because sometimes the charge vector wil be deriving from an algorithm using sympy, and will turn j's into I's...
-        d_eta_0 = d_eta_1 * complex(charge[0]) + d_eta_2 * complex(charge[1])  ### The use of complex() is necessary here, because sometimes the charge vector wil be deriving from an algorithm using sympy, and will turn j's into I's...
+        eta_0 = eta_1 * complex(charge[0]) + eta_2 * complex(charge[1])  
+        ### The use of complex() is necessary here, because sometimes 
+        # the charge vector wil be deriving from an algorithm using sympy, 
+        # and will turn j's into I's...
+        d_eta_0 = d_eta_1 * complex(charge[0]) + d_eta_2 * complex(charge[1])  
+        ### The use of complex() is necessary here, because sometimes 
+        # the charge vector wil be deriving from an algorithm using sympy, 
+        # and will turn j's into I's...
         self.boundary_condition = [u_0, eta_0, d_eta_0]
 
     def evolve(self, nint_range):

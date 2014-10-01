@@ -7,36 +7,36 @@ from math import pi
 
 # #-----------	PURE SU(2)	 ------------
 
-# u = sym.Symbol('u')
-# g2 = 1 + 4 * (u ** 2) / 3
-# g3 = u / 3 + 8 * (u ** 3) / 27
-
-# ### Giving by hand the charges at branch points, 
-# ### must update with algorithm that determines actual charge at branch-point
-# FIXED_CHARGES = [ [1, 0], [-1, 2]] 
-
-# ### the angle at which branch-cuts should be oriented
-# THETA_CUTS = 3.14159265359 / 2  
-
-# KS_FILTRATION_DEGREE = 4
-
-# # how far way from the singularity the locus of the branch cut extends
-# BRANCH_CUT_CUTOFF = 10.0         
-
-# DSZ_MATRIX = [[0, 1], [-1, 0]]
-
-# #theta =   0.0 #2.35619449019   ### the phase of K-wall evolution
-
-# # the NINT_RANGE are for numerical integration: 
-# # [initial time, final time, number of steps]
-# PRIMARY_NINT_RANGE = [0.0, 0.2, 50]
-# NINT_RANGE = [0.0, 8.0, 400]
-
-# THETA_RANGE = [0,pi,2]
-
-# # Number of iterations to construct additional K-walls
-# N_ITERATIONS = 2
-
+#u = sym.Symbol('u')
+#g2 = 1 + 4 * (u ** 2) / 3
+#g3 = u / 3 + 8 * (u ** 3) / 27
+#
+#### Giving by hand the charges at branch points, 
+#### must update with algorithm that determines actual charge at branch-point
+#FIXED_CHARGES = [ [1, 0], [-1, 2]] 
+#
+#### the angle at which branch-cuts should be oriented
+#THETA_CUTS = 3.14159265359 / 2  
+#
+#KS_FILTRATION_DEGREE = 4
+#
+## how far way from the singularity the locus of the branch cut extends
+#BRANCH_CUT_CUTOFF = 10.0         
+#
+#DSZ_MATRIX = [[0, 1], [-1, 0]]
+#
+##theta =   0.0 #2.35619449019   ### the phase of K-wall evolution
+#
+## the NINT_RANGE are for numerical integration: 
+## [initial time, final time, number of steps]
+#PRIMARY_NINT_RANGE = [0.0, 0.2, 50]
+#NINT_RANGE = [0.0, 8.0, 400]
+#
+#THETA_RANGE = [0,pi,2]
+#
+## Number of iterations to construct additional K-walls
+#N_ITERATIONS = 2
+#
 #-------------------------------------------
 
 
@@ -80,7 +80,7 @@ from math import pi
 
 
 
-# #-----------   AN INVENTED FIBRATION   -------------
+#-----------   AN INVENTED FIBRATION   -------------
 
 u = sym.Symbol('u')
 Lambda = 1.0 #- 0.5 * 1j

@@ -138,26 +138,26 @@ def find_new_intersections(kwalls, new_kwalls, intersections, hit_table):
                         # found below.
                         dt_1 = min(
                             range(len(segment_1)), 
-                            key=lambda i: abs(segment_1[i, 0]-ipx)
+                            key=(lambda i: abs(segment_1[i][0]-ipx))
                         )
                         logging.debug('dt_1 = %d', dt_1)
                         if (dt_1-1 >=0) and (
-                            (segment_1[dt_1, 0] < ipx < segment_1[dt_1-1, 0]) 
+                            (segment_1[dt_1][0] < ipx < segment_1[dt_1-1][0]) 
                             or
-                            (segment_1[dt_1, 0] > ipx > segment_1[dt_1-1, 0])
+                            (segment_1[dt_1][0] > ipx > segment_1[dt_1-1][0])
                         ):
                             dt_1 -= 1
                         index_1 = t1_i + dt_1 
 
                         dt_2 = min(
                             range(len(segment_2)), 
-                            key=lambda i: abs(segment_2[i, 0]-ipx)
+                            key=lambda i: abs(segment_2[i][0]-ipx)
                         )
                         logging.debug('dt_2 = %d', dt_2)
                         if (dt_2-1 >=0) and (
-                            (segment_2[dt_2, 0] < ipx < segment_2[dt_2-1, 0]) 
+                            (segment_2[dt_2][0] < ipx < segment_2[dt_2-1][0]) 
                             or
-                            (segment_2[dt_2, 0] > ipx > segment_2[dt_2-1, 0])
+                            (segment_2[dt_2][0] > ipx > segment_2[dt_2-1][0])
                         ):
                             dt_2 -= 1
                         index_2 = t2_i + dt_2 
