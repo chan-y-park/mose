@@ -22,8 +22,8 @@ class KWallNetwork:
         primary_k_walls = []
 
         for bp in self.fibration.branch_points:
-            logging.info('Evolving primary K-wall #%d', 
-                            len(primary_k_walls))
+            # logging.info('Evolving primary K-wall #%d', 
+                            # len(primary_k_walls))
             k_wall = PrimaryKWall(
                 bp.charge,      #initial_charge 
                 1,              #degeneracy 
@@ -45,8 +45,8 @@ class KWallNetwork:
                     """
                 )
 
-            logging.info('Evolving primary K-wall #%d', 
-                            len(primary_k_walls))
+            # logging.info('Evolving primary K-wall #%d', 
+                            # len(primary_k_walls))
             k_wall = PrimaryKWall(
                 bp.charge,      #initial_charge 
                 1,              #degeneracy 
@@ -74,7 +74,7 @@ class KWallNetwork:
 
         new_k_walls = primary_k_walls 
         for i in range(n_iterations):
-            logging.info('Iteration #%d', i)
+            logging.info('Iteration #%d', i+1 )
             logging.debug('len(k_walls) = %d', len(self.k_walls))
             new_intersections = find_new_intersections(
                 self.k_walls, new_k_walls, self.intersections, self.hit_table

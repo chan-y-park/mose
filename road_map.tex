@@ -1,0 +1,176 @@
+\documentclass[11pt]{report}
+\usepackage{color}
+\usepackage{hyperref}
+\usepackage{fullpage}
+\title{A rough road map for the \emph{MOSE} project}
+\author{Chan, Daniel, Pietro}
+%\date{}                                           % Activate to display a given date or no date
+
+\usepackage{xcolor}
+\hypersetup{
+    colorlinks,
+    linkcolor={blue!50!black},
+    citecolor={green!50!black},
+    urlcolor={blue!80!black}
+}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+
+
+\chapter{K wall networks}
+
+
+\section{Intersection algorithm  - {\color{red} \bf done}}
+This should be a function called \texttt{find\_intersections(trajectory\_1,trajectory\_2)} returning the intersection(s) of the two given trajectories. It shold be placed in the numerics.py file\\
+If the trajectories don't intersect, it should return {\tt []} otherwise it should return a list {\tt [[point, index\_1, index\_2], ...]} where
+\begin{itemize}
+\item {\tt point} is the exact point of intersection, given as a complex number 
+\item {\tt index\_1} is the index of the element of {\tt trajectory\_1.coordinates} that corresponds to the exact intersection point. (Same for {\tt index\_2}). This is important because it will be used to determine the pertinent charge to use in computing progenie by means of the KSWCF. {\bf We are taking the shortcut of \emph{not} adding the actual point to the trajectory, so we introduce a tiny approximation. Keep in mind if trouble arises.}
+\item The exact point of intersection should be added to the lists {\tt trajectory\_1.coordinates} and {\tt trajectory\_2.coordinates}, at the appropriate point {\bf warning:} coordinates attributes in the Trajectory class are given as a 2-vector, not as a complex numer. 
+\item Moreover, the corresponding value of the period of $\eta$ for that trajectory should also be added to {\tt trajectory\_1.periods} (and same for trajectory\_2), this goes as a complex number.
+\end{itemize}
+A very primitive intersection algorithm is already present in numerics.py.
+
+
+
+\section{KSWCF  - {\color{red} \bf done} {\tiny \bf (maybe can improve a bit more)}}
+This should be a function called {\tt progeny\_2(data)} placed in the file kswcf.py, that takes {\tt data = [ [ $\gamma_{1}$, $\Omega(\gamma_{1})$  ] ,[$\gamma_{2}$, $\Omega(\gamma_{2})$] ]} and returns a list of new charges and corresponding degeneracies, \emph{excluding the parents}:
+{\tt [ ...  [ $n \gamma_{1}+ m \gamma_{2}$ , $\Omega(n \gamma_{1}+ m \gamma_{2})$  ]  ... ]}.
+A primitive example is provided in the file kswcf.py.
+
+
+
+\section{Rotation of the phase - {\color{red} \bf done}}
+A function called {\tt phase\_scan(theta\_range)} in structure.py, that repeats the whole computation of primary k-walls, their intersections, generation of descendants, and iterations to get new intersections, new descendats etc.. for different phases.\\
+The argument {\tt theta\_range} is of the form {\tt theta\_range = [theta\_in, theta\_fin, steps]}.
+
+At each phase, it \emph{stores the information about intersection points and their genealogy}. This information will then be used to construct full MS walls.
+
+As of now, it keeps track of all intersections and all k-walls at every phase, and returns a big array containing them: this has the shape {\tt [  all\_ints , all\_trajs  ]} where {\tt all\_ints = [ ... [ int1, int2, ... ] ... ]} contains arrays of intersections of given phase and similarly {\tt all\_trajs = [ ... [ traj1, traj2, ... ] ... ]} contains arrays of trajectories of given phase.
+
+
+
+\section{Genealogy - {\color{red} \bf done}}
+Not sure how to structure this yet. But it should be a function called {\tt build\_genealogy\_tree(intersection\_point)} that takes as argument an object of the class IntersectionPoint.
+It should use the attribute {\tt intersection\_point.parents} to recursively determine the trajectories from whom the point descends.
+It should eventually return a structure (type of it is to be determined) that contains the genealogy of such point, meaning which branch-points are the farthest ancestors of the intersection, and in which associative order, eg: {\tt [[BP1,BP2],BP3]}.
+Not sure if keeping track of branch-point ancestors will be enough, maybe not. Maybe should keep track of trajectories in the middle as well.
+
+\medskip
+
+The purpose of genealogy is to identify which intersections (occurring at different phases) belong to the same wall of marginal stability.
+
+
+\section{Construction of MS walls  - {\color{red} \bf done}}
+Once the phase-rotation algorithm is working and the genealogy is ready, we should be able to group together intersection points coming from different phase-snapshots, and build analytic MS walls out of them. This will need some thinking
+
+
+\section{Branch cuts}
+In the function {\tt prepare\_branch\_locus} in file structure.py (\emph{warning: the whole structure of the code has undergone a major change, need to look for this function}), should create an array of branch cuts called {\tt bcts} that is to be returned (see the function there).
+Each branch point will generate a branch cut. Cuts should be straight lines going to infinity, at a certain angle {\tt THETA\_CUTS} to be specified in the file {config.py}. A tentative implementation of this kind of cuts is already provided by the {\tt init} method of the {\tt BranchCut} class.
+It remains to
+\begin{itemize}
+\item tune the parameter {\tt branch\_cut\_cutoff} in file parameters.py (length of the branch cut)
+\item write the method {\tt check\_{cuts}} in the class {\tt Trajectory} (\emph{Warning: now this class has been replaced by the {\tt KWall} class and its daughter classes}), which is supposed to {\bf detect intersection of trajectories with cuts}, and determine the {\tt Trajectory.splittings} (find exact point, add it to {\tt Trajectory.coordinates}, then the splitting contains the indices of these exact points. The corresponding kind of addition must be done to {\tt Trajectory.periods}) and determine the values of {\tt Trajectory.local\_{charge}} on segments of the trajectory between the various {\tt splittings}. See the dummy method in the Trajectory class.
+\item Update the intersection-searching procedure: when two K-walls intersect, the intersection pairing should be evaluated based on the charge of the K-wall at the intersection, this of course can only happen after K-walls have evolved \emph{and} intersections with cuts have been taken into account.
+\end{itemize}
+
+
+
+\section{Charges of branch points}
+This should be an algorithm that, at the very beginning ---while creating the branch locus--- determines automatically which charges to assign to each branch point (hence to each branch cut).
+It should also specify the DSZ matrix. All this information should replace {\tt DSZ\_MATRIX} and {\tt FIXED\_CHARGES} which are now given by hand in the config.py file.
+
+
+
+\section{Storing Data}
+When running a long computation, involving probing several (such as O(100)) phases, it would be good to store all data on a separate file.
+In particular, we should 
+\begin{itemize}
+	\item Create an external file(s) whose name contains date and time
+	\item Store data in such a way that it is retrievable: just need to store the output of the function {\texttt{phase\_scan}}
+	\item Write a module for retrieving (reloading in the RAM) the above data ready for analysis
+	\item Bonus: write a module that (using the external data) will create a separate folder, containing snapshots of the k-walls on the moduli space for all scanned phases
+	\item Extra bonus: write a module that uses the above screenshots to provide a window with a slider tool and lets you browse the k-wall evolution. This is quite useful for debugging and checking the numerics (esp. the undesired bending of k-wall at critical phases)
+\end{itemize}
+
+
+
+
+\section{Refined numerical issues with evolution  - {\color{red} \bf done}}
+Trajectories evolve according to the PF equations, these are governed by a matrix which becomes singular at the singular locus of the moduli space (since they contain the discriminant).
+The {\texttt{odeint}} algorithm will get into trouble integrating PF in the neighborhood of these points.
+In particular, the problems seem to consist in trajectories bending abruptly when they run close to singularities.
+
+\medskip
+
+\noindent Possible solutions:
+\begin{itemize}
+	\item Once a trajectory was evolved, search backwards to see if it passed near a singularity. If it did, cut it in a neighborhood of the singular point (where it enters a disk of radius $\epsilon$ centered there), then invoke a new evolution algorithm (such as that of primay k-walls), then revert back to PF.
+	\item Once a trajectory was evolved, search backwards to see if it passed near a singularity. If it did, erase the trajectory before next iteration, so it cannot create bogus offsprings due to bad numerics (e.g. the bending will make it intersect k-walls it wasn't supposed to meet).
+\end{itemize}
+
+The first possibility seems better, however the evolution method of primary walls will likely run into trouble too, recall the behavior of that method near a MS wall (which certainly would be met by the evolving kwall, when crossing the disc centered around the singular point).
+
+
+The second possibility might be numerically heavy, but it could be greatly improved by tracking e.g. the determinant of the PF matrix, and using that as a red flag, instead of computing distances from singularities. It would clearly leave an unexplored area nearby a singularity, however this can be fixed by the idea of section \ref{sec:bp-to-int}
+
+\bigskip
+
+{\color{blue} \noindent{\bf Note: } solved with the second option. Introduced a parameter called {\tt{TRAJECTORY\_SINGULARITY\_THRESHOLD}} that controls the value of the {\bf determinant of the picard-fuchs matrix} along the trajectory's evolution, above which a trajectory is deemed too close to a singularity. To start with, this threshold is set to be $10^{6}$.}
+
+
+
+\section{Enhancing MS walls}\label{sec:bp-to-int}
+\subsection{Adding endpoints  - {\color{red} \bf done}}
+A very simple thing to do: from the genealogy data of an MS wall it should be possible to tell whether the wall starts/ends at certain singularities. Then, make a module that creates new intersection-like objects from data of those singularities, and add these to the MS wall. 
+
+\subsection{Interpolating function}
+Replace numerical data points with anapproximate interpolating function to have a nice smooth MS-wall. A simpler alternative is just to draw a line matching all the dots, although it won't be as nice.
+
+
+
+
+\section{Fibration-handling module}
+\subsection{Storing and calling fibrations}
+We have a code that handles a class of fibrations. The separate data specifying each fibration should be stored in a tidy way, and called by the core part of the program with a simple function.
+A possibility is to have a different text file containing the data of each fibration, formatted in a standard way, and to load such data by giving the name of the file (e.g. {\tt SU2\_Nf=0.xml}).
+
+\subsection{Creating arbitrary fibrations}
+A nice addition would be a function which allows the user to add a custom-made fibration. For example, one could be prompted to specify the number of UV parameters $m,\Lambda,\dots$, then be prompted for $g_{2}(u), g_{3}(u)$. Then the code would store this data in one of the fibration files described above, permanently, with a user-defined name. Then this fibration would be available to the user for future study.
+
+
+
+
+
+\section{Visualization module}
+As we will be analyzing a big array of data, and storing it for later analysis, it is desirable to have a separate suite that handles visualization of this formatted data.
+This can be tackled once we agree on how stored data will be formatted.
+
+
+
+
+\section{GUI}
+Write a graphical user interface, be creative.
+
+
+
+\chapter{Extracting Refined Topological Invariants}
+
+For the distant future: figure out how to handle ``finite networks'', and automatically recover topological information on the fibration.
+
+
+
+
+
+\chapter{Hyperkahler metrics}
+
+For the distant future: figure alorithms for solving TBA equations and getting the explicit metrics.
+
+
+
+
+\end{document}  

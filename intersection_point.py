@@ -73,6 +73,7 @@ def remove_duplicate_intersection(new_ilist, old_ilist):
                 new_ilist.remove(new_intersection)
 
 def find_new_intersections(kwalls, new_kwalls, intersections, hit_table):
+    """Find new wall-wall intersections"""
 
     new_ints = []
     i_0 = len(kwalls)
@@ -88,7 +89,7 @@ def find_new_intersections(kwalls, new_kwalls, intersections, hit_table):
         # More than two curves hit the bin.
         logging.debug('bin_key with hit: %s', bin_key)
         for i_1, i_2 in combinations(hit_table[bin_key], 2):
-            #logging.debug('i_0, i_1, i_2 = %s, %s, %s', i_0, i_1, i_2)
+            # logging.debug('i_0, i_1, i_2 = %s, %s, %s', i_0, i_1, i_2)
             # NOTE Chan: to get self-intersection, use 
             # combinations_with_replacement.
             if i_1 < i_0 and i_2 < i_0:
@@ -108,9 +109,10 @@ def find_new_intersections(kwalls, new_kwalls, intersections, hit_table):
             # NOTE Pietro: I am excluding some cases from being checked for 
             # intersections, see the if statements below
             if (dsz_pairing(traj_1.charge(0), traj_2.charge(0), 
-                    DSZ_MATRIX) == 0 or                 
-                traj_1.parents == traj_2.parents or 
-                traj_1 in traj_2.parents):
+                            DSZ_MATRIX) == 0 or \
+                traj_1.parents == traj_2.parents or \
+                traj_1 in traj_2.parents or\
+                traj_2 in traj_1.parents):
                 continue
 
             list_of_intersection_points = []
@@ -126,57 +128,56 @@ def find_new_intersections(kwalls, new_kwalls, intersections, hit_table):
                     # between two segments, hoping that we divided
                     # the curves as many times as required for the
                     # assumption to hold.
-                        intersection_point = find_intersection_of_segments(
+                        intersection_point = \
+                            find_intersection_of_segments(
                                 segment_1, segment_2,
                                 hit_table.get_bin_location(bin_key),
                                 hit_table._bin_size
-                        )
+                            )
 
                         ipx, ipy = intersection_point
                         # Find where to put the intersection point in the
                         # given segment. It should be put AFTER the index
                         # found below.
-                        dt_1 = min(
-                            range(len(segment_1)), 
-                            key=(lambda i: abs(segment_1[i][0]-ipx))
-                        )
+                        
+                        dt_1 = \
+                            min(range(len(segment_1)), 
+                                key=lambda i: abs(segment_1[i][0]-ipx))
                         logging.debug('dt_1 = %d', dt_1)
-                        if (dt_1-1 >=0) and (
-                            (segment_1[dt_1][0] < ipx < segment_1[dt_1-1][0]) 
+                        if dt_1-1 >=0 and (
+                            (segment_1[dt_1, 0] < ipx < segment_1[dt_1-1, 0]) 
                             or
-                            (segment_1[dt_1][0] > ipx > segment_1[dt_1-1][0])
-                        ):
+                            (segment_1[dt_1, 0] > ipx > segment_1[dt_1-1, 0])
+                            ):
                             dt_1 -= 1
                         index_1 = t1_i + dt_1 
 
-                        dt_2 = min(
-                            range(len(segment_2)), 
-                            key=lambda i: abs(segment_2[i][0]-ipx)
-                        )
+                        dt_2 = \
+                            min(range(len(segment_2)), 
+                                key=lambda i: abs(segment_2[i][0]-ipx))
                         logging.debug('dt_2 = %d', dt_2)
-                        if (dt_2-1 >=0) and (
-                            (segment_2[dt_2][0] < ipx < segment_2[dt_2-1][0]) 
+                        if dt_2-1 >=0 and (
+                            (segment_2[dt_2, 0] < ipx < segment_2[dt_2-1, 0]) 
                             or
-                            (segment_2[dt_2][0] > ipx > segment_2[dt_2-1][0])
-                        ):
+                            (segment_2[dt_2, 0] > ipx > segment_2[dt_2-1, 0])
+                            ):
                             dt_2 -= 1
                         index_2 = t2_i + dt_2 
                         
-                        logging.debug('intersecion point: (%.8f, %.8f) '
+                        logging.debug('intersection point: (%.8f, %.8f) '
                                         'at index_1 = %d, index_2 = %d',
                                         ipx, ipy, index_1, index_2)
+
                         list_of_intersection_points.append(
-                            [ipx + 1j*ipy, index_1, index_2]
+                            [complex(ipx + 1j*ipy), index_1, index_2]
                         )
                     except NoIntersection:
                         pass
 
 
 
-            new_ints += [
-                IntersectionPoint(intersection, [traj_1, traj_2]) 
-                for intersection in list_of_intersection_points
-            ] 
+            new_ints += [IntersectionPoint(intersection, [traj_1, traj_2]) \
+                            for intersection in list_of_intersection_points] 
 
     remove_duplicate_intersection(new_ints, intersections)
 
