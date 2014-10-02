@@ -108,23 +108,19 @@ def find_new_intersections(kwalls, new_kwalls, intersections, hit_table):
             else:
                 kwall_2 = kwalls[i_2]
 
-            # NOTE Pietro: I am excluding some cases from being checked for 
+            # I am excluding some cases from being checked for 
             # intersections, see the if statements below
             if (dsz_pairing(kwall_1.charge(0), kwall_2.charge(0), 
                             DSZ_MATRIX) == 0 or 
-                # NOTE: Question --- do we have to worry about losing
-                # an intersection of two K-walls from the same intersection
-                # by imposing the following condition?
-                kwall_1.parents == kwall_2.parents):
-                # NOTE: I removed the two checks but we may keep them 
-                # to double-check to see if we are doing a redundant work.
+                # NOTE: We have to worry about losing an intersection 
+                # of two K-walls from the same intersection
+                # by imposing the following condition, which implies
+                # that there will not be an intersection more than once
+                # inside a bin.
+                kwall_1.parents == kwall_2.parents or 
+                kwall_1 in kwall_2.parents or
+                kwall_2 in kwall_1.parents):
                 continue
-#            if (dsz_pairing(kwall_1.charge(0), kwall_2.charge(0), 
-#                            DSZ_MATRIX) == 0 or 
-#                kwall_1.parents == kwall_2.parents or 
-#                kwall_1 in kwall_2.parents or
-#                kwall_2 in kwall_1.parents):
-#                continue
 
             list_of_intersection_points = []
 
