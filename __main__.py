@@ -25,7 +25,7 @@ generate_single_network = False
 generate_multiple_networks = False
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], 'l:s:f', 
+    opts, args = getopt.getopt(sys.argv[1:], 'l:s:f:w', 
                                 ['logging_level=']) 
 
     if len(opts) == 0:
@@ -40,7 +40,10 @@ try:
 
     -f:
         produce K-wall networks and plot walls of marginal
-        stability."""
+        stability.
+
+    -w FILENAME:
+        save data on a date-named file for offline analysis."""
         )
 
     for opt, arg in opts:
@@ -60,6 +63,10 @@ try:
         elif opt == '-f':
             # Generate K-wall networks at various phases
             generate_multiple_networks = True
+
+        if opt == '-w':
+            # save data to external file
+            print "\n*******\nYEAH\n*******\n"
 
 except getopt.GetoptError:
     print 'Unknown options.'
