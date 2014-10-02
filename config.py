@@ -1,4 +1,4 @@
-#TODO: Consider using ConfigParser
+# TODO: Consider using ConfigParser
 import sympy as sym
 from math import pi
 

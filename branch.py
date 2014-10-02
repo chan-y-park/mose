@@ -14,12 +14,11 @@ class BranchPoint:
         self.locus = locus
         self.count = BranchPoint.count
         self.genealogy = self
-        BranchPoint.count += 1 
+        BranchPoint.count += 1
 
     def __str__(self):
         return 'Branch point info: charge %s, locus %s ' % \
-        (self.charge, self.locus)
-
+            (self.charge, self.locus)
 
 
 class BranchCut:
@@ -34,12 +33,11 @@ class BranchCut:
     def __init__(self, branch_point, phase, branch_cut_cutoff):
         self.charge = branch_point.charge
         self.locus = (
-            branch_point.locus, 
+            branch_point.locus,
             complex(branch_point.locus + branch_cut_cutoff * phase)
         )
         BranchCut.count += 1
 
     def __str__(self):
         return 'Branch cut info: charge %s, start-end-points %s ' % \
-        (self.charge, self.locus)
-
+            (self.charge, self.locus)
