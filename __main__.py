@@ -16,7 +16,6 @@ from elliptic_fibration import EllipticFibration
 from k_wall_network import KWallNetwork, construct_k_wall_networks
 from marginal_stability_wall import build_ms_walls
 from plotting import plot_k_wall_network, ms_plot
-from misc import formatted_date_time
 from save_to_file import f_save, f_recover
 
 # Default logging
@@ -27,7 +26,7 @@ generate_single_network = False
 generate_multiple_networks = False
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], 'l:s:f:w', 
+    opts, args = getopt.getopt(sys.argv[1:], 'l:s:fw', 
                                 ['logging_level=']) 
 
     if len(opts) == 0:
@@ -65,6 +64,7 @@ try:
             # Generate a single K-wall network at a phase
             phase = float(arg)
             generate_single_network = True 
+        
         elif opt == '-f':
             # Generate K-wall networks at various phases
             generate_multiple_networks = True
@@ -86,8 +86,8 @@ if generate_single_network == True:
                         INTERSECTION_SEARCH_BIN_SIZE)
     kwn.grow(PRIMARY_NINT_RANGE, NINT_RANGE, N_ITERATIONS)
     if WRITE_TO_FILE:
-        file_name = 'single_network_' + formatted_date_time() + '.mose'
-        saved = f_save(kwn, file_name)
+        label = 'single_network_'
+        saved = f_save(kwn, label)
         print saved
     plot_k_wall_network(kwn) 
 
@@ -99,7 +99,7 @@ elif generate_multiple_networks == True:
     )
     ms_walls = build_ms_walls(k_wall_networks)
     if WRITE_TO_FILE:
-        file_name = 'phase_scan_' + formatted_date_time() + '.mose'
-        saved = f_save([k_wall_networks, ms_walls], file_name)
+        label = 'phase_scan_'
+        saved = f_save([k_wall_networks, ms_walls], label)
         print saved
     ms_plot(ms_walls, INTERSECTION_SEARCH_RANGE)

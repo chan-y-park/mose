@@ -6,6 +6,7 @@ from intersection_point import find_new_intersections
 from misc import complexify
 from kswcf import progeny_2
 from config import DSZ_MATRIX
+from k_wall import KWall
 
 class KWallNetwork:
     def __init__(self, theta, fibration, max_range, bin_size):
@@ -14,6 +15,7 @@ class KWallNetwork:
         self.hit_table = HitTable(max_range, bin_size)
         self.k_walls = []
         self.intersections = []
+        KWall.count = 0
 
     def grow(self, primary_nint_range, nint_range, n_iterations):
         ##############################

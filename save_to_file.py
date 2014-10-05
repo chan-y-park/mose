@@ -1,7 +1,9 @@
 from config import PICKLE_PROTOCOL
+from misc import formatted_date_time
 import pickle
 
-def f_save(obj, file_name):
+def f_save(obj, label):
+    file_name = label + formatted_date_time() + '.mose'
     w_stream = open(file_name, 'wb')
     pickle.dump(obj, w_stream, PICKLE_PROTOCOL)
     w_stream.close()
