@@ -5,10 +5,14 @@ complex 1-dimensional moduli space.
 
 from matplotlib import pyplot
 
-def plot_k_wall_network(k_wall_network, plot_range=[], plot_bin=False, 
+def prepare_k_wall_network_plot(k_wall_network, plot_range=[], plot_bin=False, 
                         plot_intersections=False, 
                         display_data_points=False,
                         display_segments=False): 
+
+    # Give an identifier to the figure we are goint to produce
+    pyplot.close("all")
+    pyplot.figure("kwall_snapshot")
 
     # Range on the plane to search for intersections
     if(plot_range == []):
@@ -69,13 +73,31 @@ def plot_k_wall_network(k_wall_network, plot_range=[], plot_bin=False,
             pyplot.plot(xcoords, ycoords, '-', color='b')
         if(display_data_points == True):
             pyplot.plot(xcoords, ycoords, 'o', color='b')
+    
+    return pyplot.figure("kwall_snapshot")
 
-    pyplot.show()
 
-def ms_plot(ms_walls, plot_range): 
+def plot_k_wall_network(k_wall_network, plot_range=[], plot_bin=False, 
+                        plot_intersections=False, 
+                        display_data_points=False,
+                        display_segments=False):
+    pyplot.clf()
+    figure = prepare_k_wall_network_plot(k_wall_network, plot_range, plot_bin, 
+                        plot_intersections, display_data_points, 
+                        display_segments)
+    pyplot.show(figure)
+    pyplot.close(figure)
+    return None
+
+
+def prepare_ms_plot(ms_walls, plot_range): 
     """
     Plots MS walls.
     """
+    # Give an identifier to the figure we are goint to produce
+    pyplot.close("all")
+    pyplot.figure("ms_walls_plot")
+
     # Range on the plane to search for intersections
     [[x_min, x_max], [y_min, y_max]] = plot_range
 
@@ -97,6 +119,11 @@ def ms_plot(ms_walls, plot_range):
                 markersize=4)
     # End of plotting intersection points
 
-    pyplot.show()
+    return pyplot.figure("ms_walls_plot")
 
 
+def plot_ms_walls(ms_walls, plot_range):
+    figure = prepare_ms_plot(ms_walls, plot_range)
+    pyplot.show(figure)
+    pyplot.close(figure)
+    return None

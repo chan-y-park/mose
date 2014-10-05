@@ -30,9 +30,9 @@ DSZ_MATRIX = [[0, 1], [-1, 0]]
 # the NINT_RANGE are for numerical integration: 
 # [initial time, final time, number of steps]
 PRIMARY_NINT_RANGE = [0.0, 0.2, 50]
-NINT_RANGE = [0.0, 8.0, 400]
+NINT_RANGE = [0.0, 10.0, 400]
 
-THETA_RANGE = [0,pi,100]
+THETA_RANGE = [0,pi,6]
 
 # Number of iterations to construct additional K-walls
 N_ITERATIONS = 2
@@ -185,7 +185,7 @@ INTERSECTION_SEARCH_BIN_SIZE = .2
 PF_ODEINT_MXSTEP = 5000000
 
 ### Options for saving to files
-WRITE_TO_FILE = False
+# WRITE_TO_FILE = False
 PICKLE_PROTOCOL = 0
 ### Available options: 0, 1, 2 (up to python 2.7.8)
 

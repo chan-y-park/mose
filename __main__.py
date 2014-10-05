@@ -10,13 +10,16 @@ from config import (
     FIXED_CHARGES, THETA_CUTS, BRANCH_CUT_CUTOFF, N_ITERATIONS, 
     PRIMARY_NINT_RANGE, NINT_RANGE,
     INTERSECTION_SEARCH_RANGE, INTERSECTION_SEARCH_BIN_SIZE,
-    THETA_RANGE, WRITE_TO_FILE
+    THETA_RANGE
 )
 from elliptic_fibration import EllipticFibration
 from k_wall_network import KWallNetwork, construct_k_wall_networks
+from k_wall import KWall
 from marginal_stability_wall import build_ms_walls
-from plotting import plot_k_wall_network, ms_plot
-from save_to_file import f_save, f_recover
+from plotting import plot_k_wall_network, plot_ms_walls
+from save_to_file import f_save, f_recover, save_k_wall_network_plot, \
+                            save_phase_scan
+from misc import formatted_date_time
 
 # Default logging
 logging_level = logging.WARNING
@@ -24,6 +27,7 @@ logging_format='%(message)s'
 
 generate_single_network = False
 generate_multiple_networks = False
+write_to_file = False
 
 try:
     opts, args = getopt.getopt(sys.argv[1:], 'l:s:fw', 
@@ -47,6 +51,7 @@ try:
         save data on a date-named file for offline analysis,
         the name will include 'phase_scan' or 'single_network'
         according to what data is stored.
+        Will also produce saved pictures.
         """
         )
 
@@ -71,7 +76,7 @@ try:
 
         if opt == '-w':
             # save data to external file
-            WRITE_TO_FILE = True
+            write_to_file = True
 
 except getopt.GetoptError:
     print 'Unknown options.'
@@ -81,13 +86,24 @@ logging.basicConfig(level=logging_level, format=logging_format)
 fibration = EllipticFibration(g2, g3, FIXED_CHARGES,
                                 THETA_CUTS, BRANCH_CUT_CUTOFF)
 
+KWall.count = 0
+KWallNetwork.count = 0
+
+### Do not move, must be here for ocnsistency of file naming.
+if write_to_file:
+    date_time = formatted_date_time()
+
 if generate_single_network == True:
     kwn = KWallNetwork(phase, fibration, INTERSECTION_SEARCH_RANGE,
                         INTERSECTION_SEARCH_BIN_SIZE)
     kwn.grow(PRIMARY_NINT_RANGE, NINT_RANGE, N_ITERATIONS)
-    if WRITE_TO_FILE:
-        label = 'single_network_'
-        saved = f_save(kwn, label)
+    if write_to_file:
+        ### save picture
+        file_name = 'single_network_' + date_time + '.png'
+        save_k_wall_network_plot(kwn, file_name)
+        ### save kwn data
+        file_name = 'single_network_' + date_time + '.mose'
+        saved = f_save(kwn, file_name)
         print saved
     plot_k_wall_network(kwn) 
 
@@ -98,8 +114,13 @@ elif generate_multiple_networks == True:
         THETA_RANGE
     )
     ms_walls = build_ms_walls(k_wall_networks)
-    if WRITE_TO_FILE:
-        label = 'phase_scan_'
-        saved = f_save([k_wall_networks, ms_walls], label)
+    if write_to_file:
+        ### save pictures
+        file_name_part = 'phase_scan_' + date_time
+        save_phase_scan(k_wall_networks, ms_walls, file_name_part, \
+                                                INTERSECTION_SEARCH_RANGE)
+        ### save all data
+        file_name = 'phase_scan_' + date_time + '.mose'
+        saved = f_save([k_wall_networks, ms_walls], file_name)
         print saved
-    ms_plot(ms_walls, INTERSECTION_SEARCH_RANGE)
+    plot_ms_walls(ms_walls, INTERSECTION_SEARCH_RANGE)

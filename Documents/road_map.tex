@@ -88,14 +88,14 @@ It should also specify the DSZ matrix. All this information should replace {\tt 
 
 
 
-\section{Storing Data - {\color{red} \bf (partially) done -- see instructions}}
+\section{Storing Data - {\color{red} \bf done -- see instructions}}
 When running a long computation, involving probing several (such as O(100)) phases, it would be good to store all data on a separate file.
 In particular, we should 
 \begin{itemize}
 	\item[\checkmark] Create an external file(s) whose name contains date and time
 	\item[\checkmark] Store data in such a way that it is retrievable: just need to store the output of the function {\texttt{phase\_scan}}
 	\item[\checkmark] Write a module for retrieving (reloading in the RAM) the above data ready for analysis
-	\item Bonus: write a module that (using the external data) will create a separate folder, containing snapshots of the k-walls on the moduli space for all scanned phases
+	\item[\checkmark] Bonus: write a module that (using the external data) will create a separate folder, containing snapshots of the k-walls on the moduli space for all scanned phases
 \end{itemize}
 
 \medskip
