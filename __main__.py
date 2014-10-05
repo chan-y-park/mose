@@ -17,6 +17,7 @@ from k_wall_network import KWallNetwork, construct_k_wall_networks
 from marginal_stability_wall import build_ms_walls
 from plotting import plot_k_wall_network, ms_plot
 from misc import formatted_date_time
+from save_to_file import f_save, f_recover
 
 # Default logging
 logging_level = logging.WARNING
@@ -71,7 +72,6 @@ try:
         if opt == '-w':
             # save data to external file
             WRITE_TO_FILE = True
-            print "\n*******\nYEAH: %s \n*******\n" % formatted_date_time()
 
 except getopt.GetoptError:
     print 'Unknown options.'
@@ -86,8 +86,9 @@ if generate_single_network == True:
                         INTERSECTION_SEARCH_BIN_SIZE)
     kwn.grow(PRIMARY_NINT_RANGE, NINT_RANGE, N_ITERATIONS)
     if WRITE_TO_FILE:
-        filename = 'single_network_' + formatted_date_time() + '.mose'
-        print "\nContent saved to file " + filename
+        file_name = 'single_network_' + formatted_date_time() + '.mose'
+        saved = f_save(kwn, file_name)
+        print saved
     plot_k_wall_network(kwn) 
 
 elif generate_multiple_networks == True:

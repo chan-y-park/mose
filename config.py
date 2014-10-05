@@ -184,4 +184,8 @@ INTERSECTION_SEARCH_BIN_SIZE = .2
 
 PF_ODEINT_MXSTEP = 5000000
 
+### Options for saving to files
 WRITE_TO_FILE = False
+PICKLE_PROTOCOL = 0
+### Available options: 0, 1, 2 (up to python 2.7.8)
+

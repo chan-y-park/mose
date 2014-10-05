@@ -11,5 +11,5 @@ def dsz_pairing(gamma_1, gamma_2, dsz_matrix):
 
 def formatted_date_time():
 	today = datetime.date.today()
-	now = datetime.datetime.now().time().strftime("%H:%M")
+	now = datetime.datetime.now().time().strftime("%H.%M")
 	return str(today) + '-' + str(now)
