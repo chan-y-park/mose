@@ -96,7 +96,6 @@ In particular, we should
 	\item[\checkmark] Store data in such a way that it is retrievable: just need to store the output of the function {\texttt{phase\_scan}}
 	\item[\checkmark] Write a module for retrieving (reloading in the RAM) the above data ready for analysis
 	\item Bonus: write a module that (using the external data) will create a separate folder, containing snapshots of the k-walls on the moduli space for all scanned phases
-	\item Extra bonus: write a module that uses the above screenshots to provide a window with a slider tool and lets you browse the k-wall evolution. This is quite useful for debugging and checking the numerics (esp. the undesired bending of k-wall at critical phases)
 \end{itemize}
 
 \medskip
@@ -109,7 +108,15 @@ For example:
 
 \smallskip
 
-\indent \colorbox{lightgray}{\tt>>> run \_\_main\_\_ -l info -w -f} 
+\indent \colorbox{lightgray}{\tt \$ python2.7 \_\_main\_\_.py -l info -s 0 -w } $\qquad$ (e.g. in bash)
+
+\smallskip
+
+or
+
+\smallskip
+
+\indent \colorbox{lightgray}{\tt run \_\_main\_\_ -l info -s 0 -w} $\qquad\qquad\qquad\qquad\qquad$ (in ipython)
 
 \smallskip
 
@@ -146,6 +153,8 @@ To read the data, from the python shell import the function {\tt f\_{recover}} f
 	\begin{center}  {\tt [[KWN${}_{1}$, KWN${}_{2}$, $\dots$, KWN${}_{m}$], [MS${}_{1}$, \dots MS${}_{\ell}$]]}  \end{center}
 	with {\tt KWN, MS} being instances respectively of the classes {\tt KWallNetwork, MarginalStabilityWall}
 \end{itemize}
+
+In either case, you can the go on and load plotting functions from our libraries and analyze the data.
 
 
 \section{Refined numerical issues with evolution  - {\color{red} \bf done}}
@@ -196,14 +205,31 @@ A nice addition would be a function which allows the user to add a custom-made f
 
 \section{Visualization module}
 As we will be analyzing a big array of data, and storing it for later analysis, it is desirable to have a separate suite that handles visualization of this formatted data.
-This can be tackled once we agree on how stored data will be formatted.
+This will have a close interplay with the GUI. The GUI will pass to this module certain data such as KWallNetwork or MSWall type of objects.\\
+So this module should provide (probably) \emph{two} functions: one for single K-wall-network frames, and the other for MS walls and multiple K-wall-networks. 
+It should take some \emph{options} to determine what kind of data to print 
+\begin{itemize}
+\item charges of branch points / Kwalls at various points, 
+\item degeneracies of Kwalls, 
+\item MS wall data such as charges and pairing
+\item ...
+\end{itemize}
 
 
 
 
 \section{GUI}
-Write a graphical user interface, be creative.
+Write a graphical user interface. Basic functionalities:
+\begin{itemize}
+	\item Analyzing both single networks and phase-scans with MS walls, storing the data in an external file
+	\item Loading the data stored in {\tt*.mose} files and analyzing it, e.g. by plotting it, or by printing certain relevant data, such as charges, degeenracies, etc etc.
+	\item Bonus: write a module that uses the screenshots produced by the function scanning multiple networks, to provide a window with a slider tool and lets you browse the k-wall evolution. This is quite useful for debugging and checking the numerics (esp. the undesired bending of k-wall at critical phases)
+\end{itemize}
 
+
+
+\section{MOSE distribution packages}
+Figure out how to create installation packages for major OS's (are tablets fair game as well?).
 
 
 \chapter{Extracting Refined Topological Invariants}
