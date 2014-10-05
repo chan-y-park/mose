@@ -104,35 +104,45 @@ In particular, we should
 
 {\color{red} \bf \Large\underline{Instructions}}
 
-To save data, either a single k-wall network, or an entire phase-scan and the related MS walls, use the option {\tt -w} in the command line. This will produce a file, whose name will be of the type:
+To save data, either a single k-wall network, or an entire phase-scan and the related MS walls, use the option {\tt -w} in the command line. 
+For example:
+
+\smallskip
+
+\indent \colorbox{lightgray}{\tt>>> run \_\_main\_\_ -l info -w -f} 
+
+\smallskip
+
+
+This will produce a file, whose name will be of the type:
 \begin{center}
 {\tt label\_YYYY-MM-DD-hh.mm.mose} 
 \end{center}
 with {\tt label} being either
 \begin{center}
-{\tt single\_network} or {\tt phase\_scan} .
+{\tt single\_network} $\quad$ or $\quad$  {\tt phase\_scan} .
 \end{center}
 
 To read the data, from the python shell import the function {\tt f\_{recover}} from the file {\tt save\_to\_file.py}, i.e. use:
 
 \smallskip
 
-\indent \colorbox{lightgray}{\tt>>> from save\_to\_file.py import f\_recover}\\
+\indent \colorbox{lightgray}{\tt>>> from save\_to\_file.py import f\_recover}
 
 \smallskip
 
-\noindent Then use this function to load the data from a {\tt *.mose} file:\\
+\noindent Then use this function to load the data from a {\tt *.mose} file:
 
 \smallskip
 
-\indent \colorbox{lightgray}{\tt>>> f\_recover(`some\_file\_of\_type.mose')}\\
+\indent \colorbox{lightgray}{\tt>>> f\_recover(`some\_file\_of\_type.mose')}
 
-\smallskip
+\bigskip
 
 \noindent Now there are two possibilities: 
 \begin{itemize}
-	\item If the filename begins with {\tt single\_network} then the above command return an instance of the class {\tt KWallNetwork}.
-	\item If the filename begins with {\tt phase\_scan} then the above command will return a list of the form\\
+	\item If the {\tt label} is {\tt single\_network} then the above command return an instance of the class {\tt KWallNetwork}.
+	\item If the  {\tt label} is {\tt phase\_scan} then the above command will return a list of the form\\
 	\begin{center}  {\tt [[KWN${}_{1}$, KWN${}_{2}$, $\dots$, KWN${}_{m}$], [MS${}_{1}$, \dots MS${}_{\ell}$]]}  \end{center}
 	with {\tt KWN, MS} being instances respectively of the classes {\tt KWallNetwork, MarginalStabilityWall}
 \end{itemize}
