@@ -32,7 +32,7 @@ DSZ_MATRIX = [[0, 1], [-1, 0]]
 PRIMARY_NINT_RANGE = [0.0, 0.2, 50]
 NINT_RANGE = [0.0, 8.0, 400]
 
-THETA_RANGE = [0,pi,2]
+THETA_RANGE = [0,pi,100]
 
 # Number of iterations to construct additional K-walls
 N_ITERATIONS = 2

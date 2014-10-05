@@ -13,6 +13,7 @@
     citecolor={green!50!black},
     urlcolor={blue!80!black}
 }
+\definecolor{lightgray}{gray}{0.80}
 
 \begin{document}
 \maketitle
@@ -86,7 +87,7 @@ It should also specify the DSZ matrix. All this information should replace {\tt 
 
 
 
-\section{Storing Data}
+\section{Storing Data - {\color{red} \bf done (see instructions)}}
 When running a long computation, involving probing several (such as O(100)) phases, it would be good to store all data on a separate file.
 In particular, we should 
 \begin{itemize}
@@ -97,7 +98,33 @@ In particular, we should
 	\item Extra bonus: write a module that uses the above screenshots to provide a window with a slider tool and lets you browse the k-wall evolution. This is quite useful for debugging and checking the numerics (esp. the undesired bending of k-wall at critical phases)
 \end{itemize}
 
+\medskip
+{\color{red} \bf Instructions}
+To save data, either a single Kwall network, or an entire phase-scan and the related MS walls, use the option {\tt -w} in the command line.
 
+To read the data, from the python shell, import the function {\tt f\_{recover}} from the file {\tt save\_to\_file.py}, i.e. use:
+
+\smallskip
+
+\indent \colorbox{lightgray}{\tt>>> from save\_to\_file.py import f\_recover}\\
+
+\smallskip
+
+\noindent Then use this function to load the data from a {\tt *.mose} file:\\
+
+\smallskip
+
+\indent \colorbox{lightgray}{\tt>>> f\_recover(`some\_file\_of\_type.mose')}\\
+
+\smallskip
+
+\noindent Now there are two possibilities: 
+\begin{itemize}
+	\item If the filename begins with {\tt single\_network} then the above command return an instance of the class {\tt KWallNetwork}.
+	\item If the filename begins with {\tt phase\_scan} then the above command will return a list of the form\\
+	\begin{center}  {\tt [[KWN${}_{1}$, KWN${}_{2}$, $\dots$, KWN${}_{m}$], [MS${}_{1}$, \dots MS${}_{\ell}$]]}  \end{center}
+	with {\tt KWN, MS} being instances respectively of the classes {\tt KWallNetwork, MarginalStabilityWall}
+\end{itemize}
 
 
 \section{Refined numerical issues with evolution  - {\color{red} \bf done}}
