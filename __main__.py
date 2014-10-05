@@ -98,4 +98,8 @@ elif generate_multiple_networks == True:
         THETA_RANGE
     )
     ms_walls = build_ms_walls(k_wall_networks)
+    if WRITE_TO_FILE:
+        file_name = 'phase_scan_' + formatted_date_time() + '.mose'
+        saved = f_save([k_wall_networks, ms_walls], file_name)
+        print saved
     ms_plot(ms_walls, INTERSECTION_SEARCH_RANGE)
