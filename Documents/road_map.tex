@@ -24,8 +24,16 @@
 
 \chapter{K wall networks}
 
+\section{Multithreading}
+At least the generation of each K-wall network should be done in a single thread, and multithreading should be implemented such that during {\tt phase\_scan()} we can run a multi-threaded program.
+
+Saving to and loading from files will take a long time, and running it on a separate thread will be beneficial, although its implementation will not be straightforward.
+
+It is worthwhile to consider how to implement a finer threading, for example a single thread for each K-wall, but this may be too fine and the overhead of threading management will be overwhelming. But on the other hand a thread per network seems to be too crude.
 
 \section{Intersection algorithm  - {\color{red} \bf done}}
+{\bf Warning:} current algorithm assumes that there is a single intersection between two segments in the same bin.
+
 This should be a function called \texttt{find\_intersections(trajectory\_1,trajectory\_2)} returning the intersection(s) of the two given trajectories. It shold be placed in the numerics.py file\\
 If the trajectories don't intersect, it should return {\tt []} otherwise it should return a list {\tt [[point, index\_1, index\_2], ...]} where
 \begin{itemize}
@@ -34,9 +42,6 @@ If the trajectories don't intersect, it should return {\tt []} otherwise it shou
 \item The exact point of intersection should be added to the lists {\tt trajectory\_1.coordinates} and {\tt trajectory\_2.coordinates}, at the appropriate point {\bf warning:} coordinates attributes in the Trajectory class are given as a 2-vector, not as a complex numer. 
 \item Moreover, the corresponding value of the period of $\eta$ for that trajectory should also be added to {\tt trajectory\_1.periods} (and same for trajectory\_2), this goes as a complex number.
 \end{itemize}
-A very primitive intersection algorithm is already present in numerics.py.
-
-
 
 \section{KSWCF  - {\color{red} \bf done} {\tiny \bf (maybe can improve a bit more)}}
 This should be a function called {\tt progeny\_2(data)} placed in the file kswcf.py, that takes {\tt data = [ [ $\gamma_{1}$, $\Omega(\gamma_{1})$  ] ,[$\gamma_{2}$, $\Omega(\gamma_{2})$] ]} and returns a list of new charges and corresponding degeneracies, \emph{excluding the parents}:
