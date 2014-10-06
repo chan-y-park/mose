@@ -28,9 +28,10 @@ logging_format='%(message)s'
 generate_single_network = False
 generate_multiple_networks = False
 write_to_file = False
+show_graphics = False
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], 'l:s:fw', 
+    opts, args = getopt.getopt(sys.argv[1:], 'l:s:fwg', 
                                 ['logging_level=']) 
 
     if len(opts) == 0:
@@ -52,6 +53,13 @@ try:
         the name will include 'phase_scan' or 'single_network'
         according to what data is stored.
         Will also produce saved pictures.
+        
+    -g:
+        Show plot of the computation.
+        If working at a fixed phase (option -s), it will 
+        show a plot of the K-wall network.
+        If working with multiple phases (option -f), it
+        will show the plot of marginal stability walls.
         """
         )
 
@@ -77,6 +85,10 @@ try:
         if opt == '-w':
             # save data to external file
             write_to_file = True
+        
+        if opt == '-g':
+            # save data to external file
+            show_graphics = True
 
 except getopt.GetoptError:
     print 'Unknown options.'
@@ -105,7 +117,8 @@ if generate_single_network == True:
         file_name = 'single_network_' + date_time + '.mose'
         saved = f_save(kwn, file_name)
         print saved
-    plot_k_wall_network(kwn) 
+    if show_graphics:
+        plot_k_wall_network(kwn) 
 
 elif generate_multiple_networks == True:
     k_wall_networks = construct_k_wall_networks(
@@ -123,4 +136,5 @@ elif generate_multiple_networks == True:
         file_name = 'phase_scan_' + date_time + '.mose'
         saved = f_save([k_wall_networks, ms_walls], file_name)
         print saved
-    plot_ms_walls(ms_walls, INTERSECTION_SEARCH_RANGE)
+    if show_graphics:
+        plot_ms_walls(ms_walls, INTERSECTION_SEARCH_RANGE)

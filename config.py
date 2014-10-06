@@ -7,35 +7,35 @@ from math import pi
 
 # #-----------	PURE SU(2)	 ------------
 
-u = sym.Symbol('u')
-g2 = 1 + 4 * (u ** 2) / 3
-g3 = u / 3 + 8 * (u ** 3) / 27
+# u = sym.Symbol('u')
+# g2 = 1 + 4 * (u ** 2) / 3
+# g3 = u / 3 + 8 * (u ** 3) / 27
 
 ### Giving by hand the charges at branch points, 
 ### must update with algorithm that determines actual charge at branch-point
-FIXED_CHARGES = [ [1, 0], [-1, 2]] 
+# FIXED_CHARGES = [ [1, 0], [-1, 2]] 
 
 ### the angle at which branch-cuts should be oriented
-THETA_CUTS = 3.14159265359 / 2  
+# THETA_CUTS = 3.14159265359 / 2  
 
-KS_FILTRATION_DEGREE = 4
+# KS_FILTRATION_DEGREE = 4
 
 # how far way from the singularity the locus of the branch cut extends
-BRANCH_CUT_CUTOFF = 10.0         
+# BRANCH_CUT_CUTOFF = 10.0         
 
-DSZ_MATRIX = [[0, 1], [-1, 0]]
+# DSZ_MATRIX = [[0, 1], [-1, 0]]
 
 #theta =   0.0 #2.35619449019   ### the phase of K-wall evolution
 
 # the NINT_RANGE are for numerical integration: 
 # [initial time, final time, number of steps]
-PRIMARY_NINT_RANGE = [0.0, 0.2, 50]
-NINT_RANGE = [0.0, 10.0, 400]
+# PRIMARY_NINT_RANGE = [0.0, 0.2, 50]
+# NINT_RANGE = [0.0, 10.0, 400]
 
-THETA_RANGE = [0,pi,6]
+# THETA_RANGE = [0,pi,100]
 
 # Number of iterations to construct additional K-walls
-N_ITERATIONS = 2
+# N_ITERATIONS = 2
 #
 #-------------------------------------------
 
@@ -82,37 +82,42 @@ N_ITERATIONS = 2
 
 #-----------   AN INVENTED FIBRATION   -------------
 
-# u = sym.Symbol('u')
-# Lambda = 1.0 #- 0.5 * 1j
-# m = 0.0#0.1 
+u = sym.Symbol('u')
 
-# g2 = ((16 * m**2) / 3 - 12 * u / 3) / Lambda**2
-# g3 = ((8 * m * u) / Lambda**3 - (64 * m**3) / (27 * Lambda**3) - 4)
+Lambda = 1.0 #- 0.5 * 1j
+m = 0.0#0.1 
 
-# ### Giving by hand the charges at branch points, 
-# ### must update with algorithm that determines actual charge at branch-point
-# FIXED_CHARGES = [ [1, 0, 0], [0, 1, 0], [0, 0, 1] ] 
+### what is wrong with the following values???
+# Lambda = 1.0 - 0.5 * 1j
+# m = 0.5
 
-# ### the angle at which branch-cuts should be oriented
-# THETA_CUTS = (3.14159265359/2)  
+g2 = ((16 * m**2) / 3 - 12 * u / 3) / Lambda**2
+g3 = ((8 * m * u) / Lambda**3 - (64 * m**3) / (27 * Lambda**3) - 4)
 
-# KS_FILTRATION_DEGREE = 4
+### Giving by hand the charges at branch points, 
+### must update with algorithm that determines actual charge at branch-point
+FIXED_CHARGES = [ [1, 0, 0], [0, 1, 0], [0, 0, 1] ] 
 
-# # how far way from the singularity the locus of the branch cut extends
-# BRANCH_CUT_CUTOFF = 10.0         
+### the angle at which branch-cuts should be oriented
+THETA_CUTS = (3.14159265359/2)  
 
-# DSZ_MATRIX = [[0, 1, -1], [-1, 0, 1], [1, -1, 0]]
+KS_FILTRATION_DEGREE = 4
 
-# theta =   12.0/50 * pi ### the phase of K-wall evolution
+# how far way from the singularity the locus of the branch cut extends
+BRANCH_CUT_CUTOFF = 10.0         
 
-# # the NINT_RANGE are for numerical integration: 
-# # [initial time, final time, number of steps]
-# PRIMARY_NINT_RANGE = [0.0, 0.5, 50]
-# NINT_RANGE = [0.0, 10.0, 250]
+DSZ_MATRIX = [[0, 1, -1], [-1, 0, 1], [1, -1, 0]]
 
-# THETA_RANGE = [0,pi,100]
+theta =   12.0/50 * pi ### the phase of K-wall evolution
 
-# N_ITERATIONS = 2
+# the NINT_RANGE are for numerical integration: 
+# [initial time, final time, number of steps]
+PRIMARY_NINT_RANGE = [0.0, 0.5, 50]
+NINT_RANGE = [0.0, 10.0, 250]
+
+THETA_RANGE = [0,pi,100]
+
+N_ITERATIONS = 2
 
 
 #-------------------------------------------
