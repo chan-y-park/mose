@@ -1,7 +1,25 @@
 from plotting import prepare_k_wall_network_plot, prepare_ms_plot
 from matplotlib import pyplot
 import pickle
+import os
 
+
+def prepare_folder(file_name):
+    """
+    prepares the folder where to save data
+    """
+    # the current directory path
+    current_dir = os.getcwd()
+    # the general 'results' directory path
+    results_dir = os.path.join(current_dir, 'results')
+    # If the directory does not exist, create it
+    if not os.path.exists(results_dir):
+        os.makedirs(results_dir)
+    # The subdirectory of the plots
+    plots_dir = os.path.join(results_dir, file_name + '_plots')
+    os.makedirs(plots_dir)
+
+    return plots_dir
 
 
 def f_save(obj, file_name):
