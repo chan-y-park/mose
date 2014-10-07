@@ -7,11 +7,8 @@ Uses general-purpose module, intersection.py
 import logging
 from itertools import combinations
 from misc import dsz_pairing
-from config import DSZ_MATRIX
 from intersection import NoIntersection, find_intersection_of_segments
 from genealogy import build_genealogy_tree
-
-
 
 
 class IntersectionPoint:
@@ -72,7 +69,8 @@ def remove_duplicate_intersection(new_ilist, old_ilist):
             if new_intersection == intersection:
                 new_ilist.remove(new_intersection)
 
-def find_new_intersections(kwalls, new_kwalls, intersections, hit_table):
+def find_new_intersections(kwalls, new_kwalls, intersections, hit_table, 
+                            dsz_matrix):
     """Find new wall-wall intersections"""
 
     new_ints = []
@@ -111,7 +109,7 @@ def find_new_intersections(kwalls, new_kwalls, intersections, hit_table):
             # I am excluding some cases from being checked for 
             # intersections, see the if statements below
             if (dsz_pairing(kwall_1.charge(0), kwall_2.charge(0), 
-                            DSZ_MATRIX) == 0 or 
+                            dsz_matrix) == 0 or 
                 # NOTE: We have to worry about losing an intersection 
                 # of two K-walls from the same intersection
                 # by imposing the following condition, which implies

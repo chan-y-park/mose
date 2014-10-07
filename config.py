@@ -1,42 +1,59 @@
-# TODO: Consider using ConfigParser
+import ConfigParser
 import sympy as sym
 from math import pi
 
+class MoseConfigParser(ConfigParser.SafeConfigParser):
+    """
+    This simple class is a wrapper of SafeConfigParser, and returns 
+    a value of an option as a Python expression, 
+    whereas RawConfigParser returns a value as a string.
+    """
+    def get(self, section, option):
+        value = ConfigParser.SafeConfigParser.get(self, section, option)
+        return eval(value)
 
+#config = MoseConfigParser()
+#config.read('mose.cfg')
+#trajectory_singularity_threshold = config.get('Fibration', 
+#    'trajectory_singularity_threshold')
+#intersection_search_range = config.get('intersection search',
+#    'RANGE')
 
+#print config.defaults()
+#print config.sections()
 
-# #-----------	PURE SU(2)	 ------------
-
-u = sym.Symbol('u')
-g2 = 1 + 4 * (u ** 2) / 3
-g3 = u / 3 + 8 * (u ** 3) / 27
-
-### Giving by hand the charges at branch points, 
-### must update with algorithm that determines actual charge at branch-point
-FIXED_CHARGES = [ [1, 0], [-1, 2]] 
-
-### the angle at which branch-cuts should be oriented
-THETA_CUTS = 3.14159265359 / 2  
-
-KS_FILTRATION_DEGREE = 4
-
-# how far way from the singularity the locus of the branch cut extends
-BRANCH_CUT_CUTOFF = 10.0         
-
-DSZ_MATRIX = [[0, 1], [-1, 0]]
-
-#theta =   0.0 #2.35619449019   ### the phase of K-wall evolution
-
-# the NINT_RANGE are for numerical integration: 
-# [initial time, final time, number of steps]
-PRIMARY_NINT_RANGE = [0.0, 0.2, 50]
-NINT_RANGE = [0.0, 10.0, 400]
-
-THETA_RANGE = [0,pi,6]
-
-# Number of iterations to construct additional K-walls
-N_ITERATIONS = 2
+## #-----------	PURE SU(2)	 ------------
 #
+#u = sym.Symbol('u')
+#g2 = 1 + 4 * (u ** 2) / 3
+#g3 = u / 3 + 8 * (u ** 3) / 27
+#
+#### Giving by hand the charges at branch points, 
+#### must update with algorithm that determines actual charge at branch-point
+#FIXED_CHARGES = [ [1, 0], [-1, 2]] 
+#
+#### the angle at which branch-cuts should be oriented
+#THETA_CUTS = 3.14159265359 / 2  
+#
+#KS_FILTRATION_DEGREE = 4
+#
+## how far way from the singularity the locus of the branch cut extends
+#BRANCH_CUT_CUTOFF = 10.0         
+#
+#DSZ_MATRIX = [[0, 1], [-1, 0]]
+#
+##theta =   0.0 #2.35619449019   ### the phase of K-wall evolution
+#
+## the NINT_RANGE are for numerical integration: 
+## [initial time, final time, number of steps]
+#PRIMARY_NINT_RANGE = [0.0, 0.2, 50]
+#NINT_RANGE = [0.0, 10.0, 400]
+#
+#THETA_RANGE = [0,pi,6]
+#
+## Number of iterations to construct additional K-walls
+#N_ITERATIONS = 2
+##
 #-------------------------------------------
 
 
@@ -171,21 +188,21 @@ N_ITERATIONS = 2
 #-------------------------------------------
 
 
-# The following parameter controls what value of abs(det(pf_matrix)) wilL
-# raise an exception to determine that a singularity ran too close to a 
-# singularity, and should be dropped.
-TRAJECTORY_SINGULARITY_THRESHOLD = 10**6 
-
-# The range on the moduli space to search for intersections between 
-# K-walls. By default this is also the plot range.
-INTERSECTION_SEARCH_RANGE = [[-10, 10], [-10, 10]]
-# Size of a bin for the coarse-graining of the intersection module
-INTERSECTION_SEARCH_BIN_SIZE = .2 
-
-PF_ODEINT_MXSTEP = 5000000
-
-### Options for saving to files
-# WRITE_TO_FILE = False
-PICKLE_PROTOCOL = 0
-### Available options: 0, 1, 2 (up to python 2.7.8)
-
+## The following parameter controls what value of abs(det(pf_matrix)) wilL
+## raise an exception to determine that a singularity ran too close to a 
+## singularity, and should be dropped.
+#TRAJECTORY_SINGULARITY_THRESHOLD = 10**6 
+#
+## The range on the moduli space to search for intersections between 
+## K-walls. By default this is also the plot range.
+#INTERSECTION_SEARCH_RANGE = [[-10, 10], [-10, 10]]
+## Size of a bin for the coarse-graining of the intersection module
+#INTERSECTION_SEARCH_BIN_SIZE = .2 
+#
+#PF_ODEINT_MXSTEP = 5000000
+#
+#### Options for saving to files
+## WRITE_TO_FILE = False
+#PICKLE_PROTOCOL = 0
+#### Available options: 0, 1, 2 (up to python 2.7.8)
+#

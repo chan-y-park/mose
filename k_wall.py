@@ -15,7 +15,6 @@ from sympy import mpmath as mp
 
 from branch import BranchPoint
 from misc import complexify
-from config import TRAJECTORY_SINGULARITY_THRESHOLD, PF_ODEINT_MXSTEP 
 
 class KWall(object):
     """
@@ -73,7 +72,8 @@ class KWall(object):
         # local charges are determined one the branch-cut data is given,
         # perhaps computed by an external function.
 
-    def grow_pf(self, boundary_conditions, nint_range): 
+    def grow_pf(self, boundary_conditions, nint_range, 
+                trajectory_singularity_threshold, pf_odeint_mxstep): 
         """ 
         implementation of the growth of kwalls 
         by means of picard-fuchs ODEs 
@@ -136,7 +136,7 @@ class KWall(object):
             eta = y[2] + 1j * y[3]
             d_eta = y[4] + 1j * y[5]
             matrix = pf_matrix(z)
-            if abs(det(matrix)) > TRAJECTORY_SINGULARITY_THRESHOLD:
+            if abs(det(matrix)) > trajectory_singularity_threshold:
                 self.singular = True
 
             # A confusing point to bear in mind: here we are solving the 
@@ -160,7 +160,7 @@ class KWall(object):
             #              eta_1.real, eta_1.imag, d_eta_1.real, d_eta_1.imag])
 
         time = linspace(*nint_range)
-        y = odeint(deriv, y0, time, mxstep=PF_ODEINT_MXSTEP)
+        y = odeint(deriv, y0, time, mxstep=pf_odeint_mxstep)
 
         return y
 
@@ -261,15 +261,17 @@ class PrimaryKWall(KWall):
                     (complexify(coords[-1])-complexify(coords[-2])))
         return [u0, eta0, d_eta0]
 
-    def evolve(self, nint_range):
+    def evolve(self, nint_range, trajectory_singularity_threshold,
+                pf_odeint_mxstep):
         if not (isinstance(self.parents[0], BranchPoint)):
             raise TypeError('A parent of this primary K-wall '
                             'is not a BranchPoint class.')
         # For a *primary* K-wall the boundary conditions are 
         # a bit particular:
         bc = self.get_pf_boundary_condition()
-
-        pw_data_pf = self.grow_pf(bc, nint_range)
+        pw_data_pf = self.grow_pf(bc, nint_range,
+                                    trajectory_singularity_threshold,
+                                    pf_odeint_mxstep)
         self.coordinates = numpy.concatenate(
             (self.coordinates, [[row[0], row[1]] for row in pw_data_pf])
         )
@@ -397,12 +399,15 @@ class DescendantKWall(KWall):
         # and will turn j's into I's...
         self.boundary_condition = [u_0, eta_0, d_eta_0]
 
-    def evolve(self, nint_range):
+    def evolve(self, nint_range, trajectory_singularity_threshold,
+                pf_odeint_mxstep):
         if not (isinstance(self.parents[0], KWall)):
             raise TypeError('A parent of this primary K-wall '
                             'is not a KWall class.')
         self.set_pf_boundary_condition()
-        pw_data_pf = self.grow_pf(self.boundary_condition, nint_range)
+        pw_data_pf = self.grow_pf(self.boundary_condition, nint_range,
+                                    trajectory_singularity_threshold,
+                                    pf_odeint_mxstep)
         self.coordinates =  [ [row[0], row[1]] for row in pw_data_pf ]
         self.periods =  [ row[2] + 1j* row[3] for row in pw_data_pf ] 
         self.check_cuts()

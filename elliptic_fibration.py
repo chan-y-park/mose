@@ -3,11 +3,12 @@ import sympy as sym
 from branch import BranchPoint, BranchCut
 
 class EllipticFibration:
-    def __init__(self, g2, g3, branch_point_charges,
+    def __init__(self, g2, g3, branch_point_charges, dsz_matrix,
                     branch_cut_phase, branch_cut_cutoff):
 
         self.g2 = g2
         self.g3 = g3
+        self.dsz_matrix = dsz_matrix
         branch_point_loci = map(complex, find_singularities(g2, g3))
         self.branch_points = [
             BranchPoint(branch_point_loci[i], branch_point_charges[i])  

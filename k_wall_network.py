@@ -5,7 +5,6 @@ from intersection import HitTable
 from intersection_point import find_new_intersections
 from misc import complexify
 from kswcf import progeny_2
-from config import DSZ_MATRIX
 from k_wall import KWall
 
 class KWallNetwork:
@@ -17,7 +16,9 @@ class KWallNetwork:
         self.intersections = []
         KWall.count = 0
 
-    def grow(self, primary_nint_range, nint_range, n_iterations):
+    def grow(self, primary_nint_range, nint_range,
+               trajectory_singularity_threshold, pf_odeint_mxstep, 
+               n_iterations, ks_filtration_degree):
         ##############################
         # First, grow primary k-walls.
         ##############################
@@ -35,7 +36,8 @@ class KWallNetwork:
                 [bp.locus, +1], #boundary_condition
                 primary_nint_range
             )
-            k_wall.evolve(nint_range)
+            k_wall.evolve(nint_range, trajectory_singularity_threshold,
+                            pf_odeint_mxstep)
             if (not k_wall.singular):
                 primary_k_walls.append(k_wall)
             else:
@@ -58,7 +60,8 @@ class KWallNetwork:
                 [bp.locus, -1], #boundary_condition
                 primary_nint_range
             )
-            k_wall.evolve(nint_range)
+            k_wall.evolve(nint_range, trajectory_singularity_threshold,
+                            pf_odeint_mxstep)
             if (not k_wall.singular):
                 primary_k_walls.append(k_wall)
             else:
@@ -79,7 +82,8 @@ class KWallNetwork:
             logging.info('Iteration #%d', i+1 )
             logging.debug('len(k_walls) = %d', len(self.k_walls))
             new_intersections = find_new_intersections(
-                self.k_walls, new_k_walls, self.intersections, self.hit_table
+                self.k_walls, new_k_walls, self.intersections, 
+                self.hit_table, self.fibration.dsz_matrix
             )
             self.intersections += new_intersections
             self.k_walls += new_k_walls
@@ -98,7 +102,8 @@ class KWallNetwork:
                 phase = intersection.phase
                 progeny = progeny_2(
                     [[gamma_1, omega_1], [gamma_2, omega_2]],
-                    DSZ_MATRIX
+                    self.fibration.dsz_matrix, 
+                    ks_filtration_degree
                 )
                 logging.debug('progeny = %s', progeny)
                 for sibling in progeny:
@@ -116,7 +121,8 @@ class KWallNetwork:
                         intersection,
                         charge
                     )
-                    k_wall.evolve(nint_range)
+                    k_wall.evolve(nint_range, trajectory_singularity_threshold,
+                                    pf_odeint_mxstep)
                     if (not k_wall.singular):
                         new_k_walls.append(k_wall)
                     else:
@@ -131,7 +137,11 @@ class KWallNetwork:
         self.k_walls += new_k_walls
 
 def construct_k_wall_networks(fibration, max_range, bin_size,
-                                primary_nint_range, nint_range, n_iterations,
+                                primary_nint_range, nint_range, 
+                                trajectory_singularity_threshold,
+                                pf_odeint_mxstep,
+                                n_iterations, 
+                                ks_filtration_degree,
                                 theta_range):
     """
     Scans various values of theta, returns an array of 
@@ -153,7 +163,9 @@ def construct_k_wall_networks(fibration, max_range, bin_size,
 
         kwn = KWallNetwork(phase, fibration, max_range, bin_size)
 
-        kwn.grow(primary_nint_range, nint_range, n_iterations)
+        kwn.grow(primary_nint_range, nint_range, 
+                    trajectory_singularity_threshold, pf_odeint_mxstep, 
+                    n_iterations, ks_filtration_degree)
         k_wall_networks.append(kwn)
 
     return k_wall_networks

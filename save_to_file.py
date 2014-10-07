@@ -1,4 +1,3 @@
-from config import PICKLE_PROTOCOL
 from plotting import prepare_k_wall_network_plot, prepare_ms_plot
 from matplotlib import pyplot
 import pickle
