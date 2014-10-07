@@ -140,7 +140,7 @@ if generate_single_network is True:
     )
     if write_to_file:
         # save picture
-        file_name = 'single_network_' + date_time
+        file_name = 'single_network_' + date_time + '.png'
         save_k_wall_network_plot(kwn, file_name)
         # save kwn data
         file_name = 'single_network_' + date_time + '.mose'
