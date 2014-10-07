@@ -127,6 +127,7 @@ elif generate_multiple_networks == True:
         THETA_RANGE
     )
     ms_walls = build_ms_walls(k_wall_networks)
+     
     if write_to_file:
         ### save pictures
         file_name_part = 'phase_scan_' + date_time

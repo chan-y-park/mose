@@ -34,14 +34,12 @@ def save_k_wall_network_plot(k_wall_network, file_name, plot_range=[],
                         plot_intersections, display_data_points, 
                         display_segments)
     pyplot.savefig(file_name)
-    pyplot.close(figure)
     return None
 
 
 def save_ms_plot(ms_walls, plot_range, file_name):
     figure = prepare_ms_plot(ms_walls, plot_range)
     pyplot.savefig(file_name)
-    pyplot.close(figure)
     return None
 
 

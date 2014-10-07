@@ -11,7 +11,6 @@ def prepare_k_wall_network_plot(k_wall_network, plot_range=[], plot_bin=False,
                         display_segments=False): 
 
     # Give an identifier to the figure we are goint to produce
-    pyplot.close("all")
     pyplot.figure("kwall_snapshot")
 
     # Range on the plane to search for intersections
@@ -77,17 +76,17 @@ def prepare_k_wall_network_plot(k_wall_network, plot_range=[], plot_bin=False,
     return pyplot.figure("kwall_snapshot")
 
 
+
 def plot_k_wall_network(k_wall_network, plot_range=[], plot_bin=False, 
                         plot_intersections=False, 
                         display_data_points=False,
                         display_segments=False):
-    pyplot.clf()
     figure = prepare_k_wall_network_plot(k_wall_network, plot_range, plot_bin, 
                         plot_intersections, display_data_points, 
                         display_segments)
     pyplot.show(figure)
-    pyplot.close(figure)
     return None
+
 
 
 def prepare_ms_plot(ms_walls, plot_range): 
@@ -95,7 +94,6 @@ def prepare_ms_plot(ms_walls, plot_range):
     Plots MS walls.
     """
     # Give an identifier to the figure we are goint to produce
-    pyplot.close("all")
     pyplot.figure("ms_walls_plot")
 
     # Range on the plane to search for intersections
@@ -120,10 +118,10 @@ def prepare_ms_plot(ms_walls, plot_range):
     # End of plotting intersection points
 
     return pyplot.figure("ms_walls_plot")
+    
 
 
 def plot_ms_walls(ms_walls, plot_range):
     figure = prepare_ms_plot(ms_walls, plot_range)
-    pyplot.show(figure)
-    pyplot.close(figure)
+    figure.show()
     return None
