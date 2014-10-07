@@ -12,6 +12,7 @@ def prepare_k_wall_network_plot(k_wall_network, plot_range=[], plot_bin=False,
 
     # Give an identifier to the figure we are goint to produce
     pyplot.figure("kwall_snapshot")
+    pyplot.figure("kwall_snapshot").clear()
 
     # Range on the plane to search for intersections
     if(plot_range == []):

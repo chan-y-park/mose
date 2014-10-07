@@ -4,7 +4,7 @@ import pickle
 import os
 
 
-def prepare_folder(file_name):
+def prepare_folder(label):
     """
     prepares the folder where to save data
     """
@@ -16,27 +16,27 @@ def prepare_folder(file_name):
     if not os.path.exists(results_dir):
         os.makedirs(results_dir)
     # The subdirectory of the plots
-    plots_dir = os.path.join(results_dir, file_name + '_plots')
+    plots_dir = os.path.join(results_dir, label + '_plots')
     os.makedirs(plots_dir)
 
     return plots_dir
 
 
-def f_save(obj, file_name, pickle_protocol):
+def f_save(obj, file_path, pickle_protocol):
     """
     Save data to a file
     """
-    w_stream = open(file_name, 'wb')
+    w_stream = open(file_path, 'wb')
     pickle.dump(obj, w_stream, pickle_protocol)
     w_stream.close()
-    return "\nContent and picture(s) saved to files " + file_name + "/.png"
+    return "\nContent and picture(s) saved to files " + file_path + "/.png"
 
 
-def f_recover(file_name):
+def f_recover(file_path):
     """
     Load data from a file
     """
-    r_stream = open(file_name, 'rb')
+    r_stream = open(file_path, 'rb')
     thawed = pickle.load(r_stream)
     r_stream.close()
     return thawed
@@ -55,19 +55,19 @@ def save_k_wall_network_plot(k_wall_network, file_name, plot_range=[],
     return None
 
 
-def save_ms_plot(ms_walls, plot_range, file_name):
+def save_ms_plot(ms_walls, plot_range, file_path):
     figure = prepare_ms_plot(ms_walls, plot_range)
-    pyplot.savefig(file_name)
+    pyplot.savefig(file_path)
     return None
 
 
-def save_phase_scan(kw_networks, ms_walls, file_name_part, plot_range):
+def save_phase_scan(kw_networks, ms_walls, file_path_part, plot_range):
     # First save all k_wall_network snapshots
     for i, k_wall_network in enumerate(kw_networks):
-        file_name = file_name_part + '_' + str(i) + '.png'
-        save_k_wall_network_plot(k_wall_network, file_name)
+        file_path = file_path_part + '_' + str(i) + '.png'
+        save_k_wall_network_plot(k_wall_network, file_path)
 
     # Then save the plot of ms_walls
-    file_name = file_name_part + '_ms_walls.png'
-    save_ms_plot(ms_walls, plot_range, file_name)
+    file_path = file_path_part + '_ms_walls.png'
+    save_ms_plot(ms_walls, plot_range, file_path)
     return None
