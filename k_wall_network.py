@@ -79,6 +79,7 @@ class KWallNetwork:
 
         new_k_walls = primary_k_walls 
         for i in range(n_iterations):
+            # print "flag 1 %s" % len(primary_k_walls)
             logging.info('Iteration #%d', i+1 )
             logging.debug('len(k_walls) = %d', len(self.k_walls))
             new_intersections = find_new_intersections(
@@ -91,6 +92,8 @@ class KWallNetwork:
             logging.info('Creating new K-walls from intersections.')
 
             # Build K-walls from new intersections.
+
+            # print "flag 2 %s" % len(primary_k_walls)
         
             for intersection in new_intersections:
                 parents = intersection.parents
