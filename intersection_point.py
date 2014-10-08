@@ -7,11 +7,8 @@ Uses general-purpose module, intersection.py
 import logging
 from itertools import combinations
 from misc import dsz_pairing
-from config import DSZ_MATRIX
 from intersection import NoIntersection, find_intersection_of_segments
 from genealogy import build_genealogy_tree
-
-
 
 
 class IntersectionPoint:
@@ -72,13 +69,16 @@ def remove_duplicate_intersection(new_ilist, old_ilist):
             if new_intersection == intersection:
                 new_ilist.remove(new_intersection)
 
-def find_new_intersections(kwalls, new_kwalls, intersections, hit_table):
+def find_new_intersections(kwalls, new_kwalls, intersections, hit_table, 
+                            dsz_matrix):
     """Find new wall-wall intersections"""
 
     new_ints = []
     i_0 = len(kwalls)
 
     for i, traj in list(enumerate(new_kwalls)):
+        # In hit_table, curves with an index higher than i_0 are
+        # the new K-walls being added here.
         hit_table.fill(i_0+i, traj.coordinates)
 
     for bin_key in hit_table:
@@ -97,30 +97,35 @@ def find_new_intersections(kwalls, new_kwalls, intersections, hit_table):
                 continue
             # At least one of the KWall is a new one.   
             if i_1 >= i_0:
-                traj_1 = new_kwalls[i_1 - i_0]
+                kwall_1 = new_kwalls[i_1 - i_0]
             else:
-                traj_1 = kwalls[i_1]
+                kwall_1 = kwalls[i_1]
 
             if i_2 >= i_0:
-                traj_2 = new_kwalls[i_2 - i_0]
+                kwall_2 = new_kwalls[i_2 - i_0]
             else:
-                traj_2 = kwalls[i_2]
+                kwall_2 = kwalls[i_2]
 
-            # NOTE Pietro: I am excluding some cases from being checked for 
+            # I am excluding some cases from being checked for 
             # intersections, see the if statements below
-            if (dsz_pairing(traj_1.charge(0), traj_2.charge(0), 
-                            DSZ_MATRIX) == 0 or \
-                traj_1.parents == traj_2.parents or \
-                traj_1 in traj_2.parents or\
-                traj_2 in traj_1.parents):
+            if (dsz_pairing(kwall_1.charge(0), kwall_2.charge(0), 
+                            dsz_matrix) == 0 or 
+                # NOTE: We have to worry about losing an intersection 
+                # of two K-walls from the same intersection
+                # by imposing the following condition, which implies
+                # that there will not be an intersection more than once
+                # inside a bin.
+                kwall_1.parents == kwall_2.parents or 
+                kwall_1 in kwall_2.parents or
+                kwall_2 in kwall_1.parents):
                 continue
 
             list_of_intersection_points = []
 
             for t1_i, t1_f in hit_table[bin_key][i_1]:
-                segment_1 = traj_1.coordinates[t1_i:t1_f+1]
+                segment_1 = kwall_1.coordinates[t1_i:t1_f+1]
                 for t2_i, t2_f in hit_table[bin_key][i_2]:
-                    segment_2 = traj_2.coordinates[t2_i:t2_f+1]
+                    segment_2 = kwall_2.coordinates[t2_i:t2_f+1]
                     logging.debug('t1_i, t1_f = %d, %d', t1_i, t1_f) 
                     logging.debug('t2_i, t2_f = %d, %d', t2_i, t2_f) 
                     try:
@@ -176,7 +181,7 @@ def find_new_intersections(kwalls, new_kwalls, intersections, hit_table):
 
 
 
-            new_ints += [IntersectionPoint(intersection, [traj_1, traj_2]) \
+            new_ints += [IntersectionPoint(intersection, [kwall_1, kwall_2]) \
                             for intersection in list_of_intersection_points] 
 
     remove_duplicate_intersection(new_ints, intersections)

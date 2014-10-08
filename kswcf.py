@@ -5,16 +5,14 @@ from sympy import Subs, series, LT, degree_list, Poly, degree
 from sympy.core.numbers import NaN
 from numpy import array
 
-from config import KS_FILTRATION_DEGREE
-
 # To enhance the speed, we will keep memory of those KSWCFs that have been 
 # already computed once. 
 # Entries of stored_keys are of the form [m, omega_1, omega_2]
 stored_keys = []    
-# Entries of stored_results are the output of KS2(m, omega_1, omega_2)
+# Entries of stored_results are the output of KS2()
 stored_results = []     
 
-def KS2(m, omega_1, omega_2):    
+def KS2(m, omega_1, omega_2, ks_filtration_degree):    
     """
     Solves the basic KS identity: 
     K_(0,1)^{omega_2} K_(1,0)^{omega_2} = (???)
@@ -33,22 +31,22 @@ def KS2(m, omega_1, omega_2):
     else:
         ### The reference data: the LHS of the KSWCF
         data = [ [[0,1], omega_2],   [[1,0],omega_1]]
-        var_x = S(m, data, x)
-        var_y = S(m, data, y)
+        var_x = S(m, data, x, ks_filtration_degree)
+        var_y = S(m, data, y, ks_filtration_degree)
 
         ### Finding the RHS
         ansatz = [ [[1,0],omega_1], [[0,1], omega_2]]
 
         while True:
-            ans_x = S(m, ansatz, x)
-            ans_y = S(m, ansatz, y)
+            ans_x = S(m, ansatz, x, ks_filtration_degree)
+            ans_y = S(m, ansatz, y, ks_filtration_degree)
 
             expr_x = t_min_degree(
-                ((var_x - ans_x) / x).expand(), KS_FILTRATION_DEGREE
+                ((var_x - ans_x) / x).expand(), ks_filtration_degree
             ) 
             # print "expr_x = %s" % expr_x
             expr_y = t_min_degree(
-                ((var_y - ans_y) / y).expand(), KS_FILTRATION_DEGREE
+                ((var_y - ans_y) / y).expand(), ks_filtration_degree
             ) 
             # print "expr_y = %s" % expr_y
 
@@ -57,14 +55,14 @@ def KS2(m, omega_1, omega_2):
 
             else:
                 all_monomials_x = monomials_of_degree(
-                    t_degree(expr_x, KS_FILTRATION_DEGREE)
+                    t_degree(expr_x, ks_filtration_degree)
                 )
                 # print all_monomials_x
                 all_coefficients_x = [Poly(expr_x).coeff_monomial(mono) 
                                         for mono in all_monomials_x]
                 # print all_coefficients_x
                 all_charges_x = charges_of_degree(
-                    t_degree(expr_x, KS_FILTRATION_DEGREE)
+                    t_degree(expr_x, ks_filtration_degree)
                 )
                 # print all_charges_x
                 all_degeneracies_x = [
@@ -76,14 +74,14 @@ def KS2(m, omega_1, omega_2):
                 # print all_degeneracies_x
 
                 all_monomials_y = monomials_of_degree(
-                    t_degree(expr_y, KS_FILTRATION_DEGREE)
+                    t_degree(expr_y, ks_filtration_degree)
                 )
                 # print all_monomials_y
                 all_coefficients_y = [Poly(expr_y).coeff_monomial(mono) 
                                         for mono in all_monomials_y]
                 # print all_coefficients_y
                 all_charges_y = charges_of_degree(
-                    t_degree(expr_y, KS_FILTRATION_DEGREE)
+                    t_degree(expr_y, ks_filtration_degree)
                 )
                 # print all_charges_y
                 all_degeneracies_y = [
@@ -132,7 +130,7 @@ def KS2(m, omega_1, omega_2):
 
         return ansatz
 
-def progeny_2(data, dsz):
+def progeny_2(data, dsz, ks_filtration_degree):
     #### The formatting of "data" should be as follows:
     #### [ [gamma_1 , omega_1]  ,  [gamma_2 , omega_2] ] 
     #### phase ordered from right to left
@@ -153,7 +151,7 @@ def progeny_2(data, dsz):
     if m == 0:
         spectrum = []
     elif m > 0:
-        spectrum = KS2(m,omega_1,omega_2)
+        spectrum = KS2(m, omega_1, omega_2, ks_filtration_degree)
         return spectrum[1:-1]
         # the following command would return the new states in the global 
         # basis, as opposed to the parent's basis.
@@ -164,7 +162,7 @@ def progeny_2(data, dsz):
         #           state[0][1] * gamma_2).tolist(), state[1]] 
         #           for state in spectrum[1:-1]] 
     elif m < 0:
-        spectrum = KS2(-m,omega_2,omega_1)
+        spectrum = KS2(-m,omega_2,omega_1, ks_filtration_degree)
         return list(reversed(spectrum[1:-1]))
         # the following command would return the new states in the global 
         # basis, as opposed to the parent's basis
@@ -243,7 +241,7 @@ def X(gamma):
     return (x ** gamma[0]) * (y ** gamma[1])
 
 
-def K(m, gamma, omega, expr):
+def K(m, gamma, omega, expr, ks_filtration_degree):
     """
     This implements the KS operator, in the active form.
     The charges are understood to be expressed in a basis where 
@@ -260,10 +258,10 @@ def K(m, gamma, omega, expr):
     )
     return t_expand(
         expr.subs([(x, x_prime), (y, y_prime)], simultaneous=True),
-        KS_FILTRATION_DEGREE
+        ks_filtration_degree
     )
 
-def S(m, data, expr):
+def S(m, data, expr, ks_filtration_degree):
     """
     This implements a sequence of KS operations.
     The formatting of "data" should be as follows:
@@ -274,7 +272,7 @@ def S(m, data, expr):
     for i in range(len(data)):
         gamma = data[-(i+1)][0]
         omega = data[-(i+1)][1]
-        temp = K(m, gamma, omega, temp)
+        temp = K(m, gamma, omega, temp, ks_filtration_degree)
     return temp
 
 
@@ -282,29 +280,3 @@ def position_sublist(lst, sublst):
     for i in range(len(lst)):
         if sublst == lst[i]:
             return i
-
-
-###### SOME TESTS #####
-
-# print KS2(2,1,1)
-# print KS2(3,1,1)
-
-# print stored_keys
-# print stored_results
-# print KS2(2,1,1)
-
-# data = [[[1,0], 1], [[-1,2], 1]] 
-# print progeny_2(data)
-# print type(progeny_2(data))
-
-# data = [[[-1,2], 1], [[1,0], 1]] 
-# print progeny_2(data)
-
-# data = [[[1,0], 1], [[0,1], 1]] 
-# print progeny_2(data)
-
-# data = [[[1,0], 1], [[0,3], 1]] 
-# print progeny_2(data)
-
-# print KS2(3,1,1)
-
