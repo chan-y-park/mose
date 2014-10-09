@@ -8,10 +8,10 @@ from kswcf import progeny_2
 from k_wall import KWall
 
 class KWallNetwork:
-    def __init__(self, theta, fibration, max_range, bin_size):
+    def __init__(self, theta, fibration, bin_size):
         self.phase = theta
         self.fibration = fibration
-        self.hit_table = HitTable(max_range, bin_size)
+        self.hit_table = HitTable(bin_size)
         self.k_walls = []
         self.intersections = []
         KWall.count = 0
@@ -140,7 +140,7 @@ class KWallNetwork:
         # End of iterations.
         self.k_walls += new_k_walls
 
-def construct_k_wall_networks(fibration, max_range, bin_size,
+def construct_k_wall_networks(fibration, bin_size,
                                 primary_nint_range, nint_range, 
                                 trajectory_singularity_threshold,
                                 pf_odeint_mxstep,
@@ -165,7 +165,7 @@ def construct_k_wall_networks(fibration, max_range, bin_size,
         ----------------------------------------------------------
         """.format(len(k_wall_networks), phase)
 
-        kwn = KWallNetwork(phase, fibration, max_range, bin_size)
+        kwn = KWallNetwork(phase, fibration, bin_size)
 
         kwn.grow(primary_nint_range, nint_range, 
                     trajectory_singularity_threshold, pf_odeint_mxstep, 

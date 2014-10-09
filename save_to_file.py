@@ -53,7 +53,7 @@ def f_recover(file_path):
     return thawed
 
 
-def save_k_wall_network_plot(k_wall_network, file_name, plot_range=[],
+def save_k_wall_network_plot(k_wall_network, file_name, plot_range,
                              plot_bin=False,
                              plot_intersections=False,
                              display_data_points=False,
