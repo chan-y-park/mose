@@ -212,6 +212,8 @@ class PrimaryKWall(KWall):
             f1, f2 = sort_by_abs(e1, e3, u0+0.01*(1+1j))
             f3 = e2
 
+        # print "f1, f2, f3: %s " % [f1,f2,f3]
+
         #TODO: No other way but to define eta_1(), deriv() here?
         eta_1_part_1 = lambdify(u, 
             simplify(sym.expand(sign * 4 * (f3 - f1) ** (-0.5))), 
