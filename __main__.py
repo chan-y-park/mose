@@ -28,9 +28,16 @@ generate_single_network = False
 generate_multiple_networks = False
 write_to_file = False
 show_graphics = False
+show_bins = False
+show_data_points = False
+show_segments = False
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:], 'c:l:s:fwg', ['logging_level='])
+    opts, args = getopt.getopt(
+        sys.argv[1:],
+        'c:l:s:fwg',
+        ['logging_level=', 'show-bins', 'show-data-points', 'show-segments']
+    )
 
     if len(opts) == 0:
         print("""usage: python -m mose [OPTION]
@@ -93,6 +100,15 @@ try:
             # save data to external file
             show_graphics = True
 
+        if opt == '--show-bins':
+            show_bins = True
+
+        if opt == '--show-data-points':
+            show_data_points = True
+
+        if opt == '--show-segments':
+            show_segments = True
+
 except getopt.GetoptError:
     print 'Unknown options.'
 
@@ -127,7 +143,6 @@ if write_to_file:
 if generate_single_network is True:
     kwn = KWallNetwork(
         phase, fibration,
-        config.get('intersection search', 'range'),
         config.get('intersection search', 'bin_size')
     )
     kwn.grow(
@@ -141,19 +156,23 @@ if generate_single_network is True:
     if write_to_file:
         # save picture
         file_name = 'single_network_' + date_time + '.png'
-        save_k_wall_network_plot(kwn, file_name)
+        save_k_wall_network_plot(kwn, file_name,
+                                 config.get('plotting', 'range'))
         # save kwn data
         file_name = 'single_network_' + date_time + '.mose'
         saved = f_save(kwn, file_name,
                        config.get('file IO', 'pickle_protocol'))
         print saved
     if show_graphics:
-        plot_k_wall_network(kwn)
+        plot_k_wall_network(
+            kwn, config.get('plotting', 'range'),
+            plot_bins=show_bins, plot_data_points=show_data_points,
+            plot_segments=show_segments
+        )
 
 elif generate_multiple_networks is True:
     k_wall_networks = construct_k_wall_networks(
         fibration,
-        config.get('intersection search', 'range'),
         config.get('intersection search', 'bin_size'),
         config.get('ODE', 'primary_k_wall_odeint_range'),
         config.get('ODE', 'odeint_range'),
@@ -169,11 +188,11 @@ elif generate_multiple_networks is True:
         # save pictures
         file_name_part = 'phase_scan_' + date_time
         save_phase_scan(k_wall_networks, ms_walls, file_name_part,
-                        config.get('intersection search', 'range'))
+                        config.get('plotting', 'range'))
         # save all data
         file_name = 'phase_scan_' + date_time + '.mose'
         saved = f_save([k_wall_networks, ms_walls], file_name,
                        confg.get('file IO', 'pickle_protocol'))
         print saved
     if show_graphics:
-        plot_ms_walls(ms_walls, INTERSECTION_SEARCH_RANGE)
+        plot_ms_walls(ms_walls, config.get('plotting', 'range'))

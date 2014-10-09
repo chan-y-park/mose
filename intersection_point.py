@@ -27,7 +27,7 @@ class IntersectionPoint:
     parents (as list of trajectories, ie objects)    
     """
 
-    def __init__(self,data,parents):
+    def __init__(self, data, parents):
 
         self.parents = parents
         self.locus = data[0]
@@ -191,5 +191,23 @@ def find_new_intersections(kwalls, new_kwalls, intersections, hit_table,
 
     return new_ints
     
-
-
+#def adjust_intersection_search_range(fibration, search_range):
+#    [[x_min, x_max], [y_min, y_max]] = search_range
+#    loci = [bp.locus for bp in fibration.branch_points]
+#    center = sum(loci) / float(len(loci))
+#    distance = 2*max([abs(l - center) for l in loci]) 
+#    new_x_min = center.real - distance
+#    new_x_max = center.real + distance
+#    new_y_min = center.imag - distance
+#    new_y_max = center.imag + distance
+#    # Check if the given search_range is smaller than 
+#    # the calculated region.
+#    if ((new_x_min < x_min) or (x_max < new_x_max) or
+#        (new_y_min < y_min) or (y_max < new_y_max)):
+#        new_search_range = [[new_x_min, new_x_max], [new_y_min, new_y_max]]
+#        logging.warning('Intersection search range in the configuration '
+#                        'is too small; adjust to a new search range %s',
+#                        new_search_range)
+#        return new_search_range
+#    else:
+#        return search_range
