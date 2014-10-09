@@ -15,6 +15,17 @@ def prepare_folder(label):
     # If the directory does not exist, create it
     if not os.path.exists(results_dir):
         os.makedirs(results_dir)
+        ### should fix the following
+        ###
+        # # first, make sure I am not running from INSIDE
+        # # the 'mose' folder: I want results to be OUTSIDE
+        # if not os.path.exists(os.path.join(current_dir, '__main__.py')):
+        #     os.makedirs(results_dir)
+        # else:
+        #     # this is when we run with ipython from within 
+        #     # the mose folder itself
+        #     par_dir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+        #     os.makedirs(os.path.join(par_dir, results_dir))
     # The subdirectory of the plots
     plots_dir = os.path.join(results_dir, label + '_plots')
     os.makedirs(plots_dir)

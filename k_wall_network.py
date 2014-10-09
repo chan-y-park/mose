@@ -24,54 +24,55 @@ class KWallNetwork:
         ##############################
         primary_k_walls = []
 
-        for bp in self.fibration.branch_points:
-            # logging.info('Evolving primary K-wall #%d', 
-                            # len(primary_k_walls))
-            k_wall = PrimaryKWall(
-                bp.charge,      #initial_charge 
-                1,              #degeneracy 
-                self.phase, 
-                [bp],           #parents 
-                self.fibration,
-                [bp.locus, +1], #boundary_condition
-                primary_nint_range
-            )
-            k_wall.evolve(nint_range, trajectory_singularity_threshold,
-                            pf_odeint_mxstep)
-            if (not k_wall.singular):
-                primary_k_walls.append(k_wall)
-            else:
-                logging.info(
-                    """
-                    **************
-                    SINGULAR K-WALL! WILL BE DROPPED.
-                    **************
-                    """
+        for sign in [+1, -1]:
+            for bp in self.fibration.branch_points:
+                # logging.info('Evolving primary K-wall #%d', 
+                                # len(primary_k_walls))
+                k_wall = PrimaryKWall(
+                    list(sign * array(bp.charge)),      #initial_charge 
+                    1,              #degeneracy 
+                    self.phase, 
+                    [bp],           #parents 
+                    self.fibration,
+                    [bp.locus, sign], #boundary_condition
+                    primary_nint_range
                 )
+                k_wall.evolve(nint_range, trajectory_singularity_threshold,
+                                pf_odeint_mxstep)
+                if (not k_wall.singular):
+                    primary_k_walls.append(k_wall)
+                else:
+                    logging.info(
+                        """
+                        **************
+                        SINGULAR K-WALL! WILL BE DROPPED.
+                        **************
+                        """
+                    )
 
-            # logging.info('Evolving primary K-wall #%d', 
-                            # len(primary_k_walls))
-            k_wall = PrimaryKWall(
-                bp.charge,      #initial_charge 
-                1,              #degeneracy 
-                self.phase, 
-                [bp],           #parents 
-                self.fibration,
-                [bp.locus, -1], #boundary_condition
-                primary_nint_range
-            )
-            k_wall.evolve(nint_range, trajectory_singularity_threshold,
-                            pf_odeint_mxstep)
-            if (not k_wall.singular):
-                primary_k_walls.append(k_wall)
-            else:
-                logging.info(
-                    """
-                    **************
-                    SINGULAR K-WALL! WILL BE DROPPED.
-                    **************
-                    """
-                )
+                # # logging.info('Evolving primary K-wall #%d', 
+                #                 # len(primary_k_walls))
+                # k_wall = PrimaryKWall(
+                #     bp.charge,      #initial_charge 
+                #     1,              #degeneracy 
+                #     self.phase, 
+                #     [bp],           #parents 
+                #     self.fibration,
+                #     [bp.locus, -1], #boundary_condition
+                #     primary_nint_range
+                # )
+                # k_wall.evolve(nint_range, trajectory_singularity_threshold,
+                #                 pf_odeint_mxstep)
+                # if (not k_wall.singular):
+                #     primary_k_walls.append(k_wall)
+                # else:
+                #     logging.info(
+                #         """
+                #         **************
+                #         SINGULAR K-WALL! WILL BE DROPPED.
+                #         **************
+                #         """
+                #     )
 
         #############################
         # Now grow descendant k-walls.

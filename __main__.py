@@ -96,29 +96,32 @@ try:
 except getopt.GetoptError:
     print 'Unknown options.'
 
-logging.basicConfig(level=logging_level, format=logging_format)
 
-main_file_dir, main_file_name = os.path.split(__file__)
-if len(config_file) == 0:
-    # default configuration file
-    config_file = 'fibration_invented.ini'
-    logging.warning('No .ini file specified --- load %s instead.', config_file)
-config.read(os.path.join(main_file_dir, config_file))
-logging.debug('Configuration sections: %s', config.sections())
-logging.debug('g2 = %s', config.get('fibration', 'g2'))
-logging.debug('g3 = %s', config.get('fibration', 'g3'))
 
-fibration = EllipticFibration(
-    config.get('fibration', 'g2'),
-    config.get('fibration', 'g3'),
-    config.get('charge', 'fixed_charges'),
-    config.get('charge', 'dsz_matrix'),
-    config.get('branch cut', 'theta'),
-    config.get('branch cut', 'cutoff')
-)
+if generate_single_network or generate_multiple_networks:
+    logging.basicConfig(level=logging_level, format=logging_format)
 
-KWall.count = 0
-KWallNetwork.count = 0
+    main_file_dir, main_file_name = os.path.split(__file__)
+    if len(config_file) == 0:
+        # default configuration file
+        config_file = 'fibration_invented.ini'
+        logging.warning('No .ini file specified --- load %s instead.', config_file)
+    config.read(os.path.join(main_file_dir, config_file))
+    logging.debug('Configuration sections: %s', config.sections())
+    logging.debug('g2 = %s', config.get('fibration', 'g2'))
+    logging.debug('g3 = %s', config.get('fibration', 'g3'))
+
+    fibration = EllipticFibration(
+        config.get('fibration', 'g2'),
+        config.get('fibration', 'g3'),
+        config.get('charge', 'fixed_charges'),
+        config.get('charge', 'dsz_matrix'),
+        config.get('branch cut', 'theta'),
+        config.get('branch cut', 'cutoff')
+    )
+
+    KWall.count = 0
+    KWallNetwork.count = 0
 
 # DO NOT MOVE: must be here for consistency of file naming.
 if write_to_file:
