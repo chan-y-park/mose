@@ -24,54 +24,55 @@ class KWallNetwork:
         ##############################
         primary_k_walls = []
 
-        for bp in self.fibration.branch_points:
-            # logging.info('Evolving primary K-wall #%d', 
-                            # len(primary_k_walls))
-            k_wall = PrimaryKWall(
-                bp.charge,      #initial_charge 
-                1,              #degeneracy 
-                self.phase, 
-                [bp],           #parents 
-                self.fibration,
-                [bp.locus, +1], #boundary_condition
-                primary_nint_range
-            )
-            k_wall.evolve(nint_range, trajectory_singularity_threshold,
-                            pf_odeint_mxstep)
-            if (not k_wall.singular):
-                primary_k_walls.append(k_wall)
-            else:
-                logging.info(
-                    """
-                    **************
-                    SINGULAR K-WALL! WILL BE DROPPED.
-                    **************
-                    """
+        for sign in [+1, -1]:
+            for bp in self.fibration.branch_points:
+                # logging.info('Evolving primary K-wall #%d', 
+                                # len(primary_k_walls))
+                k_wall = PrimaryKWall(
+                    list(sign * array(bp.charge)),      #initial_charge 
+                    1,              #degeneracy 
+                    self.phase, 
+                    [bp],           #parents 
+                    self.fibration,
+                    [bp.locus, sign], #boundary_condition
+                    primary_nint_range
                 )
+                k_wall.evolve(nint_range, trajectory_singularity_threshold,
+                                pf_odeint_mxstep)
+                if (not k_wall.singular):
+                    primary_k_walls.append(k_wall)
+                else:
+                    logging.info(
+                        """
+                        **************
+                        SINGULAR K-WALL! WILL BE DROPPED.
+                        **************
+                        """
+                    )
 
-            # logging.info('Evolving primary K-wall #%d', 
-                            # len(primary_k_walls))
-            k_wall = PrimaryKWall(
-                bp.charge,      #initial_charge 
-                1,              #degeneracy 
-                self.phase, 
-                [bp],           #parents 
-                self.fibration,
-                [bp.locus, -1], #boundary_condition
-                primary_nint_range
-            )
-            k_wall.evolve(nint_range, trajectory_singularity_threshold,
-                            pf_odeint_mxstep)
-            if (not k_wall.singular):
-                primary_k_walls.append(k_wall)
-            else:
-                logging.info(
-                    """
-                    **************
-                    SINGULAR K-WALL! WILL BE DROPPED.
-                    **************
-                    """
-                )
+                # # logging.info('Evolving primary K-wall #%d', 
+                #                 # len(primary_k_walls))
+                # k_wall = PrimaryKWall(
+                #     bp.charge,      #initial_charge 
+                #     1,              #degeneracy 
+                #     self.phase, 
+                #     [bp],           #parents 
+                #     self.fibration,
+                #     [bp.locus, -1], #boundary_condition
+                #     primary_nint_range
+                # )
+                # k_wall.evolve(nint_range, trajectory_singularity_threshold,
+                #                 pf_odeint_mxstep)
+                # if (not k_wall.singular):
+                #     primary_k_walls.append(k_wall)
+                # else:
+                #     logging.info(
+                #         """
+                #         **************
+                #         SINGULAR K-WALL! WILL BE DROPPED.
+                #         **************
+                #         """
+                #     )
 
         #############################
         # Now grow descendant k-walls.
@@ -79,6 +80,7 @@ class KWallNetwork:
 
         new_k_walls = primary_k_walls 
         for i in range(n_iterations):
+            # print "flag 1 %s" % len(primary_k_walls)
             logging.info('Iteration #%d', i+1 )
             logging.debug('len(k_walls) = %d', len(self.k_walls))
             new_intersections = find_new_intersections(
@@ -91,6 +93,8 @@ class KWallNetwork:
             logging.info('Creating new K-walls from intersections.')
 
             # Build K-walls from new intersections.
+
+            # print "flag 2 %s" % len(primary_k_walls)
         
             for intersection in new_intersections:
                 parents = intersection.parents

@@ -14,7 +14,7 @@ from sympy import diff, N, simplify
 from sympy import mpmath as mp
 
 from branch import BranchPoint
-from misc import complexify
+from misc import complexify, sort_by_abs
 
 class KWall(object):
     """
@@ -190,25 +190,27 @@ class PrimaryKWall(KWall):
         x = sym.Symbol('x')
 
         eq = 4 * x ** 3 - g2 * x - g3
-        e1, e2, e3 = sym.solve(eq, x)
+        e1, e2, e3 = sym.simplify(sym.solve(eq, x))
         distances = map(abs, [e1-e2, e2-e3, e3-e1])
         pair = min(enumerate(map(lambda x: x.subs(u, u0), distances)), 
                     key=itemgetter(1))[0]
-
+        # print "PAIR %s" % pair
+        # print "e1 e2 e3: %s" % map(complex, [e1.subs(u,u0+0.01), e2.subs(u,u0+0.01), e3.subs(u,u0+0.01)])
         if pair == 0:
-            f1 = e1
-            f2 = e2
+            # f1 = e1
+            # f2 = e2
+            f1, f2 = sort_by_abs(e1, e2, u0+0.01*(1+1j))
             f3 = e3
         elif pair == 1:
-            f1 = e2
-            f2 = e3
+            # f1 = e2
+            # f2 = e3
+            f1, f2 = sort_by_abs(e2, e3, u0+0.01*(1+1j))
             f3 = e1
         elif pair == 2:
-            f1 = e3
-            f2 = e1
+            # f1 = e3
+            # f2 = e1
+            f1, f2 = sort_by_abs(e1, e3, u0+0.01*(1+1j))
             f3 = e2
-
-        
 
         #TODO: No other way but to define eta_1(), deriv() here?
         eta_1_part_1 = lambdify(u, 
@@ -408,7 +410,9 @@ class DescendantKWall(KWall):
         pw_data_pf = self.grow_pf(self.boundary_condition, nint_range,
                                     trajectory_singularity_threshold,
                                     pf_odeint_mxstep)
-        self.coordinates =  [ [row[0], row[1]] for row in pw_data_pf ]
-        self.periods =  [ row[2] + 1j* row[3] for row in pw_data_pf ] 
+        self.coordinates =  numpy.array([[row[0], row[1]] \
+                        for row in pw_data_pf])
+        self.periods =  numpy.array([row[2] + 1j* row[3] \
+                        for row in pw_data_pf ]) 
         self.check_cuts()
 

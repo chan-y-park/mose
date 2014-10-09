@@ -16,6 +16,7 @@ def prepare_k_wall_network_plot(
 
     # Give an identifier to the figure we are goint to produce
     pyplot.figure("kwall_snapshot")
+    pyplot.figure("kwall_snapshot").clear()
 
     [[x_min, x_max], [y_min, y_max]] = plot_range
 

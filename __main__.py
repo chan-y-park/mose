@@ -14,7 +14,7 @@ from k_wall import KWall
 from marginal_stability_wall import build_ms_walls
 from plotting import plot_k_wall_network, plot_ms_walls
 from save_to_file import (f_save, f_recover, save_k_wall_network_plot,
-                          save_phase_scan)
+                          save_phase_scan, prepare_folder)
 from misc import formatted_date_time
 
 config = MoseConfigParser()
@@ -62,10 +62,10 @@ try:
         the name will include 'phase_scan' or 'single_network'
         according to what data is stored.
         Will also produce saved pictures.
-
+        
     -g:
         Show plot of the computation.
-        If working at a fixed phase (option -s), it will
+        If working at a fixed phase (option -s), it will 
         show a plot of the K-wall network.
         If working with multiple phases (option -f), it
         will show the plot of marginal stability walls.
@@ -95,7 +95,7 @@ try:
         if opt == '-w':
             # save data to external file
             write_to_file = True
-
+        
         if opt == '-g':
             # save data to external file
             show_graphics = True
@@ -112,33 +112,42 @@ try:
 except getopt.GetoptError:
     print 'Unknown options.'
 
-logging.basicConfig(level=logging_level, format=logging_format)
 
-main_file_dir, main_file_name = os.path.split(__file__)
-if len(config_file) == 0:
-    # default configuration file
-    config_file = 'fibration_invented.ini'
-    logging.warning('No .ini file specified --- load %s instead.', config_file)
-config.read(os.path.join(main_file_dir, config_file))
-logging.debug('Configuration sections: %s', config.sections())
-logging.debug('g2 = %s', config.get('fibration', 'g2'))
-logging.debug('g3 = %s', config.get('fibration', 'g3'))
 
-fibration = EllipticFibration(
-    config.get('fibration', 'g2'),
-    config.get('fibration', 'g3'),
-    config.get('charge', 'fixed_charges'),
-    config.get('charge', 'dsz_matrix'),
-    config.get('branch cut', 'theta'),
-    config.get('branch cut', 'cutoff')
-)
+if generate_single_network or generate_multiple_networks:
+    logging.basicConfig(level=logging_level, format=logging_format)
 
-KWall.count = 0
-KWallNetwork.count = 0
+    main_file_dir, main_file_name = os.path.split(__file__)
+    if len(config_file) == 0:
+        # default configuration file
+        config_file = 'fibration_invented.ini'
+        logging.warning('No .ini file specified --- load %s instead.', config_file)
+    config.read(os.path.join(main_file_dir, config_file))
+    logging.debug('Configuration sections: %s', config.sections())
+    logging.debug('g2 = %s', config.get('fibration', 'g2'))
+    logging.debug('g3 = %s', config.get('fibration', 'g3'))
+
+    fibration = EllipticFibration(
+        config.get('fibration', 'g2'),
+        config.get('fibration', 'g3'),
+        config.get('charge', 'fixed_charges'),
+        config.get('charge', 'dsz_matrix'),
+        config.get('branch cut', 'theta'),
+        config.get('branch cut', 'cutoff')
+    )
+
+    KWall.count = 0
+    KWallNetwork.count = 0
 
 # DO NOT MOVE: must be here for consistency of file naming.
 if write_to_file:
+    if generate_single_network:
+        label = 'single_network'
+    elif generate_multiple_networks:
+        label = 'phase_scan'
+    current_dir = os.getcwd()
     date_time = formatted_date_time()
+    plots_dir = prepare_folder(label + '_' + date_time)
 
 if generate_single_network is True:
     kwn = KWallNetwork(
@@ -155,13 +164,14 @@ if generate_single_network is True:
     )
     if write_to_file:
         # save picture
-        file_name = 'single_network_' + date_time + '.png'
-        save_k_wall_network_plot(kwn, file_name,
-                                 config.get('plotting', 'range'))
+        file_path = os.path.join(plots_dir, 
+                                 'single_network_' + date_time + '.png')
+        save_k_wall_network_plot(kwn, file_path)
         # save kwn data
-        file_name = 'single_network_' + date_time + '.mose'
-        saved = f_save(kwn, file_name,
-                       config.get('file IO', 'pickle_protocol'))
+        file_path = os.path.join(current_dir, 'results', 
+                        'single_network_' + date_time + '.mose')
+        saved = f_save(kwn, file_path, config.get('file IO', 
+                        'pickle_protocol'))
         print saved
     if show_graphics:
         plot_k_wall_network(
@@ -183,16 +193,17 @@ elif generate_multiple_networks is True:
         config.get('MS wall', 'theta_range')
     )
     ms_walls = build_ms_walls(k_wall_networks)
-
+     
     if write_to_file:
         # save pictures
-        file_name_part = 'phase_scan_' + date_time
-        save_phase_scan(k_wall_networks, ms_walls, file_name_part,
+        file_path_part = os.path.join(plots_dir, 'phase_scan_' + date_time)
+        save_phase_scan(k_wall_networks, ms_walls, file_path_part,
                         config.get('plotting', 'range'))
         # save all data
-        file_name = 'phase_scan_' + date_time + '.mose'
-        saved = f_save([k_wall_networks, ms_walls], file_name,
-                       confg.get('file IO', 'pickle_protocol'))
+        file_path = os.path.join(current_dir, 'results', 
+                        'phase_scan_' + date_time + '.mose')
+        saved = f_save([k_wall_networks, ms_walls], file_path,
+                       config.get('file IO', 'pickle_protocol'))
         print saved
     if show_graphics:
         plot_ms_walls(ms_walls, config.get('plotting', 'range'))
