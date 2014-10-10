@@ -166,7 +166,8 @@ if generate_single_network is True:
         # save picture
         file_path = os.path.join(plots_dir, 
                                  'single_network_' + date_time + '.png')
-        save_k_wall_network_plot(kwn, file_path)
+        save_k_wall_network_plot(kwn, file_path, \
+                            plot_range=config.get('plotting', 'range'))
         # save kwn data
         file_path = os.path.join(current_dir, 'results', 
                         'single_network_' + date_time + '.mose')
@@ -198,7 +199,7 @@ elif generate_multiple_networks is True:
         # save pictures
         file_path_part = os.path.join(plots_dir, 'phase_scan_' + date_time)
         save_phase_scan(k_wall_networks, ms_walls, file_path_part,
-                        config.get('plotting', 'range'))
+                        plot_range=config.get('plotting', 'range'))
         # save all data
         file_path = os.path.join(current_dir, 'results', 
                         'phase_scan_' + date_time + '.mose')

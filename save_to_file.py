@@ -53,32 +53,40 @@ def f_recover(file_path):
     return thawed
 
 
-def save_k_wall_network_plot(k_wall_network, file_name, plot_range,
+def save_k_wall_network_plot(k_wall_network, file_name,
                              plot_bin=False,
                              plot_intersections=False,
                              display_data_points=False,
-                             display_segments=False):
-    figure = prepare_k_wall_network_plot(k_wall_network, plot_range, plot_bin,
-                                         plot_intersections,
-                                         display_data_points,
-                                         display_segments)
+                             display_segments=False,
+                             plot_range=[[-5,5],[-5,5]]
+                             ):
+    figure = prepare_k_wall_network_plot(k_wall_network, plot_bins=plot_bin,
+                                         plot_intersections=plot_intersections,
+                                         plot_data_points=display_data_points,
+                                         plot_segments=display_segments,
+                                         plot_range=plot_range)
     pyplot.savefig(file_name)
     return None
 
 
-def save_ms_plot(ms_walls, plot_range, file_path):
+def save_ms_plot(ms_walls, file_path, plot_range=[[-5,5],[-5,5]]):
     figure = prepare_ms_plot(ms_walls, plot_range)
     pyplot.savefig(file_path)
     return None
 
 
-def save_phase_scan(kw_networks, ms_walls, file_path_part, plot_range):
+def save_phase_scan(kw_networks, 
+                    ms_walls, 
+                    file_path_part, 
+                    plot_range=[[-5,5],[-5,5]]
+                    ):
     # First save all k_wall_network snapshots
     for i, k_wall_network in enumerate(kw_networks):
         file_path = file_path_part + '_' + str(i) + '.png'
-        save_k_wall_network_plot(k_wall_network, file_path)
+        save_k_wall_network_plot(k_wall_network, file_path, \
+                                                plot_range=plot_range)
 
     # Then save the plot of ms_walls
     file_path = file_path_part + '_ms_walls.png'
-    save_ms_plot(ms_walls, plot_range, file_path)
+    save_ms_plot(ms_walls, file_path, plot_range)
     return None

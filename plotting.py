@@ -91,7 +91,7 @@ def plot_k_wall_network(k_wall_network, plot_range=[], plot_bins=False,
 
 
 
-def prepare_ms_plot(ms_walls, plot_range): 
+def prepare_ms_plot(ms_walls, plot_range=[[-5,5],[-5,5]]): 
     """
     Plots MS walls.
     """
