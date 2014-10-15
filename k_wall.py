@@ -27,7 +27,7 @@ class KWall(object):
     parents, boundary_condition)
     """
 
-    count = 0
+#    count = 0
 
     def __init__(self, initial_charge, degeneracy, phase, parents, 
                  fibration, boundary_condition, color='b'):
@@ -39,8 +39,8 @@ class KWall(object):
         self.fibration = fibration
         self.color = color
         self.singular = False
-        logging.info('Creating K-wall #%d', KWall.count)
-        KWall.count += 1
+#        logging.info('Creating K-wall #%d', KWall.count)
+#        KWall.count += 1
 
     def __str__(self):
         return ('KWall info: initial charge {}, '
@@ -371,7 +371,7 @@ class DescendantKWall(KWall):
                     pass
                 elif i == n_trials:
                     print "\n*******\nProblem: cannot compute derivative of \
-                    periods for trajectory number %s" % parents[0].count
+                    periods for trajectory"
             else:
                 d_eta_1 = ((periods_1[index_1] - periods_1[index_1-i]) / 
                             (path_1[index_1] - path_1[index_1-i]))
@@ -385,7 +385,7 @@ class DescendantKWall(KWall):
                     pass
                 elif i == n_trials:
                     print "\n*******\nProblem: cannot compute derivative of \
-                    periods for trajectory number %s" % parents[1].count
+                    periods for trajectory"
             else:
                 d_eta_2 = ((periods_2[index_2] - periods_2[index_2-i]) / 
                             (path_2[index_2] - path_2[index_2-i]))

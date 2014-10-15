@@ -15,7 +15,7 @@ class KWallNetwork:
         self.hit_table = HitTable(bin_size)
         self.k_walls = []
         self.intersections = []
-        KWall.count = 0
+#        KWall.count = 0
 
     def grow(self, primary_nint_range, nint_range,
              trajectory_singularity_threshold, pf_odeint_mxstep, 
@@ -27,9 +27,8 @@ class KWallNetwork:
         primary_k_walls = []
 
         for sign in [+1, -1]:
-            for bp in self.fibration.branch_points:
-                # logging.info('Evolving primary K-wall #%d', 
-                                # len(primary_k_walls))
+            for idx, bp in enumerate(self.fibration.branch_points):
+                logging.info('Evolving primary K-wall #%d', idx)
                 k_wall = PrimaryKWall(
                     list(sign * array(bp.charge)),      #initial_charge 
                     1,              #degeneracy 
@@ -58,7 +57,6 @@ class KWallNetwork:
 
         new_k_walls = primary_k_walls 
         for i in range(n_iterations):
-            # print "flag 1 %s" % len(primary_k_walls)
             logging.info('Iteration #%d', i+1 )
             logging.debug('len(k_walls) = %d', len(self.k_walls))
             new_intersections = find_new_intersections(
@@ -116,8 +114,19 @@ class KWallNetwork:
         # End of iterations.
         self.k_walls += new_k_walls
 
-def parallel_grow(k_wall_network, *args):
-    k_wall_network.grow(*args)
+def parallel_build_k_wall_network(phase, fibration, bin_size, 
+                                  shared_n_started_kwns, 
+                                  shared_n_finished_kwns, 
+                                  *args):
+    shared_n_started_kwns.value += 1
+    logging.info('Start generating K-wall network #%d',
+                 shared_n_started_kwns.value) 
+    kwn = KWallNetwork(phase, fibration, bin_size)
+    kwn.grow(*args)
+    shared_n_finished_kwns.value += 1
+    logging.info('Finished generating K-wall network #%d',
+                 shared_n_finished_kwns.value)
+    return kwn
 
 def construct_k_wall_networks(fibration, bin_size, primary_nint_range,
                               nint_range, trajectory_singularity_threshold,
@@ -134,12 +143,16 @@ def construct_k_wall_networks(fibration, bin_size, primary_nint_range,
     angles = [theta_i + i*(theta_f - theta_i)/steps for i in range(steps)]
     k_wall_networks = []
 
-    for phase in angles:
-        kwn = KWallNetwork(phase, fibration, bin_size)
-        k_wall_networks.append(kwn)
+#    for phase in angles:
+#        kwn = KWallNetwork(phase, fibration, bin_size)
+#        k_wall_networks.append(kwn)
 
     manager = multiprocessing.Manager()
-    shared_kwns = manager.list(k_wall_networks)
+#    shared_kwns = manager.list([KWallNetwork(phase, fibration, bin_size)
+#                               for phase in angles])
+#    shared_kwns = manager.list(k_wall_networks)
+    shared_n_started_kwns = manager.Value('i', 0)
+    shared_n_finished_kwns = manager.Value('i', 0)
 
 #    for kwn in shared_kwns:
 #        p = multiprocessing.Process(
@@ -154,15 +167,25 @@ def construct_k_wall_networks(fibration, bin_size, primary_nint_range,
     if(n_process == 0):
         n_process = multiprocessing.cpu_count()
     logging.debug('Number of processes: %d', n_process)
-    pool = multiprocessing.Pool(processes=n_process)
-    results = [pool.apply_async(parallel_grow,
-                                args=(kwn, primary_nint_range, nint_range,
+    pool = multiprocessing.Pool(n_process)
+    results = [pool.apply_async(parallel_build_k_wall_network,
+                                args=(phase, fibration, bin_size,
+                                      shared_n_started_kwns, 
+                                      shared_n_finished_kwns,
+                                      primary_nint_range, nint_range,
                                       trajectory_singularity_threshold,
                                       pf_odeint_mxstep, n_iterations,
                                       ks_filtration_degree))
-               for kwn in shared_kwns]
+               for phase in angles]
     pool.close()
-    pool.join()
-#    for p in results:
-#        p.wait()
-    return k_wall_networks
+
+    for r in results:
+        k_wall_networks.append(r.get())
+        logging.info('job progress: %d/%d finished.',
+                     shared_n_finished_kwns.value, len(angles))
+    #pool.join()
+    #for index, kwn in enumerate(k_wall_networks):
+    #    print 'kwn#{:d}: phase = {:.4f}, # of K-Walls = {:d}'.format(
+    #        index, kwn.phase, len(kwn.k_walls))
+
+    return k_wall_networks 

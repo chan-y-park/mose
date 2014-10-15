@@ -82,6 +82,7 @@ try:
                 logging_format = '%(module)s@%(lineno)d: %(message)s'
             elif arg == 'info':
                 logging_level = logging.INFO
+                logging_format = '%(process)d: %(message)s'
             elif arg == 'warning':
                 logging_level = logging.WARNING
             logging.basicConfig(level=logging_level, format=logging_format)
@@ -115,8 +116,8 @@ try:
 except getopt.GetoptError:
     print 'Unknown options.'
 
-start_cpu_time = time.clock()
-logging.info('start cpu time: %s', start_cpu_time)
+start_time = time.time()
+logging.info('start cpu time: %s', start_time)
 
 if generate_single_network or generate_multiple_networks:
 
@@ -167,15 +168,16 @@ if generate_single_network is True:
         config.get('KSWCF', 'filtration_degree')
     )
 
-    end_cpu_time = time.clock()
-    logging.info('end cpu time: %s', end_cpu_time)
-    logging.info('elapsed cpu time: %s', end_cpu_time - start_cpu_time)
+    end_time = time.time()
+    logging.info('end time: %s', end_time)
+    logging.info('elapsed time: %s', end_time - start_time)
      
     if write_to_file:
         # save picture
         file_path = os.path.join(plots_dir, 
                                  'single_network_' + date_time + '.png')
-        save_k_wall_network_plot(kwn, file_path)
+        save_k_wall_network_plot(kwn, file_path, 
+                                 config.get('plotting', 'range'))
         # save kwn data
         file_path = os.path.join(current_dir, 'results', 
                         'single_network_' + date_time + '.mose')
@@ -203,9 +205,9 @@ elif generate_multiple_networks is True:
     )
     ms_walls = build_ms_walls(k_wall_networks)
 
-    end_cpu_time = time.clock()
-    logging.info('end cpu time: %.8f', end_cpu_time)
-    logging.info('elapsed cpu time: %.8f', end_cpu_time - start_cpu_time)
+    end_time = time.time()
+    logging.info('end cpu time: %.8f', end_time)
+    logging.info('elapsed cpu time: %.8f', end_time - start_time)
          
     if write_to_file:
         # save pictures
