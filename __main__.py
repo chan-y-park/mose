@@ -6,6 +6,7 @@ import logging
 import os
 import sys
 import getopt
+import time
 
 from mose_config_parser import MoseConfigParser
 from elliptic_fibration import EllipticFibration
@@ -74,7 +75,8 @@ try:
     for opt, arg in opts:
         if (opt == '-c' and len(arg) > 0):
             config_file = arg
-        if (opt == '-l' or opt == '--logging_level'):
+
+        elif (opt == '-l' or opt == '--logging_level'):
             if arg == 'debug':
                 logging_level = logging.DEBUG
                 logging_format = '%(module)s@%(lineno)d: %(message)s'
@@ -82,8 +84,9 @@ try:
                 logging_level = logging.INFO
             elif arg == 'warning':
                 logging_level = logging.WARNING
+            logging.basicConfig(level=logging_level, format=logging_format)
 
-        if opt == '-s':
+        elif opt == '-s':
             # Generate a single K-wall network at a phase
             phase = float(arg)
             generate_single_network = True
@@ -92,30 +95,30 @@ try:
             # Generate K-wall networks at various phases
             generate_multiple_networks = True
 
-        if opt == '-w':
+        elif opt == '-w':
             # save data to external file
             write_to_file = True
         
-        if opt == '-g':
+        elif opt == '-g':
             # save data to external file
             show_graphics = True
 
-        if opt == '--show-bins':
+        elif opt == '--show-bins':
             show_bins = True
 
-        if opt == '--show-data-points':
+        elif opt == '--show-data-points':
             show_data_points = True
 
-        if opt == '--show-segments':
+        elif opt == '--show-segments':
             show_segments = True
 
 except getopt.GetoptError:
     print 'Unknown options.'
 
-
+start_cpu_time = time.clock()
+logging.info('start cpu time: %s', start_cpu_time)
 
 if generate_single_network or generate_multiple_networks:
-    logging.basicConfig(level=logging_level, format=logging_format)
 
     main_file_dir, main_file_name = os.path.split(__file__)
     if len(config_file) == 0:
@@ -163,6 +166,11 @@ if generate_single_network is True:
         config.get('K-wall network', 'n_iterations'),
         config.get('KSWCF', 'filtration_degree')
     )
+
+    end_cpu_time = time.clock()
+    logging.info('end cpu time: %s', end_cpu_time)
+    logging.info('elapsed cpu time: %s', end_cpu_time - start_cpu_time)
+     
     if write_to_file:
         # save picture
         file_path = os.path.join(plots_dir, 
@@ -194,7 +202,11 @@ elif generate_multiple_networks is True:
         config.get('MS wall', 'theta_range')
     )
     ms_walls = build_ms_walls(k_wall_networks)
-     
+
+    end_cpu_time = time.clock()
+    logging.info('end cpu time: %.8f', end_cpu_time)
+    logging.info('elapsed cpu time: %.8f', end_cpu_time - start_cpu_time)
+         
     if write_to_file:
         # save pictures
         file_path_part = os.path.join(plots_dir, 'phase_scan_' + date_time)
