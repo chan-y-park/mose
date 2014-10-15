@@ -121,7 +121,8 @@ if generate_single_network or generate_multiple_networks:
     if len(config_file) == 0:
         # default configuration file
         config_file = 'fibration_invented.ini'
-        logging.warning('No .ini file specified --- load %s instead.', config_file)
+        logging.warning('No .ini file specified --- load %s instead.',
+                        config_file)
     config.read(os.path.join(main_file_dir, config_file))
     logging.debug('Configuration sections: %s', config.sections())
     logging.debug('g2 = %s', config.get('fibration', 'g2'))
