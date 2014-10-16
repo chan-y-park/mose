@@ -88,5 +88,5 @@ def save_phase_scan(kw_networks,
 
     # Then save the plot of ms_walls
     file_path = file_path_part + '_ms_walls.png'
-    save_ms_plot(ms_walls, file_path, plot_range)
+    save_ms_plot(ms_walls, file_path, plot_range=plot_range)
     return None
