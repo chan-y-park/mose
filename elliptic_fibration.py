@@ -43,9 +43,9 @@ def find_singularities(g2, g3):
     find the singularities on the Coulomb branch
     """
     u = sym.Symbol('u')
-    
-    g2_coeffs = Poly(g2).coeffs()
-    g3_coeffs = Poly(g3).coeffs()
+
+    g2_coeffs = Poly(g2, u).all_coeffs()
+    g3_coeffs = Poly(g3, u).all_coeffs()
     
     # Converting from
     # y^2 = 4 x^3 - g_2 x - g_3
