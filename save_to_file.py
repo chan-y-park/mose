@@ -83,8 +83,8 @@ def save_phase_scan(kw_networks,
     # First save all k_wall_network snapshots
     for i, k_wall_network in enumerate(kw_networks):
         file_path = file_path_part + '_' + str(i) + '.png'
-        save_k_wall_network_plot(k_wall_network, file_path, \
-                                                plot_range=plot_range)
+        save_k_wall_network_plot(k_wall_network, file_path,
+                                 plot_range=plot_range)
 
     # Then save the plot of ms_walls
     file_path = file_path_part + '_ms_walls.png'
