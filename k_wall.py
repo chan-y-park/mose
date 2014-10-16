@@ -12,6 +12,7 @@ from numpy.linalg import det
 from scipy.integrate import odeint
 from sympy import diff, N, simplify
 from sympy import mpmath as mp
+from scipy import interpolate
 
 from branch import BranchPoint
 from misc import complexify, sort_by_abs
@@ -30,7 +31,7 @@ class KWall(object):
 #    count = 0
 
     def __init__(self, initial_charge, degeneracy, phase, parents, 
-                 fibration, boundary_condition, color='b'):
+                 fibration, boundary_condition, network, color='b'):
         self.initial_charge = initial_charge
         self.degeneracy = degeneracy
         self.phase = phase
@@ -38,14 +39,15 @@ class KWall(object):
         self.boundary_condition = boundary_condition
         self.fibration = fibration
         self.color = color
+        self.network = network
         self.singular = False
 #        logging.info('Creating K-wall #%d', KWall.count)
 #        KWall.count += 1
 
-    def __str__(self):
-        return ('KWall info: initial charge {}, '
-                'degeneracy {}, etc... '.format(self.initial_charge, 
-                                                self.degeneracy))
+    # def __str__(self):
+    #     return ('KWall info: initial charge {}, '
+    #             'degeneracy {}, etc... '.format(self.initial_charge, 
+    #                                             self.degeneracy))
 
     def get_color(self):
         return self.color
@@ -71,6 +73,43 @@ class KWall(object):
         # self.local_charge would have length 4.
         # local charges are determined one the branch-cut data is given,
         # perhaps computed by an external function.
+        disc_locus_position = [bp.locus for bp in \
+                                self.fibration.branch_points]
+        # the x-coordinates of the discriminant loci
+        disc_x = [z.real for z in disc_locus_position]
+        # parametrizing the x-coordinate of the k-wall's coordinates
+        # as a function of proper time
+        traj_t = numpy.array(range(len(self.coordinates)))
+        traj_x = numpy.array([z[0] for z in self.coordinates])
+        # f = interp1d(traj_t, traj_x, kind = 'linear')
+
+        all_cuts_intersections = []
+
+        # Scan over branch cuts, see if path ever crosses one 
+        # based on x-coordinates only
+        for b_pt_num, x_0 in list(enumerate(disc_x)):
+            g = interpolate.splrep(traj_t, traj_x - x_0, s=0)
+            # now produce a list of integers corresponding to points in the 
+            # k-wall's coordinate list that seem to cross branch-cuts
+            # based on the x-coordinate.
+            # Will get a list [i_0, i_1, ...] of intersections
+            intersections = map(int, map(round, interpolate.sproot(g)))
+            # removing duplicates
+            intersections = list(set(intersections))
+            # adding the branch-point identifier to each intersection
+            intersections = [[self.fibration.branch_points[b_pt_num], i] \
+                                                    for i in intersections]
+            print "K-wall %s intersects cut %s at points %s "% \
+            (self, b_pt_num, intersections)
+
+
+
+        ### MUST DROP INTERSECTIONS WITH B.C. OF PARENT BRANCH-POINT, 
+        ### IF THEY HAPPEN AT ZERO AT t=0
+
+
+
+
 
     def grow_pf(self, boundary_conditions, nint_range, 
                 trajectory_singularity_threshold, pf_odeint_mxstep): 
@@ -171,12 +210,13 @@ class PrimaryKWall(KWall):
     """
     def __init__(self, initial_charge, degeneracy, phase, parents, 
                  fibration, boundary_condition, primary_nint_range,
-                 color='b'):
+                 network, color='b'):
         super(PrimaryKWall, self).__init__(
             initial_charge, degeneracy, phase, parents, 
             fibration, boundary_condition, color
         )
         self.initial_point = self.parents[0]
+        self.network = network
 
         """ 
         Implementation of the ODE for evolving primary walls, 
@@ -289,8 +329,8 @@ class DescendantKWall(KWall):
     """
     K-wall that starts from an intersection point.
     """
-    def __init__(self, initial_charge, degeneracy, phase, parents, 
-                 fibration, intersection, charge_wrt_parents, color='b'):
+    def __init__(self, initial_charge, degeneracy, phase, parents, fibration, 
+                intersection, charge_wrt_parents, color='b'):
         """
         intersection: must be an instance of the IntersecionPoint class.
         charge_wrt_parents: must be the charge relative to 
@@ -304,6 +344,7 @@ class DescendantKWall(KWall):
         )
         self.initial_point = intersection
         self.charge_wrt_parents = charge_wrt_parents
+        self.network = parents[0].network
 
     def set_pf_boundary_condition(self):
         """ 

@@ -1,6 +1,7 @@
 import logging
 import numpy
 import datetime
+from scipy.optimize import fsolve
 from sympy.abc import u
 
 
@@ -29,3 +30,25 @@ def sort_by_abs(a, b, u0):
 	elif abs(b_val) == abs(a_val):
 		print "\nCANT SORT ROOTS NEAR A DISCRIMINANT LOCUS!\n"
 		return a, b
+
+def direction(list, point):
+	"""
+	given the list 
+	[..., [x, y], ...]
+	and a point in the list (specified by the corresponding integer),
+	determines whether x increases or decreases at that point, 
+	returning repsectively 'left' or 'right'
+	"""
+	if point > len(list)-1:
+		print "Can't determine direction, point doesn't belong to list!"
+	elif point > 0:
+		if list[point-1][0] < list[point][0]:
+			return 'right'
+		else:
+			return 'left'
+	elif point == 0:
+		if list[point][0] < list[point+1][0]:
+			return 'right'
+		else:
+			return 'left'
+

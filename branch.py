@@ -1,4 +1,4 @@
-
+import numpy as np
 
 class BranchPoint:
     """The BranchPoint class.
@@ -14,6 +14,8 @@ class BranchPoint:
         self.locus = locus
         self.count = BranchPoint.count
         self.genealogy = self
+        # NEED TO IMPORT THE MONODROMY FROM WEIERSTRASS
+        self.monodromy_matrix = np.identity(len(charge))
         BranchPoint.count += 1
 
     def __str__(self):
@@ -21,23 +23,15 @@ class BranchPoint:
             (self.charge, self.locus)
 
 
-class BranchCut:
-    """
-    The BranchCut class.
+# class BranchCut:
+#     """
+#     The BranchCut class.
+#     Attributes: locus, charge, monodromy_matrix
+#     """
+#     count = 0
 
-    Attributes: locus, charge
-    Arguments: branch-point (as an object), direction (as a phase e^(i phi))
-    """
-    count = 0
-
-    def __init__(self, branch_point, phase, branch_cut_cutoff):
-        self.charge = branch_point.charge
-        self.locus = (
-            branch_point.locus,
-            complex(branch_point.locus + branch_cut_cutoff * phase)
-        )
-        BranchCut.count += 1
-
-    def __str__(self):
-        return 'Branch cut info: charge %s, start-end-points %s ' % \
-            (self.charge, self.locus)
+#     def __init__(self, branch_point):
+#         self.charge = branch_point.charge
+#         self.monodromy_matrix = branch_point.monodromy_matrix
+#         self.locus = branch_point.locus
+#         BranchCut.count += 1

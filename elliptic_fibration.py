@@ -3,13 +3,12 @@ import sympy as sym
 import numpy as np
 import cmath
 from sympy import Poly
-from branch import BranchPoint, BranchCut
+from branch import BranchPoint
 
 NEGLIGIBLE_BOUND = 0.1**12
 
 class EllipticFibration:
-    def __init__(self, g2, g3, branch_point_charges, dsz_matrix,
-                    branch_cut_phase, branch_cut_cutoff):
+    def __init__(self, g2, g3, branch_point_charges, dsz_matrix):
 
         self.g2 = g2
         self.g3 = g3
@@ -19,10 +18,10 @@ class EllipticFibration:
             BranchPoint(branch_point_loci[i], branch_point_charges[i])  
             for i in range(len(branch_point_loci))
         ]
-        self.branch_cuts = [
-            BranchCut(bp, branch_cut_phase, branch_cut_cutoff) 
-            for bp in self.branch_points
-        ]
+        # self.branch_cuts = [
+        #     BranchCut(bp) 
+        #     for bp in self.branch_points
+        # ]
 
 #### OLD METHOD
 # def find_singularities(g2, g3):
@@ -58,7 +57,7 @@ def find_singularities(g2, g3):
 
     ### Minor Bug: the polynomial is printed with variable 'x' although I 
     ### declared it to be 'u'
-    logging.info('discriminant: %s', Delta)
+    logging.info('discriminant:\n%s', Delta)
 
     #Accounting for cancellations of higher order terms in discriminant
     for i, coeff in enumerate(Delta.c):
@@ -69,6 +68,6 @@ def find_singularities(g2, g3):
     disc_points = sorted(Delta.r, \
                         cmp=lambda x,y: cmp(x.real, y.real) 
                         )
-    logging.info('singularities: %s', disc_points)
+    logging.info('singularities:\n%s', disc_points)
     return disc_points
 

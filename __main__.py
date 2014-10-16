@@ -136,9 +136,9 @@ if generate_single_network or generate_multiple_networks:
         config.get('fibration', 'g2'),
         config.get('fibration', 'g3'),
         config.get('charge', 'fixed_charges'),
-        config.get('charge', 'dsz_matrix'),
-        config.get('branch cut', 'theta'),
-        config.get('branch cut', 'cutoff')
+        config.get('charge', 'dsz_matrix')
+        # config.get('branch cut', 'theta'),
+        # config.get('branch cut', 'cutoff')
     )
 
     KWall.count = 0

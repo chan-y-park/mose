@@ -38,6 +38,7 @@ class KWallNetwork:
                     self.fibration,
                     [bp.locus, sign],                   # boundary_condition
                     primary_nint_range,
+                    self
                 )
                 k_wall.evolve(nint_range, trajectory_singularity_threshold,
                               pf_odeint_mxstep)
