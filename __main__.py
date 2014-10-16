@@ -18,8 +18,8 @@ from save_to_file import (f_save, f_recover, save_k_wall_network_plot,
                           save_phase_scan, prepare_folder)
 from misc import formatted_date_time
 
-config = MoseConfigParser()
 config_file = ''
+config = MoseConfigParser()
 
 # Default logging
 logging_level = logging.WARNING
@@ -201,7 +201,8 @@ elif generate_multiple_networks is True:
         config.get('ODE', 'pf_odeint_mxstep'),
         config.get('K-wall network', 'n_iterations'),
         config.get('KSWCF', 'filtration_degree'),
-        config.get('MS wall', 'theta_range')
+        config.get('MS wall', 'theta_range'),
+        config.get('multiprocessing', 'n_processes'),
     )
     ms_walls = build_ms_walls(k_wall_networks)
 
