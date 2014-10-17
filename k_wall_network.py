@@ -28,6 +28,10 @@ class KWallNetwork:
         primary_k_walls = []
 
         for sign in [+1, -1]:
+            ### Here the sign list should be either 
+            ### [+1,-1] or [-1,+1]
+            ### This must be determined ultimately by the Weierstrass
+            ### analysis
             for idx, bp in enumerate(self.fibration.branch_points):
                 logging.info('Evolving primary K-wall #%d', idx)
                 k_wall = PrimaryKWall(

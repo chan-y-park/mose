@@ -15,7 +15,8 @@ from sympy import mpmath as mp
 from scipy import interpolate
 
 from branch import BranchPoint
-from misc import complexify, sort_by_abs
+from misc import complexify, sort_by_abs, left_right, clock
+from monodromy import charge_monodromy
 
 class KWall(object):
     """
@@ -41,6 +42,7 @@ class KWall(object):
         self.color = color
         self.network = network
         self.singular = False
+        self.cuts_intersections = []
 #        logging.info('Creating K-wall #%d', KWall.count)
 #        KWall.count += 1
 
@@ -81,9 +83,10 @@ class KWall(object):
         # as a function of proper time
         traj_t = numpy.array(range(len(self.coordinates)))
         traj_x = numpy.array([z[0] for z in self.coordinates])
+        # traj_y = numpy.array([z[1] for z in self.coordinates])
         # f = interp1d(traj_t, traj_x, kind = 'linear')
 
-        all_cuts_intersections = []
+        # all_cuts_intersections = []
 
         # Scan over branch cuts, see if path ever crosses one 
         # based on x-coordinates only
@@ -96,18 +99,52 @@ class KWall(object):
             intersections = map(int, map(round, interpolate.sproot(g)))
             # removing duplicates
             intersections = list(set(intersections))
+            # enforcing y-coordinate intersection criterion:
+            # branch cuts extend vertically
+            y_0 = self.fibration.branch_points[b_pt_num].locus.imag
+            intersections = [i for i in intersections if \
+                                                self.coordinates[i][1] > y_0 ]
             # adding the branch-point identifier to each intersection
             intersections = [[self.fibration.branch_points[b_pt_num], i] \
                                                     for i in intersections]
-            print "K-wall %s intersects cut %s at points %s "% \
-            (self, b_pt_num, intersections)
+            # dropping intersections of a primary k-wall with the 
+            # branch cut emanating from its parent branch-point
+            # if such intersections happens at t=0
+            intersections = [[br_pt, i] for br_pt, i in intersections if \
+                                    not (br_pt in self.parents and i == 0)]
+            # add the direction to the intersection data: either 'cw' or 'ccw'
+            intersections = [[br_pt, i, clock(left_right(self.coordinates,i))] \
+                            for br_pt, i in intersections]
 
+            self.cuts_intersections += intersections
+        ### Might be worth implementing an algorithm for handling 
+        ### overlapping branch cuts: e.g. the one with a lower starting point 
+        ### will be taken to be on the left, or a similar criterion.
+        ### Still, there will be other sorts of problems, it is necessary
+        ### to just rotate the u-plane and avoid such situations.
 
+        # now sort intersections according to where they happen in proper time
+        # recall that the elements of cuts_intersections  are organized as
+        # [..., [branch_point, t, 'ccw'] ,...]
+        # where 't' is the integer of proper time at the intersection.
+        self.cuts_intersections = sorted(self.cuts_intersections , \
+                                        cmp = lambda k1,k2: cmp(k1[1],k2[1]))
 
-        ### MUST DROP INTERSECTIONS WITH B.C. OF PARENT BRANCH-POINT, 
-        ### IF THEY HAPPEN AT ZERO AT t=0
+        # print \
+        # "\nK-wall %s\nintersects the following cuts at the points\n%s\n" \
+        # % (self, intersections)
 
-
+        # now define the lis of splitting points (for convenience) ad the 
+        # list of local charges
+        self.splittings = [t for br_pt, t, chi in self.cuts_intersections]
+        self.local_charge = [self.initial_charge]
+        for k in range(len(self.cuts_intersections)):
+            branch_point = self.cuts_intersections[k][0]   # branch-point
+            # t = self.cuts_intersections[k][1]       # proper time
+            direction = self.cuts_intersections[k][2]     # 'ccw' or 'cw'
+            charge = self.local_charge[-1]
+            new_charge = charge_monodromy(charge, branch_point, direction)
+            self.local_charge.append(new_charge)
 
 
 
@@ -235,7 +272,8 @@ class PrimaryKWall(KWall):
         pair = min(enumerate(map(lambda x: x.subs(u, u0), distances)), 
                     key=itemgetter(1))[0]
         # print "PAIR %s" % pair
-        # print "e1 e2 e3: %s" % map(complex, [e1.subs(u,u0+0.01), e2.subs(u,u0+0.01), e3.subs(u,u0+0.01)])
+        # print "e1 e2 e3: %s" % map(complex, \
+        #       [e1.subs(u,u0+0.01), e2.subs(u,u0+0.01), e3.subs(u,u0+0.01)])
         if pair == 0:
             # f1 = e1
             # f2 = e2

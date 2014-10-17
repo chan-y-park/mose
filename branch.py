@@ -1,5 +1,3 @@
-import numpy as np
-
 class BranchPoint:
     """The BranchPoint class.
 
@@ -9,13 +7,13 @@ class BranchPoint:
 
     count = 0
 
-    def __init__(self, locus, charge):
+    def __init__(self, locus, charge, monodromy_matrix):
         self.charge = charge
         self.locus = locus
         self.count = BranchPoint.count
         self.genealogy = self
-        # NEED TO IMPORT THE MONODROMY FROM WEIERSTRASS
-        self.monodromy_matrix = np.identity(len(charge))
+        
+        self.monodromy_matrix = monodromy_matrix
         BranchPoint.count += 1
 
     def __str__(self):

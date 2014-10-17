@@ -14,8 +14,13 @@ class EllipticFibration:
         self.g3 = g3
         self.dsz_matrix = dsz_matrix
         branch_point_loci = map(complex, find_singularities(g2, g3))
+        
+        # NEED TO DETERMINE THE MONODROMY FROM ANALYSIS OF ELLIPTIC FIBRATION!
+        dummy_monodromy = np.identity(len(branch_point_charges[0]))
+
         self.branch_points = [
-            BranchPoint(branch_point_loci[i], branch_point_charges[i])  
+            BranchPoint(branch_point_loci[i], \
+                                    branch_point_charges[i], dummy_monodromy)
             for i in range(len(branch_point_loci))
         ]
         # self.branch_cuts = [

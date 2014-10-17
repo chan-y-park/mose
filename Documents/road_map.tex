@@ -24,7 +24,7 @@
 
 \chapter{K wall networks}
 
-\section{Multithreading}
+\section{Multithreading - {\color{red} \bf done}}
 At least the generation of each K-wall network should be done in a single thread, and multithreading should be implemented such that during {\tt phase\_scan()} we can run a multi-threaded program.
 
 Saving to and loading from files will take a long time, and running it on a separate thread will be beneficial, although its implementation will not be straightforward.
@@ -43,11 +43,14 @@ If the trajectories don't intersect, it should return {\tt []} otherwise it shou
 \item Moreover, the corresponding value of the period of $\eta$ for that trajectory should also be added to {\tt trajectory\_1.periods} (and same for trajectory\_2), this goes as a complex number.
 \end{itemize}
 
-\section{KSWCF  - {\color{red} \bf done} {\tiny \bf (maybe can improve a bit more)}}
+\section{KSWCF}
+\subsection{Basics - {\color{red} \bf done} {\tiny \bf (maybe can improve a bit more)}}
 This should be a function called {\tt progeny\_2(data)} placed in the file kswcf.py, that takes {\tt data = [ [ $\gamma_{1}$, $\Omega(\gamma_{1})$  ] ,[$\gamma_{2}$, $\Omega(\gamma_{2})$] ]} and returns a list of new charges and corresponding degeneracies, \emph{excluding the parents}:
 {\tt [ ...  [ $n \gamma_{1}+ m \gamma_{2}$ , $\Omega(n \gamma_{1}+ m \gamma_{2})$  ]  ... ]}.
 A primitive example is provided in the file kswcf.py.
 
+\subsection{Enhancement}
+At intersections, make KSWCF really handled by phases of central charges (right now it's auto-correcting to get positive pairing). This can be done once signs of priary k-walls are fixed by weierstrass.
 
 
 \section{Rotation of the phase - {\color{red} \bf done}}
@@ -75,7 +78,8 @@ The purpose of genealogy is to identify which intersections (occurring at differ
 Once the phase-rotation algorithm is working and the genealogy is ready, we should be able to group together intersection points coming from different phase-snapshots, and build analytic MS walls out of them. This will need some thinking
 
 
-\section{Branch cuts}
+\section{Branch cuts - {\color{red} \bf done}}
+{\bf \color{blue} \large Note: done in a different way than suggested here. The main difference is that I got rid of branch-cuts, and only used branch-points, taking all cuts to extend vertically to infinity.}\\
 In the function {\tt prepare\_branch\_locus} in file structure.py (\emph{warning: the whole structure of the code has undergone a major change, need to look for this function}), should create an array of branch cuts called {\tt bcts} that is to be returned (see the function there).
 Each branch point will generate a branch cut. Cuts should be straight lines going to infinity, at a certain angle {\tt THETA\_CUTS} to be specified in the file {config.py}. A tentative implementation of this kind of cuts is already provided by the {\tt init} method of the {\tt BranchCut} class.
 It remains to
@@ -86,11 +90,22 @@ It remains to
 \end{itemize}
 
 
+\section{Branch-cut crossing (possible) enhancement}
+When computing branch-cuts crossing of K-walls, should add the intersection points to the trajectory? 
+Right now it's just taking the nearest point to handle the intersection.
 
-\section{Charges of branch points}
+
+\section{Charges of branch points (Weierstrass module)}
 This should be an algorithm that, at the very beginning ---while creating the branch locus--- determines automatically which charges to assign to each branch point (hence to each branch cut).
 It should also specify the DSZ matrix. All this information should replace {\tt DSZ\_MATRIX} and {\tt FIXED\_CHARGES} which are now given by hand in the config.py file.
 
+
+\subsection{interfacing of main code with weierstrass module}
+\begin{itemize}
+\item mainly the weierstrass module will replace the elliptic\_fibration module
+\item Branch-points have a new attribute called 'monodromy\_matrix' which should be determined by Weierstrass
+\item around line 30 of k\_wall\_network.py, the sign = [-1,+1] or [+1,-1] should also be determined by Weierstrass
+\end{itemize}
 
 
 \section{Storing Data - {\color{red} \bf done -- see instructions}}
@@ -200,7 +215,7 @@ Replace numerical data points with anapproximate interpolating function to have 
 
 
 \section{Fibration-handling module}
-\subsection{Storing and calling fibrations}
+\subsection{Storing and calling fibrations - {\color{red} \bf done}}
 We have a code that handles a class of fibrations. The separate data specifying each fibration should be stored in a tidy way, and called by the core part of the program with a simple function.
 A possibility is to have a different text file containing the data of each fibration, formatted in a standard way, and to load such data by giving the name of the file (e.g. {\tt SU2\_Nf=0.xml}).
 
@@ -208,6 +223,10 @@ A possibility is to have a different text file containing the data of each fibra
 A nice addition would be a function which allows the user to add a custom-made fibration. For example, one could be prompted to specify the number of UV parameters $m,\Lambda,\dots$, then be prompted for $g_{2}(u), g_{3}(u)$. Then the code would store this data in one of the fibration files described above, permanently, with a user-defined name. Then this fibration would be available to the user for future study.
 
 
+
+\section{Tilting the u-plane}
+Make sure that branch cuts do not overlap. If two branch-points align vertically, the code should automatically rotate the u-plane by a phase since the beginning.
+A suitable phase can be determined automatically to be e.g. a half of the smallest phase between any two discriminant loci.
 
 
 

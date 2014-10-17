@@ -31,7 +31,7 @@ def sort_by_abs(a, b, u0):
 		print "\nCANT SORT ROOTS NEAR A DISCRIMINANT LOCUS!\n"
 		return a, b
 
-def direction(list, point):
+def left_right(list, point):
 	"""
 	given the list 
 	[..., [x, y], ...]
@@ -51,4 +51,12 @@ def direction(list, point):
 			return 'right'
 		else:
 			return 'left'
+
+def clock(direction):
+	if direction == 'left':
+		return 'ccw'
+	elif direction == 'right':
+		return 'cw'
+	else:
+		print "\nCannot read direction!\n"
 
