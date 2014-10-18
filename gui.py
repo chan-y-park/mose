@@ -128,10 +128,14 @@ def walk_dir(root_dir, extension):
     full_paths = []
     for path in os.listdir(root_dir):
             path = os.path.join(root_dir, path).lower()
-            if os.path.isfile(path) and path.endswith(extension):
+            # if os.path.isfile(path) and path.endswith(extension):
+            if path.endswith(extension):
                 file_list.append(os.path.split(path)[1])
                 # I'm not using this, but it may be useful in the future
                 full_paths.append(path) 
+    print "This is the folder %s" % root_dir
+    if len(file_list) == 0:
+        print "Did not find any fibration files in folder\n%s !" % root_dir
     return file_list
 
 
@@ -240,6 +244,7 @@ class Application(Frame):
 
         terminal_frame = STDText(new_window)
         sys.stdout = terminal_frame
+        sys.stderr = terminal_frame
 
         fibration_list = self.fetch_fibrations(new_window)
         fibration_label = Label(new_window, text="Fibrations", font = my_font)
