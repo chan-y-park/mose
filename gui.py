@@ -4,29 +4,135 @@ import tkMessageBox
 import ScrolledText
 import sys
 import tkFileDialog
+import os
+
+# import tkSimpleDialog
+
+from main_v2 import analysis
 
 my_font = ("Helvetica", "14", "bold italic")
 
 padding = 15
 ipadding = 2
 
-def run_analysis(c1, c2, a, l, f):
-    print "Fibration choice: %s" % f
-    print "Analysis type: %s" % a
-    print "Logging level: %s" % l
-    print "Showing graphics: %s" % c1
-    print "Saving to file: %s" % c2
+def run_analysis(window, graphics, save, analysis_type, log, fibration):
+    print "Fibration choice: %s" % fibration
+    print "Analysis type: %s" % analysis_type
+    print "Logging level: %s" % log
+    print "Showing graphics: %s" % str(graphics)
+    print "Saving to file: %s" % str(save)
+    if analysis_type == 'single':
+        # phase = tkSimpleDialog.askfloat(
+        #                                 "Single Network",
+        #                                 "Enter the phase"
+        #                                 )
+        ask_phase = PhaseDiag(window)
+        window.wait_window(ask_phase.top)
+        phase = ask_phase.var
+        analysis(graphics, save, analysis_type, log, fibration, phase=phase)
+    else:
+        ask_range = PhaseRangeDiag(window)
+        window.wait_window(ask_range.top)
+        theta_range = ask_range.var
+        print "this is it: %s" % theta_range
+        analysis(
+                graphics, save, analysis_type, log, fibration, 
+                theta_range=theta_range
+                )
 
-class RedirectText(object):
-    """"""
+class STDText(Text):
+    def __init__(self, parent):
+        Text.__init__(self, parent)
+        self.parent=parent
 
-    def __init__(self, text_ctrl):
-        """Constructor"""
-        self.output = text_ctrl
+    def write(self, stuff):
+        self.insert("end", stuff)
+        self.yview_pickplace("end")
 
-    def write(self, string):
-        """"""
-        self.output.insert(END, string)
+    def flush(self):
+        None
+        
+
+
+# class RedirectText(object):
+#     """"""
+
+#     def __init__(self, text_ctrl):
+#         """Constructor"""
+#         self.output = text_ctrl
+
+#     def write(self, string):
+#         """"""
+#         self.output.insert(END, string)
+
+class PhaseDiag:
+
+    def __init__(self, parent):
+
+        top = self.top = Toplevel(parent)
+
+        Label(top, text="Phase of the K-wall Network:").pack()
+        self.e = Entry(top)
+        self.e.pack(padx=5)
+        self.var = None
+
+        b = Button(top, text="OK", command=self.ok)
+        b.pack(pady=5)
+
+    def ok(self):
+
+        # print "value is", self.e.get()
+        self.var = float(self.e.get())
+
+        self.top.destroy()
+
+
+class PhaseRangeDiag:
+    def __init__(self, parent):
+
+        top = self.top = Toplevel(parent)
+
+        
+        self.theta_0 = Entry(top)
+        self.theta_1 = Entry(top)
+        self.steps = Entry(top)
+        Label(top, text="Initial phase").pack(side="top")
+        self.theta_0.pack(padx=5, side='top')
+        Label(top, text="Final phase").pack(side="top")
+        self.theta_1.pack(padx=5,  side='top')
+        Label(top, text="Steps").pack(side="top")
+        self.steps.pack(padx=5, side='top')
+        self.var = None
+
+        b = Button(top, text="OK", command=self.ok)
+        b.pack(pady=5)
+
+    def ok(self):
+
+        # print "value is", self.e.get()
+        self.var = [
+                    float(self.theta_0.get()),
+                    float(self.theta_1.get()),
+                    int(self.steps.get())
+                    ]
+
+        self.top.destroy()
+
+
+def walk_dir(root_dir, extension):
+    """
+    retrieve files with specified extension 
+    within the specified directory
+    """
+    file_list = []
+    full_paths = []
+    for path in os.listdir(root_dir):
+            path = os.path.join(root_dir, path).lower()
+            if os.path.isfile(path) and path.endswith(extension):
+                file_list.append(os.path.split(path)[1])
+                # I'm not using this, but it may be useful in the future
+                full_paths.append(path) 
+    return file_list
 
 
 class Application(Frame):
@@ -75,7 +181,7 @@ class Application(Frame):
         g_var = BooleanVar()
         g_var.set(False)
         g_button = Checkbutton(new_window, 
-                        text = "Show Graphics", 
+                        text = "show graphics", 
                         variable = g_var, \
                         onvalue = True, 
                         offvalue = False, 
@@ -87,7 +193,7 @@ class Application(Frame):
         w_var = BooleanVar()
         w_var.set(False)
         w_button = Checkbutton(new_window, 
-                        text = "Save to file", 
+                        text = "save to file", 
                         variable = w_var, \
                         onvalue = True, 
                         offvalue = False, 
@@ -102,6 +208,7 @@ class Application(Frame):
                         width = 20,
                         command = lambda: \
                             run_analysis( \
+                                new_window, \
                                 g_var.get(), \
                                 w_var.get(), \
                                 analysis_var.get(), \
@@ -121,15 +228,18 @@ class Application(Frame):
                         font = my_font
                         )
 
-        terminal_frame = Frame(new_window)
-        terminal_output = ScrolledText.ScrolledText(
-                                                    terminal_frame, 
-                                                    height = 40,
-                                                    width = 80
-                                                    )
-        # redirect stdout
-        redir = RedirectText(terminal_output)
-        sys.stdout = redir
+        # terminal_frame = Frame(new_window)
+        # terminal_output = ScrolledText.ScrolledText(
+        #                                             terminal_frame, 
+        #                                             height = 40,
+        #                                             width = 80
+        #                                             )
+        # # redirect stdout
+        # redir = RedirectText(terminal_output)
+        # sys.stdout = redir
+
+        terminal_frame = STDText(new_window)
+        sys.stdout = terminal_frame
 
         fibration_list = self.fetch_fibrations(new_window)
         fibration_label = Label(new_window, text="Fibrations", font = my_font)
@@ -149,7 +259,7 @@ class Application(Frame):
 
         # organize
         terminal_frame.pack(anchor='ne', side="right", fill=Y)
-        terminal_output.pack()
+        # terminal_output.pack()
         # separator.pack(padx=5, pady=5, anchor='ne', side=right)
         #
         fibration_label.pack(anchor='nw',side="top")
@@ -180,10 +290,12 @@ class Application(Frame):
 
     def fetch_fibrations(self, window):
         lb = Listbox(window)
-        lb.insert(1, "su2")
-        lb.insert(2, "invented")
-        lb.insert(3, "Nf=1")
-        lb.insert(4, "another one!")
+        root_dir = os.getcwd()
+        extension = '.ini'
+        file_list = walk_dir(root_dir, extension)
+        file_list.sort()
+        for i, f_name in list(enumerate(file_list)):
+            lb.insert(i, f_name)
         return lb
 
     def load_old(self):
