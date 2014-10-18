@@ -1,9 +1,10 @@
 
 from Tkinter import *
-import tkFont
 import tkMessageBox
+import ScrolledText
+import sys
+import tkFileDialog
 
-# helv36 = tkFont.Font(family='Helvetica', size=36, weight='bold') 
 my_font = ("Helvetica", "14", "bold italic")
 
 padding = 15
@@ -16,11 +17,23 @@ def run_analysis(c1, c2, a, l, f):
     print "Showing graphics: %s" % c1
     print "Saving to file: %s" % c2
 
+class RedirectText(object):
+    """"""
+
+    def __init__(self, text_ctrl):
+        """Constructor"""
+        self.output = text_ctrl
+
+    def write(self, string):
+        """"""
+        self.output.insert(END, string)
+
+
 class Application(Frame):
 
     def main_interface(self):
         new_window = Toplevel()
-        new_window.geometry("600x400")
+        new_window.geometry("800x600")
         new_window.wm_title("New Analysis")
 
         analysis_var = StringVar()
@@ -108,7 +121,24 @@ class Application(Frame):
                         font = my_font
                         )
 
+        terminal_frame = Frame(new_window)
+        terminal_output = ScrolledText.ScrolledText(
+                                                    terminal_frame, 
+                                                    height = 40,
+                                                    width = 80
+                                                    )
+        # redirect stdout
+        redir = RedirectText(terminal_output)
+        sys.stdout = redir
+
         fibration_list = self.fetch_fibrations(new_window)
+        fibration_label = Label(new_window, text="Fibrations", font = my_font)
+
+        separator_0 = Frame(new_window, height=2, bd=1, relief=SUNKEN)
+        separator_1 = Frame(new_window, height=2, bd=1, relief=SUNKEN)
+        separator_2 = Frame(new_window, height=2, bd=1, relief=SUNKEN)
+        separator_3 = Frame(new_window, height=2, bd=1, relief=SUNKEN)
+        separator_4 = Frame(new_window, height=2, bd=1, relief=SUNKEN)
 
         # defaults
         single_network_button.select()
@@ -117,16 +147,35 @@ class Application(Frame):
         w_button.deselect()
         fibration_list.select_set(0)
 
-        fibration_list.pack(anchor='ne',side=RIGHT)
+        # organize
+        terminal_frame.pack(anchor='ne', side="right", fill=Y)
+        terminal_output.pack()
+        # separator.pack(padx=5, pady=5, anchor='ne', side=right)
+        #
+        fibration_label.pack(anchor='nw',side="top")
+        fibration_list.pack(anchor='nw',side="top")
+        #
+        separator_0.pack(fill=X, padx=5, pady=5, anchor='nw', side="top")
+        #
         single_network_button.pack(anchor = 'nw',side="top")
         phase_scan_button.pack(anchor = 'nw',side="top")
+        #
+        separator_1.pack(fill=X, padx=5, pady=5, anchor='nw', side="top")
+        #
         g_button.pack(anchor = 'nw',side="top")
         w_button.pack(anchor = 'nw',side="top")
+        #
+        separator_2.pack(fill=X, padx=5, pady=5, anchor='nw', side="top")
+        #
         log_warning_button.pack(anchor = 'nw',side="top")
         log_info_button.pack(anchor = 'nw',side="top")
         log_debug_button.pack(anchor = 'nw',side="top")
+        #
+        separator_3.pack(fill=X, padx=5, pady=15, anchor='nw', side="top")
+        #
         run.pack(anchor = 'nw',side="top")
         close.pack(anchor = 'nw',side="top")
+        
 
 
     def fetch_fibrations(self, window):
@@ -139,7 +188,7 @@ class Application(Frame):
 
     def load_old(self):
         tkMessageBox.showinfo( "Work In Progress", 
-                                "This functionality is not ready yet!")
+                                "This feature is not yet available!")
 
     def createWidgets(self):
         self.QUIT = Button(self, font=my_font)
