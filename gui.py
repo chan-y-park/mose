@@ -22,10 +22,6 @@ def run_analysis(window, graphics, save, analysis_type, log, fibration):
     print "Showing graphics: %s" % str(graphics)
     print "Saving to file: %s" % str(save)
     if analysis_type == 'single':
-        # phase = tkSimpleDialog.askfloat(
-        #                                 "Single Network",
-        #                                 "Enter the phase"
-        #                                 )
         ask_phase = PhaseDiag(window)
         window.wait_window(ask_phase.top)
         phase = ask_phase.var
@@ -34,7 +30,6 @@ def run_analysis(window, graphics, save, analysis_type, log, fibration):
         ask_range = PhaseRangeDiag(window)
         window.wait_window(ask_range.top)
         theta_range = ask_range.var
-        print "this is it: %s" % theta_range
         analysis(
                 graphics, save, analysis_type, log, fibration, 
                 theta_range=theta_range
@@ -53,17 +48,6 @@ class STDText(Text):
         None
         
 
-
-# class RedirectText(object):
-#     """"""
-
-#     def __init__(self, text_ctrl):
-#         """Constructor"""
-#         self.output = text_ctrl
-
-#     def write(self, string):
-#         """"""
-#         self.output.insert(END, string)
 
 class PhaseDiag:
 
@@ -344,9 +328,10 @@ class Application(Frame):
         self.pack()
         self.createWidgets()
 
-root = Tk()
-root.geometry("300x200")
-root.wm_title("MOSE - MOduli Space Explorer")
-app = Application(master=root)
-app.mainloop()
-root.destroy()
+def run_gui():
+    root = Tk()
+    root.geometry("300x200")
+    root.wm_title("MOSE - MOduli Space Explorer")
+    app = Application(master=root)
+    app.mainloop()
+    root.destroy()
