@@ -8,7 +8,7 @@ import os
 
 # import tkSimpleDialog
 
-from main_v2 import analysis
+from analysis import analysis
 
 my_font = ("Helvetica", "14", "bold italic")
 

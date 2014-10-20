@@ -48,8 +48,8 @@ def find_singularities(g2, g3):
     """
     u = sym.Symbol('u')
 
-    g2_coeffs = Poly(g2, u).all_coeffs()
-    g3_coeffs = Poly(g3, u).all_coeffs()
+    g2_coeffs = map(complex, Poly(g2, u).all_coeffs())
+    g3_coeffs = map(complex, Poly(g3, u).all_coeffs())
     
     # Converting from
     # y^2 = 4 x^3 - g_2 x - g_3
@@ -58,7 +58,7 @@ def find_singularities(g2, g3):
     
     f = np.poly1d(g2_coeffs, variable='u') * (- 1 / 4.0)
     g = np.poly1d(g3_coeffs, variable='u') * (- 1 / 4.0)
-    Delta = 4 * f ** 3 + 27 * g ** 2
+    Delta = 4.0 * f ** 3 + 27.0 * g ** 2
 
     ### Minor Bug: the polynomial is printed with variable 'x' although I 
     ### declared it to be 'u'
@@ -68,8 +68,8 @@ def find_singularities(g2, g3):
     for i, coeff in enumerate(Delta.c):
         if np.absolute(coeff) > NEGLIGIBLE_BOUND:
             Delta = np.poly1d(Delta.c[i:])
-            break
-    
+            break 
+
     disc_points = sorted(Delta.r, \
                         cmp=lambda x,y: cmp(x.real, y.real) 
                         )
