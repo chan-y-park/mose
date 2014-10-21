@@ -2,10 +2,15 @@ import logging
 import sympy as sym
 import numpy as np
 import cmath
+import string
+import random
 from sympy import Poly
 from branch import BranchPoint
 
 NEGLIGIBLE_BOUND = 0.1**12
+
+def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
+    return ''.join(random.choice(chars) for _ in range(size))
 
 class EllipticFibration:
     def __init__(self, g2, g3, branch_point_charges, dsz_matrix):
@@ -15,12 +20,23 @@ class EllipticFibration:
         self.dsz_matrix = dsz_matrix
         branch_point_loci = map(complex, find_singularities(g2, g3))
         
+        ### Introduce string identifiers to label branch-points.
+        ### These will be used when building genealogies of intersection 
+        ### points, to compare them and build MS walls accordingly.
+
+        bp_identifiers = [id_generator() for i in \
+                                            range(len(branch_point_loci))]
+
         # NEED TO DETERMINE THE MONODROMY FROM ANALYSIS OF ELLIPTIC FIBRATION!
         dummy_monodromy = np.identity(len(branch_point_charges[0]))
 
         self.branch_points = [
-            BranchPoint(branch_point_loci[i], \
-                                    branch_point_charges[i], dummy_monodromy)
+            BranchPoint(
+                        branch_point_loci[i],
+                        branch_point_charges[i], 
+                        dummy_monodromy,
+                        bp_identifiers[i]
+                        )
             for i in range(len(branch_point_loci))
         ]
         # self.branch_cuts = [

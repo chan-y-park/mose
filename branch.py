@@ -7,11 +7,19 @@ class BranchPoint:
 
     count = 0
 
-    def __init__(self, locus, charge, monodromy_matrix):
+    def __init__(self, locus, charge, monodromy_matrix, identifier):
         self.charge = charge
         self.locus = locus
         self.count = BranchPoint.count
-        self.genealogy = self
+        ### Old version: this would use the object itself 
+        ### as the ancestor in the genealogy tree.
+        ### It's a nice idea, but has some tension with
+        ### multiprocessing.
+        # self.genealogy = self
+        ### New version: use a string as identifier.
+        ### This should be more robust against issues
+        ### arising from multiprocessing.
+        self.genealogy = identifier
         
         self.monodromy_matrix = monodromy_matrix
         BranchPoint.count += 1

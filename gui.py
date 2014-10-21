@@ -288,6 +288,19 @@ class Application(Frame):
         return lb
 
     def load_old(self):
+        """
+        load a .mose file and allow to analyze the data, 
+        whatever that means..
+        """
+        tkMessageBox.showinfo( "Work In Progress", 
+                                "This feature is not yet available!")
+
+    def fibration_creator(self):
+        """
+        a mask that allows to enter parameters that will 
+        be translated into a formatted .ini file, which 
+        will be stored and made available for future use
+        """
         tkMessageBox.showinfo( "Work In Progress", 
                                 "This feature is not yet available!")
 
@@ -313,6 +326,19 @@ class Application(Frame):
                         ipady = ipadding
                         )
 
+        self.create_fibration = Button( 
+                                        self, 
+                                        text="Create new fibration", 
+                                        font=my_font
+                                        )
+        self.create_fibration["command"] = self.fibration_creator
+        self.create_fibration.pack(side="bottom", 
+                        padx = padding, 
+                        pady = padding,
+                        ipadx =ipadding,
+                        ipady = ipadding
+                        )
+
         self.load_analysis = Button(self, text="Load analysis", font=my_font)
         self.load_analysis["command"] = self.load_old
         self.load_analysis.pack(side="bottom", 
@@ -330,7 +356,7 @@ class Application(Frame):
 
 def run_gui():
     root = Tk()
-    root.geometry("300x200")
+    root.geometry("300x300")
     root.wm_title("MOSE - MOduli Space Explorer")
     app = Application(master=root)
     app.mainloop()
