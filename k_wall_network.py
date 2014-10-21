@@ -1,7 +1,9 @@
 import logging
 import signal
 import multiprocessing
+from multiprocessing.managers import BaseManager
 from numpy import array
+from elliptic_fibration import EllipticFibration
 from k_wall import PrimaryKWall, DescendantKWall
 from intersection import HitTable
 from intersection_point import find_new_intersections
@@ -120,6 +122,10 @@ class KWallNetwork:
         # End of iterations.
         self.k_walls += new_k_walls
 
+class FibrationManager(BaseManager): 
+    pass
+
+FibrationManager.register('fibration', EllipticFibration)
 
 def init_process():
     signal.signal(signal.SIGINT, signal.SIG_IGN)

@@ -2,6 +2,8 @@ from plotting import prepare_k_wall_network_plot, prepare_ms_plot
 from matplotlib import pyplot
 import pickle
 import os
+# Import necessary modules to read data from saved files
+import k_wall_network
 
 
 def prepare_folder(label):
