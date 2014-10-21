@@ -75,8 +75,7 @@ class KWall(object):
         # self.local_charge would have length 4.
         # local charges are determined one the branch-cut data is given,
         # perhaps computed by an external function.
-        disc_locus_position = [bp.locus for bp in \
-                                self.fibration.branch_points]
+        disc_locus_position = [bp.locus for bp in self.fibration.branch_points]
         # the x-coordinates of the discriminant loci
         disc_x = [z.real for z in disc_locus_position]
         # parametrizing the x-coordinate of the k-wall's coordinates
@@ -340,11 +339,11 @@ class PrimaryKWall(KWall):
         u0 = complexify(coords[-1])
         eta0 = per[-1]
         d_eta0 = ((per[-1]-per[-2]) / 
-                    (complexify(coords[-1])-complexify(coords[-2])))
+                  (complexify(coords[-1]) - complexify(coords[-2])))
         return [u0, eta0, d_eta0]
 
     def evolve(self, nint_range, trajectory_singularity_threshold,
-                pf_odeint_mxstep):
+               pf_odeint_mxstep):
         if not (isinstance(self.parents[0], BranchPoint)):
             raise TypeError('A parent of this primary K-wall '
                             'is not a BranchPoint class.')
@@ -352,8 +351,8 @@ class PrimaryKWall(KWall):
         # a bit particular:
         bc = self.get_pf_boundary_condition()
         pw_data_pf = self.grow_pf(bc, nint_range,
-                                    trajectory_singularity_threshold,
-                                    pf_odeint_mxstep)
+                                  trajectory_singularity_threshold,
+                                  pf_odeint_mxstep)
         self.coordinates = numpy.concatenate(
             (self.coordinates, [[row[0], row[1]] for row in pw_data_pf])
         )
@@ -491,9 +490,9 @@ class DescendantKWall(KWall):
         pw_data_pf = self.grow_pf(self.boundary_condition, nint_range,
                                     trajectory_singularity_threshold,
                                     pf_odeint_mxstep)
-        self.coordinates =  numpy.array([[row[0], row[1]] \
-                        for row in pw_data_pf])
-        self.periods =  numpy.array([row[2] + 1j* row[3] \
-                        for row in pw_data_pf ]) 
+        self.coordinates =  numpy.array([[row[0], row[1]]
+                                        for row in pw_data_pf])
+        self.periods =  numpy.array([row[2] + 1j* row[3]
+                                    for row in pw_data_pf ]) 
         self.check_cuts()
 

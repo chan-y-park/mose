@@ -33,8 +33,8 @@ class IntersectionPoint:
         self.locus = data[0]
         self.index_1 = data[1]
         self.index_2 = data[2]
-        self.charges = {str(parents[0].charge(self.index_1)), \
-                                        str(parents[1].charge(self.index_2))}
+        self.charges = {str(parents[0].charge(self.index_1)),
+                        str(parents[1].charge(self.index_2))}
         ### note the { } and conversion to strings, 
         ### since the charges are useful for classification purposes, mostly
         self.degeneracies = [parents[0].degeneracy, parents[1].degeneracy]
