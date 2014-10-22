@@ -24,24 +24,29 @@ from math import floor
 from itertools import combinations
 from warnings import warn
 
+### temporarily muting these warnings, 
+### they show up when I'm loading f_recover
+### which is a bit annoying when doing debugging
+### TO FIX
+
 # Library version checks.
-if numpy_version < '1.9.0':
-    message = ('Current NumPy version ' + str(numpy_version) +
-               ' is lower than 1.9.0; '
-               'this module may not work properly.')
-    warn(message, Warning)
+# if numpy_version < '1.9.0':
+#     message = ('Current NumPy version ' + str(numpy_version) +
+#                ' is lower than 1.9.0; '
+#                'this module may not work properly.')
+#     warn(message, Warning)
 
-if scipy_version < '0.14.0':
-    message = ('Current SciPy version ' + str(scipy_version) +
-               ' is lower than 0.14.0; '
-               'this module may not work properly.')
-    warn(message, Warning)
+# if scipy_version < '0.14.0':
+#     message = ('Current SciPy version ' + str(scipy_version) +
+#                ' is lower than 0.14.0; '
+#                'this module may not work properly.')
+#     warn(message, Warning)
 
-if sympy_version < '0.7.5':
-    message = ('Current SymPy version ' + str(sympy_version) +
-               ' is lower than 0.7.5; '
-               'this module may not work properly.')
-    warn(message, Warning)
+# if sympy_version < '0.7.5':
+#     message = ('Current SymPy version ' + str(sympy_version) +
+#                ' is lower than 0.7.5; '
+#                'this module may not work properly.')
+#     warn(message, Warning)
 
 
 class NoIntersection(Exception):
