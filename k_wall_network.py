@@ -29,7 +29,7 @@ class KWallNetwork:
         ##############################
         primary_k_walls = []
 
-        for sign in [+1, -1]:
+        for sign in [+1.0, -1.0]:
             ### Here the sign list should be either 
             ### [+1,-1] or [-1,+1]
             ### This must be determined ultimately by the Weierstrass
@@ -37,7 +37,7 @@ class KWallNetwork:
             for idx, bp in enumerate(self.fibration.branch_points):
                 logging.info('Evolving primary K-wall #%d', idx)
                 k_wall = PrimaryKWall(
-                    list(sign * array(bp.charge)),      # initial_charge
+                    list(int(sign) * array(bp.charge)),    # initial_charge
                     1,                                  # degeneracy
                     self.phase,
                     [bp],                               # parents
