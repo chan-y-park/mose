@@ -211,7 +211,10 @@ class KWall(object):
             eta = y[2] + 1j * y[3]
             d_eta = y[4] + 1j * y[5]
             matrix = pf_matrix(z)
-            if abs(det(matrix)) > trajectory_singularity_threshold:
+            det_pf = abs(det(matrix))
+            # print "PF matrix = %s" % matrix
+            # print "PF determinant = %s" % det_pf
+            if det_pf > trajectory_singularity_threshold:
                 self.singular = True
 
             # A confusing point to bear in mind: here we are solving the 
@@ -293,11 +296,13 @@ class PrimaryKWall(KWall):
 
         #TODO: No other way but to define eta_1(), deriv() here?
         eta_1_part_1 = lambdify(u, 
+            # simplify(sym.expand( (sign) * 4 * (f3 - f1) ** (-0.5) )),
             (sign) * 4 * (f3 - f1) ** (-0.5),
             modules="numpy"
         ) 
         eta_1_part_2 = lambdify(u, 
-            (sym.expand((f2 - f1) / (f3 - f1))),
+            # simplify(sym.expand( ((f2 - f1) / (f3 - f1)) )),
+            ((f2 - f1) / (f3 - f1)),
             modules="numpy"
         ) 
         def eta_1(z):
