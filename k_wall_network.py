@@ -34,8 +34,10 @@ class KWallNetwork:
             ### [+1,-1] or [-1,+1]
             ### This must be determined ultimately by the Weierstrass
             ### analysis
-            for idx, bp in enumerate(self.fibration.branch_points):
-                logging.info('Evolving primary K-wall #%d', idx)
+            for bp in self.fibration.branch_points:
+            #for idx, bp in enumerate(self.fibration.branch_points):
+                logging.info('Evolving primary K-wall #%d',
+                             len(primary_k_walls))
                 k_wall = PrimaryKWall(
                     list(int(sign) * array(bp.charge)),    # initial_charge
                     1,                                  # degeneracy
@@ -157,6 +159,7 @@ def construct_k_wall_networks(fibration, bin_size, primary_nint_range,
     The argument is of the form: theta_range = [theta_i, theta_f, steps]
     """
 
+    logging.debug('theta_range = %s', theta_range)
     theta_i, theta_f, steps = theta_range
 
     angles = [theta_i + i*(theta_f - theta_i)/steps for i in range(steps)]

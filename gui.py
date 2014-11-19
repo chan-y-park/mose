@@ -1,4 +1,3 @@
-
 from Tkinter import *
 import tkMessageBox
 import ScrolledText
@@ -30,10 +29,8 @@ def run_analysis(window, graphics, save, analysis_type, log, fibration):
         ask_range = PhaseRangeDiag(window)
         window.wait_window(ask_range.top)
         theta_range = ask_range.var
-        analysis(
-                graphics, save, analysis_type, log, fibration, 
-                theta_range=theta_range
-                )
+        analysis(graphics, save, analysis_type, log, fibration, 
+                 theta_range=theta_range,)
 
 class STDText(Text):
     def __init__(self, parent):

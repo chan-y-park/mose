@@ -19,13 +19,13 @@ from misc import formatted_date_time
 config_file = ''
 config = MoseConfigParser()
 
-def analysis(
-            graphics, save, analysis_type, log, fibration, 
-            phase = 0, theta_range=[0,3.14159,10],
-            show_bins = False,
-            show_data_points = False,
-            show_segments = False,
-            ):
+def analysis(graphics, save, analysis_type, log, fibration, 
+             phase = 0, 
+             #theta_range=[0,3.14159,10],
+             theta_range=[],
+             show_bins = False,
+             show_data_points = False,
+             show_segments = False,):
     generate_single_network = False
     generate_multiple_networks = False
     write_to_file = False
@@ -39,6 +39,8 @@ def analysis(
         logging_format = '%(process)d: %(message)s'
     elif log == 'warning':
         logging_level = logging.WARNING
+        logging_format = '%(message)s'
+
     logging.basicConfig(level=logging_level, format=logging_format, 
                         stream=sys.stdout)
 
@@ -46,20 +48,16 @@ def analysis(
 
     if analysis_type == 'single':
         # Generate a single K-wall network at a phase
-        # phase = 0
         generate_single_network = True
     elif analysis_type == 'full':
         # Generate K-wall networks at various phases
         generate_multiple_networks = True
-
     if graphics == True:
         # save data to external file
         show_graphics = True
-    
     if save == True:
         # save data to external file
         write_to_file = True
-
 
     #-------------------------------------------------------------------------
 
@@ -83,9 +81,7 @@ def analysis(
             config.get('fibration', 'g2'),
             config.get('fibration', 'g3'),
             config.get('charge', 'fixed_charges'),
-            config.get('charge', 'dsz_matrix')
-            # config.get('branch cut', 'theta'),
-            # config.get('branch cut', 'cutoff')
+            config.get('charge', 'dsz_matrix'),
         )
 
         KWall.count = 0
@@ -139,6 +135,9 @@ def analysis(
             )
 
     elif generate_multiple_networks is True:
+        if(len(theta_range) == 0):
+            theta_range = config.get('MS wall', 'theta_range')
+            logging.debug('theta_range = %s from config.', theta_range)
         k_wall_networks = construct_k_wall_networks(
             fibration,
             config.get('intersection search', 'bin_size'),
@@ -149,7 +148,6 @@ def analysis(
             config.get('K-wall network', 'n_iterations'),
             config.get('KSWCF', 'filtration_degree'),
             theta_range,
-            # config.get('MS wall', 'theta_range'),
             config.get('multiprocessing', 'n_processes'),
         )
         ms_walls = build_ms_walls(k_wall_networks)
@@ -171,4 +169,5 @@ def analysis(
             print saved
         if show_graphics:
             plot_ms_walls(ms_walls, plot_range=config.get('plotting', 'range'))
+
 
