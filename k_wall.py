@@ -375,6 +375,9 @@ class PrimaryKWall(KWall):
         # For a *primary* K-wall the boundary conditions are 
         # a bit particular:
         bc = self.get_pf_boundary_condition()
+
+        print "PF boundary conditions: %s " % bc
+
         pw_data_pf = self.grow_pf(bc, nint_range,
                                   trajectory_singularity_threshold,
                                   pf_odeint_mxstep)
