@@ -29,7 +29,7 @@ class KWallNetwork:
         ##############################
         primary_k_walls = []
 
-        for sign in [+1, -1]:
+        for sign in [+1.0, -1.0]:
             ### Here the sign list should be either 
             ### [+1,-1] or [-1,+1]
             ### This must be determined ultimately by the Weierstrass
@@ -39,7 +39,7 @@ class KWallNetwork:
                 logging.info('Evolving primary K-wall #%d',
                              len(primary_k_walls))
                 k_wall = PrimaryKWall(
-                    list(sign * array(bp.charge)),      # initial_charge
+                    list(int(sign) * array(bp.charge)),    # initial_charge
                     1,                                  # degeneracy
                     self.phase,
                     [bp],                               # parents

@@ -293,24 +293,33 @@ class PrimaryKWall(KWall):
 
         #TODO: No other way but to define eta_1(), deriv() here?
         eta_1_part_1 = lambdify(u, 
-            simplify(sym.expand(sign * 4 * (f3 - f1) ** (-0.5))), 
+            (sign) * 4 * (f3 - f1) ** (-0.5),
             modules="numpy"
         ) 
         eta_1_part_2 = lambdify(u, 
-            simplify(sym.expand((f2 - f1) / (f3 - f1))),
+            (sym.expand((f2 - f1) / (f3 - f1))),
             modules="numpy"
         ) 
         def eta_1(z):
-            return complex(eta_1_part_1(z) * mp.ellipk( eta_1_part_2(z) ) / 2)
+            return complex(eta_1_part_1(z) * mp.ellipk( eta_1_part_2(z) ) / 2.0)
 
         # plot real & imaginary parts of eta_1
         #plot_eta(eta_1)
 
-        eta0 = eta_1(u0)
-        bc = [u0, eta0]
         t0 = 0
         y0 = array([(complex(u0)).real,(complex(u0)).imag]) 
 
+        ### Keep this just in case. 
+        ### Modifying the boundary condition for ODE int,
+        ### instead of starting from u0, start from a slightly 
+        ### displaced position, to avoid trouble with potential        
+        ### overlapping branch cuts from other branch-points.
+        # delta = 0.01
+        # u1 = u0 + delta * exp(1j*(theta + pi - cmath.phase(eta_1(u0))))
+        # t0 = 0
+        # y0 = array([(complex(u1)).real,(complex(u1)).imag]) 
+
+        
         def deriv(y, t):
             z = complexify(y)
             c = exp(1j*(theta + pi - cmath.phase(eta_1(z))))
@@ -343,6 +352,7 @@ class PrimaryKWall(KWall):
         eta0 = per[-1]
         d_eta0 = ((per[-1]-per[-2]) / 
                   (complexify(coords[-1]) - complexify(coords[-2])))
+        # print "boundary conditions for PF: \n %s " % [u0, eta0, d_eta0]
         return [u0, eta0, d_eta0]
 
     def evolve(self, nint_range, trajectory_singularity_threshold,

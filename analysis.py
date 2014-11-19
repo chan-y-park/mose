@@ -170,5 +170,5 @@ def analysis(
                            config.get('file IO', 'pickle_protocol'))
             print saved
         if show_graphics:
-            plot_ms_walls(ms_walls, config.get('plotting', 'range'))
+            plot_ms_walls(ms_walls, plot_range=config.get('plotting', 'range'))
 
