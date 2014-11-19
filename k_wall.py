@@ -3,7 +3,7 @@ import numpy
 import scipy
 import sympy as sym
 import cmath
-import pdb
+#import pdb
 
 from sympy.utilities.lambdify import lambdify
 from operator import itemgetter
@@ -304,7 +304,7 @@ class PrimaryKWall(KWall):
         def eta_1(z):
             return complex(eta_1_part_1(z) * mp.ellipk( eta_1_part_2(z) ) / 2.0)
 
-        pdb.set_trace()
+        #pdb.set_trace()
 
         # plot real & imaginary parts of eta_1
         #plot_eta(eta_1)
