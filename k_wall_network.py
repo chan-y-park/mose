@@ -159,6 +159,7 @@ def construct_k_wall_networks(fibration, bin_size, primary_nint_range,
     The argument is of the form: theta_range = [theta_i, theta_f, steps]
     """
 
+    logging.debug('theta_range = %s', theta_range)
     theta_i, theta_f, steps = theta_range
 
     angles = [theta_i + i*(theta_f - theta_i)/steps for i in range(steps)]

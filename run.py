@@ -3,11 +3,18 @@ import os
 import getopt
 import time
 
-from analysis import analysis
 from gui import run_gui
+from analysis import analysis
 from mose_config_parser import MoseConfigParser
 
-def run_with_opts(opts, args):
+shortopts = 'c:l:s:fwgv'
+longopts = ['logging_level=',
+            'show-bins',
+            'show-data-points',
+            'show-segments',
+]
+
+def run_with_optlist(optlist):
 
     config_file = ''
     config = MoseConfigParser()
@@ -22,11 +29,13 @@ def run_with_opts(opts, args):
     phase = 0.0
         
     # Default logging
-    logging_level = logging.WARNING
-    logging_format = '%(message)s'
-    theta_range = []
+    log = 'warning'
+    #logging_level = logging.WARNING
+    #logging_format = '%(message)s'
 
-    if len(opts) == 0:
+    #theta_range = []
+
+    if len(optlist) == 0:
         print("""usage: python -m mose [OPTION]
 
     -v:
@@ -63,48 +72,39 @@ def run_with_opts(opts, args):
 
     else:
 
-        for opt, arg in opts:
+        for opt, arg in optlist:
             if (opt == '-c' and len(arg) > 0):
                 config_file = arg
                 main_file_dir, main_file_name = os.path.split(__file__)
                 config.read(os.path.join(main_file_dir, config_file))
-                theta_range = config.get('MS wall', 'theta_range')
-
+                #theta_range = config.get('MS wall', 'theta_range')
             elif opt == '-v':
                 gui_mode = True
-
             elif (opt == '-l' or opt == '--logging_level'):
                 log = arg
-
             elif opt == '-s':
                 # Generate a single K-wall network at a phase
                 phase = float(arg)
                 analysis_type = 'single'
-
             elif opt == '-f':
                 # Generate K-wall networks at various phases
                 analysis_type = 'full'
-
             elif opt == '-w':
                 # save data to external file
                 write_to_file = True
-            
             elif opt == '-g':
                 # save data to external file
                 show_graphics = True
-
             elif opt == '--show-bins':
                 show_bins = True
-
             elif opt == '--show-data-points':
                 show_data_points = True
-
             elif opt == '--show-segments':
                 show_segments = True
-        
+        # End of option setting.
+
         if gui_mode:
             run_gui()
-
         else:
             analysis(
                         show_graphics,
@@ -112,27 +112,24 @@ def run_with_opts(opts, args):
                         analysis_type,
                         log,
                         config_file,
-                        phase = phase,
-                        theta_range = theta_range,
-                        show_bins = show_bins,
-                        show_data_points = show_data_points,
-                        show_segments = show_segments,
+                        phase,
+                        [], #theta_range,
+                        show_bins,
+                        show_data_points,
+                        show_segments,
                     )    
 
-# Set options when running on the interpreter, then start running
-def run_with_sys_argv(argv):
-    shortopts = 'c:l:s:fwgv'
-    longopts = ['logging_level=',
-                'show-bins',
-                'show-data-points',
-                'show-segments',
-    ]
-     
+# Set options from sys.argv when running on the command line,
+# then start running the main code.
+def run_with_sys_argv(argv):    
     try:
-        opts, args = getopt.getopt(argv, shortopts, longopts,)
-        run_with_opts(opts, args)
+        optlist, args = getopt.getopt(argv, shortopts, longopts,)
+        run_with_optlist(optlist)
 
     except getopt.GetoptError:
         print 'Unknown options.'
 
-
+# Set options from string 'optstr' when running on the interpreter, 
+# then start running the main code.
+def run_with_optstr(optstr):
+    run_with_sys_argv(optstr.split())

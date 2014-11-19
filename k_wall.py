@@ -3,6 +3,7 @@ import numpy
 import scipy
 import sympy as sym
 import cmath
+import pdb
 
 from sympy.utilities.lambdify import lambdify
 from operator import itemgetter
@@ -303,6 +304,8 @@ class PrimaryKWall(KWall):
         def eta_1(z):
             return complex(eta_1_part_1(z) * mp.ellipk( eta_1_part_2(z) ) / 2.0)
 
+        pdb.set_trace()
+
         # plot real & imaginary parts of eta_1
         #plot_eta(eta_1)
 
@@ -357,6 +360,10 @@ class PrimaryKWall(KWall):
 
     def evolve(self, nint_range, trajectory_singularity_threshold,
                pf_odeint_mxstep):
+        ti, tf, nstep = nint_range
+        if(nstep == 0):
+            # Don't evolve, exit immediately.
+            return None
         if not (isinstance(self.parents[0], BranchPoint)):
             raise TypeError('A parent of this primary K-wall '
                             'is not a BranchPoint class.')
@@ -496,6 +503,9 @@ class DescendantKWall(KWall):
 
     def evolve(self, nint_range, trajectory_singularity_threshold,
                 pf_odeint_mxstep):
+        if(nstep == 0):
+            # Don't evolve, exit immediately.
+            return None
         if not (isinstance(self.parents[0], KWall)):
             raise TypeError('A parent of this primary K-wall '
                             'is not a KWall class.')
