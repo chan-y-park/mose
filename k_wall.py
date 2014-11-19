@@ -303,6 +303,9 @@ class PrimaryKWall(KWall):
         def eta_1(z):
             return complex(eta_1_part_1(z) * mp.ellipk( eta_1_part_2(z) ) / 2)
 
+        # plot real & imaginary parts of eta_1
+        #plot_eta(eta_1)
+
         eta0 = eta_1(u0)
         bc = [u0, eta0]
         t0 = 0
@@ -496,3 +499,30 @@ class DescendantKWall(KWall):
                                     for row in pw_data_pf ]) 
         self.check_cuts()
 
+def plot_eta(eta):
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    plt.figure()
+    X = np.arange(-10, 10, 0.1)
+    Y = np.arange(-10, 10, 0.1)
+    X, Y = np.meshgrid(X, Y)
+    Z_min = -5.0
+    Z_max = 5.0
+    n_levels = 20
+    levels = [Z_min + (Z_max - Z_min)*i/n_levels for i in range(n_levels)]
+
+    eta_r = np.vectorize(lambda z: complex(eta(z)).real)
+    eta_i = np.vectorize(lambda z: complex(eta(z)).imag)
+    Z_r = eta_r(X + 1j * Y)
+    Z_i = eta_i(X + 1j * Y)
+
+    plt.subplot(1, 2, 1, aspect=1)
+    csr = plt.contourf(X, Y, Z_r, levels=levels)
+    plt.colorbar(csr, shrink=.5)
+
+    plt.subplot(1, 2, 2, aspect=1)
+    csi = plt.contourf(X, Y, Z_i, levels=levels)
+    plt.colorbar(csi, shrink=.5)
+
+    plt.show()
