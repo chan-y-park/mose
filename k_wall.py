@@ -113,7 +113,7 @@ class KWall(object):
             intersections = [[br_pt, i] for br_pt, i in intersections if \
                                     not (br_pt in self.parents and i == 0)]
             # add the direction to the intersection data: either 'cw' or 'ccw'
-            intersections = [[br_pt, i, clock(left_right(self.coordinates,i))] \
+            intersections = [[br_pt, i, clock(left_right(self.coordinates,i))]\
                             for br_pt, i in intersections]
 
             self.cuts_intersections += intersections
@@ -311,7 +311,7 @@ class PrimaryKWall(KWall):
         #     modules="numpy"
         # ) 
         # def eta_1(z):
-        #     return complex(eta_1_part_1(z) * mp.ellipk( eta_1_part_2(z) )/2.0)
+        #    return complex(eta_1_part_1(z) * mp.ellipk( eta_1_part_2(z) )/2.0)
 
         ### pdb.set_trace()
 
@@ -383,20 +383,35 @@ class PrimaryKWall(KWall):
 
         # print "f1, f2, f3: %s " % [f1,f2,f3]
 
-        #################################
-        # Instead of functions, the f_i 
-        # should be converted into simple 
-        # values.
-        #################################
+        # eta_1_part_1 = lambdify(u, 
+        #     # simplify(sym.expand( (sign) * 4 * (f3 - f1) ** (-0.5) )),
+        #     (sign) * 4 * (f3 - f1) ** (-0.5),
+        #     modules="numpy"
+        # ) 
+        # eta_1_part_2 = lambdify(u, 
+        #     # simplify(sym.expand( ((f2 - f1) / (f3 - f1)) )),
+        #     ((f2 - f1) / (f3 - f1)),
+        #     modules="numpy"
+        # ) 
+        # def eta_func(z):
+        #    return (eta_1_part_1(z) * mp.ellipk( eta_1_part_2(z) )/2.0)
+
+        # print "function eta at u0: %s" % complex(eta_func(u0))
+
+        # pdb.set_trace()
+
+        # print eta_func(u)
+        # print "derivative eta at u0: %s" % diff(eta_func(u),u)#.subs(u,u0)
 
         f1_0 = complex(f1.subs(u, u0))
         f2_0 = complex(f2.subs(u, u0))
         f3_0 = complex(f3.subs(u, u0))
-        print "f1_0 = %s" % f1_0
-        print "f2_0 = %s" % f2_0
-        print "f3_0 = %s" % f3_0
+        # print "f1_0 = %s" % f1_0
+        # print "f2_0 = %s" % f2_0
+        # print "f3_0 = %s" % f3_0
 
-        eta_0 = ((f3_0 - f1_0) ** (-0.5)) * pi / 2.0
+        eta_0 = (sign) * ((f3_0 - f1_0) ** (-0.5)) * pi / 2.0
+        
         g2_prime = diff(g2, u)
         g3_prime = diff(g3, u)
         root_prime = lambda alpha: (g2_prime * alpha + g3_prime) / \
@@ -404,19 +419,51 @@ class PrimaryKWall(KWall):
         f1_prime = complex(root_prime(f1_0).subs(u, u0))
         f2_prime = complex(root_prime(f2_0).subs(u, u0))
         f3_prime = complex(root_prime(f3_0).subs(u, u0))
-        eta_prime_0 = (pi / 8.0) * ((f3_0 - f1_0) ** (-1.5)) * \
-                            (-5.0 * f1_prime + f2_prime + 4.0 * f3_prime)
+        eta_prime_0 = (sign) * (pi / 2.0) * ((f3_0 - f1_0) ** (-1.5)) * \
+                            (f1_prime + f2_prime - 2.0 * f3_prime)
         
+        g2_second = diff(g2_prime, u)
+        g3_second = diff(g3_prime, u)
+        root_second = lambda alpha: (g2_second * alpha + g3_second \
+                                    + 2 * g2_prime * root_prime(alpha) \
+                                    - 24 * alpha * (root_prime(alpha) ** 2))/ \
+                                    (12 * (alpha **2) - g2)
+        f1_second = complex(root_second(f1_0).subs(u, u0))
+        f2_second = complex(root_second(f2_0).subs(u, u0))
+        f3_second = complex(root_second(f3_0).subs(u, u0))
+        eta_second_0 = (sign) * (pi / 16.0) * ((f3_0 - f1_0) ** (-2.5)) * \
+                            (9 * (f1_prime**2) + 9 * (f1_prime**2) \
+                             + 6 * f1_prime * f2_prime \
+                             - 24 * f1_prime * f3_prime \
+                             - 24 * f2_prime * f3_prime \
+                             + 8 * (
+                                    3 * (f3_prime**2) \
+                                    - (f1_0 - f3_0) \
+                                    * (f1_second + f2_second - 2 * f3_second)
+                                    )
+                            )
+
         # y0 = array([(complex(u0)).real,(complex(u0)).imag]) 
         # print "root_prime = %s" % root_prime(x)
 
-        print "u_0 = %s" % u0
+        print "\nu_0 = %s" % u0
         print "eta_0 = %s" % eta_0
         print "eta_prime_0 = %s" % eta_prime_0
+        print "eta_second_0 = %s" % eta_second_0
 
-        self.pf_bc = [u0, eta_0, eta_prime_0]
-        self.coordinates = array([u0.real, u0.imag])
-        self.periods = array([eta_0.real, eta_0.imag])
+        delta = 0.01
+        u1 = u0 + delta * exp(1j*(theta + pi - cmath.phase(eta_0)))
+        eta_1 = eta_0 + (u1 - u0) * eta_prime_0 \
+                            + (1 / 2.0) * ((u1 - u0)**2) * eta_second_0
+        eta_prime_1 = eta_prime_0 + (u1 - u0) * eta_second_0
+
+        print "\nu_1 = %s" % u1
+        print "eta_1 = %s" % eta_1
+        print "eta_prime_1 = %s" % eta_prime_1
+
+        self.pf_bc = [u1, eta_1, eta_prime_1]
+        self.coordinates = array([[u1.real, u1.imag]])
+        self.periods = array([eta_1])
 
         ##################################
         # End New Primary Evolution
@@ -476,7 +523,7 @@ class PrimaryKWall(KWall):
         # For a *primary* K-wall the boundary conditions are 
         # a bit particular:
         bc = self.pf_bc
-        print "Boundary conditions for PF: %s " % bc
+        # print "Boundary conditions for PF: %s " % bc
         pw_data_pf = self.grow_pf(bc, nint_range,
                                   trajectory_singularity_threshold,
                                   pf_odeint_mxstep)
@@ -487,6 +534,8 @@ class PrimaryKWall(KWall):
             (self.periods , [row[2] + 1j* row[3] for row in pw_data_pf])
         )
         self.check_cuts()
+
+        # pdb.set_trace()
         
 
 
