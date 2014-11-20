@@ -414,34 +414,42 @@ class PrimaryKWall(KWall):
         
         g2_prime = diff(g2, u)
         g3_prime = diff(g3, u)
-        root_prime = lambda alpha: (g2_prime * alpha + g3_prime) / \
-                                    (12 * (alpha **2) - g2)
-        f1_prime = complex(root_prime(f1_0).subs(u, u0))
-        f2_prime = complex(root_prime(f2_0).subs(u, u0))
-        f3_prime = complex(root_prime(f3_0).subs(u, u0))
-        eta_prime_0 = (sign) * (pi / 2.0) * ((f3_0 - f1_0) ** (-1.5)) * \
-                            (f1_prime + f2_prime - 2.0 * f3_prime)
+        g2_prime_0 = g2_prime.subs(u, u0)
+        g3_prime_0 = g3_prime.subs(u, u0)
+        # root_prime = lambda alpha: (g2_prime * alpha + g3_prime) / \
+        #                             (12 * (alpha **2) - g2)
+        # f1_prime = complex(root_prime(f1_0).subs(u, u0))
+        # f2_prime = complex(root_prime(f2_0).subs(u, u0))
+        # f3_prime = complex(root_prime(f3_0).subs(u, u0))
+        eta_prime_0 = complex( \
+                            -1.0 * (sign) * (pi / 24.0) * \
+                            ( \
+                                (- 2.0 * f1_0 * g2_prime_0 + g3_prime_0)  / \
+                                ((f1_0 ** 2) * ((f3_0 - f1_0) ** 1.5)) \
+                            ))
         
-        g2_second = diff(g2_prime, u)
-        g3_second = diff(g3_prime, u)
-        root_second = lambda alpha: (g2_second * alpha + g3_second \
-                                    + 2 * g2_prime * root_prime(alpha) \
-                                    - 24 * alpha * (root_prime(alpha) ** 2))/ \
-                                    (12 * (alpha **2) - g2)
-        f1_second = complex(root_second(f1_0).subs(u, u0))
-        f2_second = complex(root_second(f2_0).subs(u, u0))
-        f3_second = complex(root_second(f3_0).subs(u, u0))
-        eta_second_0 = (sign) * (pi / 16.0) * ((f3_0 - f1_0) ** (-2.5)) * \
-                            (9 * (f1_prime**2) + 9 * (f1_prime**2) \
-                             + 6 * f1_prime * f2_prime \
-                             - 24 * f1_prime * f3_prime \
-                             - 24 * f2_prime * f3_prime \
-                             + 8 * (
-                                    3 * (f3_prime**2) \
-                                    - (f1_0 - f3_0) \
-                                    * (f1_second + f2_second - 2 * f3_second)
-                                    )
-                            )
+        # g2_second = diff(g2_prime, u)
+        # g3_second = diff(g3_prime, u)
+        # g2_second_0 = diff(g2_prime, u).subs(u, u0)
+        # g3_second_0 = diff(g3_prime, u).subs(u, u0)
+        # root_second = lambda alpha: (g2_second * alpha + g3_second \
+        #                             + 2 * g2_prime * root_prime(alpha) \
+        #                             - 24 * alpha * (root_prime(alpha) ** 2))/ \
+        #                             (12 * (alpha **2) - g2)
+        # f1_second = complex(root_second(f1_0).subs(u, u0))
+        # f2_second = complex(root_second(f2_0).subs(u, u0))
+        # f3_second = complex(root_second(f3_0).subs(u, u0))
+        # eta_second_0 = (sign) * (pi / 16.0) * ((f3_0 - f1_0) ** (-2.5)) * \
+        #                     (9 * (f1_prime**2) + 9 * (f1_prime**2) \
+        #                      + 6 * f1_prime * f2_prime \
+        #                      - 24 * f1_prime * f3_prime \
+        #                      - 24 * f2_prime * f3_prime \
+        #                      + 8 * (
+        #                             3 * (f3_prime**2) \
+        #                             - (f1_0 - f3_0) \
+        #                             * (f1_second + f2_second - 2 * f3_second)
+        #                             )
+        #                     )
 
         # y0 = array([(complex(u0)).real,(complex(u0)).imag]) 
         # print "root_prime = %s" % root_prime(x)
@@ -449,21 +457,28 @@ class PrimaryKWall(KWall):
         print "\nu_0 = %s" % u0
         print "eta_0 = %s" % eta_0
         print "eta_prime_0 = %s" % eta_prime_0
-        print "eta_second_0 = %s" % eta_second_0
+        # print "eta_second_0 = %s" % eta_second_0
 
-        delta = 0.01
-        u1 = u0 + delta * exp(1j*(theta + pi - cmath.phase(eta_0)))
-        eta_1 = eta_0 + (u1 - u0) * eta_prime_0 \
-                            + (1 / 2.0) * ((u1 - u0)**2) * eta_second_0
-        eta_prime_1 = eta_prime_0 + (u1 - u0) * eta_second_0
+        # delta = 0.01
+        # u1 = u0 + delta * exp(1j*(theta + pi - cmath.phase(eta_0)))
+        # eta_1 = eta_0 + (u1 - u0) * eta_prime_0 \
+        #                     + (1 / 2.0) * ((u1 - u0)**2) * eta_second_0
+        # eta_prime_1 = eta_prime_0 + (u1 - u0) * eta_second_0
 
-        print "\nu_1 = %s" % u1
-        print "eta_1 = %s" % eta_1
-        print "eta_prime_1 = %s" % eta_prime_1
+        # print "\nu_1 = %s" % u1
+        # print "eta_1 = %s" % eta_1
+        # print "eta_prime_1 = %s" % eta_prime_1
 
-        self.pf_bc = [u1, eta_1, eta_prime_1]
-        self.coordinates = array([[u1.real, u1.imag]])
-        self.periods = array([eta_1])
+        # self.pf_bc = [u1, eta_1, eta_prime_1]
+        # self.coordinates = array([[u1.real, u1.imag]])
+        # self.periods = array([eta_1])
+
+        self.pf_bc = [u0, eta_0, eta_prime_0]
+        self.coordinates = array([[u0.real, u0.imag]])
+        self.periods = array([eta_0])
+
+        pdb.set_trace()
+
 
         ##################################
         # End New Primary Evolution
