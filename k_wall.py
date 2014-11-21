@@ -511,7 +511,7 @@ class PrimaryKWall(KWall):
 
         eta_0 = (sign) * ((f3_0 - f1_0) ** (-0.5)) * pi / 2.0
 
-        delta = 0.01
+        delta = 0.05
         u1 = u0 + delta * exp(1j*(theta + pi - cmath.phase(eta_0)))
         roots = [f1_0, f2_0, f3_0]
         segment = [u0, u1]
