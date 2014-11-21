@@ -496,18 +496,12 @@ class PrimaryKWall(KWall):
         # print "e1 e2 e3: %s" % map(complex, \
         #       [e1.subs(u,u0+0.01), e2.subs(u,u0+0.01), e3.subs(u,u0+0.01)])
         if pair == 0:
-            # f1 = e1
-            # f2 = e2
             f1, f2 = sort_by_abs(e1, e2, u0+(10**(-5)) * (1+1j))
             f3 = e3
         elif pair == 1:
-            # f1 = e2
-            # f2 = e3
             f1, f2 = sort_by_abs(e2, e3, u0+(10**(-5)) * (1+1j))
             f3 = e1
         elif pair == 2:
-            # f1 = e3
-            # f2 = e1
             f1, f2 = sort_by_abs(e1, e3, u0+(10**(-5)) * (1+1j))
             f3 = e2
 
@@ -522,8 +516,6 @@ class PrimaryKWall(KWall):
         roots = [f1_0, f2_0, f3_0]
         segment = [u0, u1]
         [[f1_1, f2_1, f3_1], eta_1] = order_roots(roots, segment, sign, theta)
-        ### Perhaps a better way to evaluate eta_prime would be with 
-        ### analytic expressions in terms of the roots? TO DO.
         eta_prime_1 = (eta_1 - eta_0) / (u1 - u0)
 
         self.pf_bc = [u1, eta_1, eta_prime_1]
