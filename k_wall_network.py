@@ -1,6 +1,7 @@
 import logging
 import signal
 import multiprocessing
+# import pdb
 from multiprocessing.managers import BaseManager
 from numpy import array
 from elliptic_fibration import EllipticFibration
@@ -10,6 +11,7 @@ from intersection_point import find_new_intersections
 from misc import complexify
 from kswcf import progeny_2
 from k_wall import KWall
+
 
 
 class KWallNetwork:
@@ -109,6 +111,7 @@ class KWallNetwork:
                         intersection,
                         charge,
                     )
+                    # pdb.set_trace()
                     k_wall.evolve(nint_range, trajectory_singularity_threshold,
                                   pf_odeint_mxstep)
                     if (not k_wall.singular):
