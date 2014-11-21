@@ -16,7 +16,7 @@ from sympy import mpmath as mp
 from scipy import interpolate
 
 from branch import BranchPoint
-from misc import complexify, sort_by_abs, left_right, clock
+from misc import complexify, sort_by_abs, left_right, clock, order_roots
 from monodromy import charge_monodromy
 
 class KWall(object):
@@ -357,6 +357,136 @@ class PrimaryKWall(KWall):
         # Start New Primary Evolution
         ##################################
 
+        # eq = 4 * x ** 3 - g2 * x - g3
+        # e1, e2, e3 = sym.simplify(sym.solve(eq, x))
+        # distances = map(abs, [e1-e2, e2-e3, e3-e1])
+        # pair = min(enumerate(map(lambda x: x.subs(u, u0), distances)), 
+        #             key=itemgetter(1))[0]
+        # # print "PAIR %s" % pair
+        # # print "e1 e2 e3: %s" % map(complex, \
+        # #       [e1.subs(u,u0+0.01), e2.subs(u,u0+0.01), e3.subs(u,u0+0.01)])
+        # if pair == 0:
+        #     # f1 = e1
+        #     # f2 = e2
+        #     f1, f2 = sort_by_abs(e1, e2, u0+(10**(-5)) * (1+1j))
+        #     f3 = e3
+        # elif pair == 1:
+        #     # f1 = e2
+        #     # f2 = e3
+        #     f1, f2 = sort_by_abs(e2, e3, u0+(10**(-5)) * (1+1j))
+        #     f3 = e1
+        # elif pair == 2:
+        #     # f1 = e3
+        #     # f2 = e1
+        #     f1, f2 = sort_by_abs(e1, e3, u0+(10**(-5)) * (1+1j))
+        #     f3 = e2
+
+        # # print "f1, f2, f3: %s " % [f1,f2,f3]
+
+        # # eta_1_part_1 = lambdify(u, 
+        # #     # simplify(sym.expand( (sign) * 4 * (f3 - f1) ** (-0.5) )),
+        # #     (sign) * 4 * (f3 - f1) ** (-0.5),
+        # #     modules="numpy"
+        # # ) 
+        # # eta_1_part_2 = lambdify(u, 
+        # #     # simplify(sym.expand( ((f2 - f1) / (f3 - f1)) )),
+        # #     ((f2 - f1) / (f3 - f1)),
+        # #     modules="numpy"
+        # # ) 
+        # # def eta_func(z):
+        # #    return (eta_1_part_1(z) * mp.ellipk( eta_1_part_2(z) )/2.0)
+
+        # # print "function eta at u0: %s" % complex(eta_func(u0))
+
+        # # pdb.set_trace()
+
+        # # print eta_func(u)
+        # # print "derivative eta at u0: %s" % diff(eta_func(u),u)#.subs(u,u0)
+
+        # f1_0 = complex(f1.subs(u, u0))
+        # f2_0 = complex(f2.subs(u, u0))
+        # f3_0 = complex(f3.subs(u, u0))
+        # # print "f1_0 = %s" % f1_0
+        # # print "f2_0 = %s" % f2_0
+        # # print "f3_0 = %s" % f3_0
+
+        # eta_0 = (sign) * ((f3_0 - f1_0) ** (-0.5)) * pi / 2.0
+        
+        # g2_prime = diff(g2, u)
+        # g3_prime = diff(g3, u)
+        # g2_prime_0 = g2_prime.subs(u, u0)
+        # g3_prime_0 = g3_prime.subs(u, u0)
+        # # root_prime = lambda alpha: (g2_prime * alpha + g3_prime) / \
+        # #                             (12 * (alpha **2) - g2)
+        # # f1_prime = complex(root_prime(f1_0).subs(u, u0))
+        # # f2_prime = complex(root_prime(f2_0).subs(u, u0))
+        # # f3_prime = complex(root_prime(f3_0).subs(u, u0))
+        # eta_prime_0 = complex( \
+        #                     -1.0 * (sign) * (pi / 24.0) * \
+        #                     ( \
+        #                         (- 2.0 * f1_0 * g2_prime_0 + g3_prime_0)  / \
+        #                         ((f1_0 ** 2) * ((f3_0 - f1_0) ** 1.5)) \
+        #                     ))
+        
+        # # g2_second = diff(g2_prime, u)
+        # # g3_second = diff(g3_prime, u)
+        # # g2_second_0 = diff(g2_prime, u).subs(u, u0)
+        # # g3_second_0 = diff(g3_prime, u).subs(u, u0)
+        # # root_second = lambda alpha: (g2_second * alpha + g3_second \
+        # #                             + 2 * g2_prime * root_prime(alpha) \
+        # #                             - 24 * alpha * (root_prime(alpha) ** 2))/ \
+        # #                             (12 * (alpha **2) - g2)
+        # # f1_second = complex(root_second(f1_0).subs(u, u0))
+        # # f2_second = complex(root_second(f2_0).subs(u, u0))
+        # # f3_second = complex(root_second(f3_0).subs(u, u0))
+        # # eta_second_0 = (sign) * (pi / 16.0) * ((f3_0 - f1_0) ** (-2.5)) * \
+        # #                     (9 * (f1_prime**2) + 9 * (f1_prime**2) \
+        # #                      + 6 * f1_prime * f2_prime \
+        # #                      - 24 * f1_prime * f3_prime \
+        # #                      - 24 * f2_prime * f3_prime \
+        # #                      + 8 * (
+        # #                             3 * (f3_prime**2) \
+        # #                             - (f1_0 - f3_0) \
+        # #                             * (f1_second + f2_second - 2 * f3_second)
+        # #                             )
+        # #                     )
+
+        # # y0 = array([(complex(u0)).real,(complex(u0)).imag]) 
+        # # print "root_prime = %s" % root_prime(x)
+
+        # print "\nu_0 = %s" % u0
+        # print "eta_0 = %s" % eta_0
+        # print "eta_prime_0 = %s" % eta_prime_0
+        # # print "eta_second_0 = %s" % eta_second_0
+
+        # # delta = 0.01
+        # # u1 = u0 + delta * exp(1j*(theta + pi - cmath.phase(eta_0)))
+        # # eta_1 = eta_0 + (u1 - u0) * eta_prime_0 \
+        # #                     + (1 / 2.0) * ((u1 - u0)**2) * eta_second_0
+        # # eta_prime_1 = eta_prime_0 + (u1 - u0) * eta_second_0
+
+        # # print "\nu_1 = %s" % u1
+        # # print "eta_1 = %s" % eta_1
+        # # print "eta_prime_1 = %s" % eta_prime_1
+
+        # # self.pf_bc = [u1, eta_1, eta_prime_1]
+        # # self.coordinates = array([[u1.real, u1.imag]])
+        # # self.periods = array([eta_1])
+
+        # self.pf_bc = [u0, eta_0, eta_prime_0]
+        # self.coordinates = array([[u0.real, u0.imag]])
+        # self.periods = array([eta_0])
+
+        # # pdb.set_trace()
+
+
+        ##################################
+        # End New Primary Evolution
+        ##################################
+
+        ##################################
+        # Start Newer Primary Evolution
+        ##################################
         eq = 4 * x ** 3 - g2 * x - g3
         e1, e2, e3 = sym.simplify(sym.solve(eq, x))
         distances = map(abs, [e1-e2, e2-e3, e3-e1])
@@ -381,109 +511,30 @@ class PrimaryKWall(KWall):
             f1, f2 = sort_by_abs(e1, e3, u0+(10**(-5)) * (1+1j))
             f3 = e2
 
-        # print "f1, f2, f3: %s " % [f1,f2,f3]
-
-        # eta_1_part_1 = lambdify(u, 
-        #     # simplify(sym.expand( (sign) * 4 * (f3 - f1) ** (-0.5) )),
-        #     (sign) * 4 * (f3 - f1) ** (-0.5),
-        #     modules="numpy"
-        # ) 
-        # eta_1_part_2 = lambdify(u, 
-        #     # simplify(sym.expand( ((f2 - f1) / (f3 - f1)) )),
-        #     ((f2 - f1) / (f3 - f1)),
-        #     modules="numpy"
-        # ) 
-        # def eta_func(z):
-        #    return (eta_1_part_1(z) * mp.ellipk( eta_1_part_2(z) )/2.0)
-
-        # print "function eta at u0: %s" % complex(eta_func(u0))
-
-        # pdb.set_trace()
-
-        # print eta_func(u)
-        # print "derivative eta at u0: %s" % diff(eta_func(u),u)#.subs(u,u0)
-
         f1_0 = complex(f1.subs(u, u0))
         f2_0 = complex(f2.subs(u, u0))
         f3_0 = complex(f3.subs(u, u0))
-        # print "f1_0 = %s" % f1_0
-        # print "f2_0 = %s" % f2_0
-        # print "f3_0 = %s" % f3_0
 
         eta_0 = (sign) * ((f3_0 - f1_0) ** (-0.5)) * pi / 2.0
-        
-        g2_prime = diff(g2, u)
-        g3_prime = diff(g3, u)
-        g2_prime_0 = g2_prime.subs(u, u0)
-        g3_prime_0 = g3_prime.subs(u, u0)
-        # root_prime = lambda alpha: (g2_prime * alpha + g3_prime) / \
-        #                             (12 * (alpha **2) - g2)
-        # f1_prime = complex(root_prime(f1_0).subs(u, u0))
-        # f2_prime = complex(root_prime(f2_0).subs(u, u0))
-        # f3_prime = complex(root_prime(f3_0).subs(u, u0))
-        eta_prime_0 = complex( \
-                            -1.0 * (sign) * (pi / 24.0) * \
-                            ( \
-                                (- 2.0 * f1_0 * g2_prime_0 + g3_prime_0)  / \
-                                ((f1_0 ** 2) * ((f3_0 - f1_0) ** 1.5)) \
-                            ))
-        
-        # g2_second = diff(g2_prime, u)
-        # g3_second = diff(g3_prime, u)
-        # g2_second_0 = diff(g2_prime, u).subs(u, u0)
-        # g3_second_0 = diff(g3_prime, u).subs(u, u0)
-        # root_second = lambda alpha: (g2_second * alpha + g3_second \
-        #                             + 2 * g2_prime * root_prime(alpha) \
-        #                             - 24 * alpha * (root_prime(alpha) ** 2))/ \
-        #                             (12 * (alpha **2) - g2)
-        # f1_second = complex(root_second(f1_0).subs(u, u0))
-        # f2_second = complex(root_second(f2_0).subs(u, u0))
-        # f3_second = complex(root_second(f3_0).subs(u, u0))
-        # eta_second_0 = (sign) * (pi / 16.0) * ((f3_0 - f1_0) ** (-2.5)) * \
-        #                     (9 * (f1_prime**2) + 9 * (f1_prime**2) \
-        #                      + 6 * f1_prime * f2_prime \
-        #                      - 24 * f1_prime * f3_prime \
-        #                      - 24 * f2_prime * f3_prime \
-        #                      + 8 * (
-        #                             3 * (f3_prime**2) \
-        #                             - (f1_0 - f3_0) \
-        #                             * (f1_second + f2_second - 2 * f3_second)
-        #                             )
-        #                     )
 
-        # y0 = array([(complex(u0)).real,(complex(u0)).imag]) 
-        # print "root_prime = %s" % root_prime(x)
+        delta = 0.05
+        u1 = u0 + delta * exp(1j*(theta + pi - cmath.phase(eta_0)))
+        roots = [f1_0, f2_0, f3_0]
+        segment = [u0, u1]
+        [[f1_1, f2_1, f3_1], eta_1] = order_roots(roots, segment, sign, theta)
+        ### Perhaps a better way to evaluate eta_prime would be with 
+        ### analytic expressions in terms of the roots? TO DO.
+        eta_prime_1 = (eta_1 - eta_0) / (u1 - u0)
 
-        print "\nu_0 = %s" % u0
-        print "eta_0 = %s" % eta_0
-        print "eta_prime_0 = %s" % eta_prime_0
-        # print "eta_second_0 = %s" % eta_second_0
-
-        # delta = 0.01
-        # u1 = u0 + delta * exp(1j*(theta + pi - cmath.phase(eta_0)))
-        # eta_1 = eta_0 + (u1 - u0) * eta_prime_0 \
-        #                     + (1 / 2.0) * ((u1 - u0)**2) * eta_second_0
-        # eta_prime_1 = eta_prime_0 + (u1 - u0) * eta_second_0
-
-        # print "\nu_1 = %s" % u1
-        # print "eta_1 = %s" % eta_1
-        # print "eta_prime_1 = %s" % eta_prime_1
-
-        # self.pf_bc = [u1, eta_1, eta_prime_1]
-        # self.coordinates = array([[u1.real, u1.imag]])
-        # self.periods = array([eta_1])
-
-        self.pf_bc = [u0, eta_0, eta_prime_0]
-        self.coordinates = array([[u0.real, u0.imag]])
-        self.periods = array([eta_0])
+        self.pf_bc = [u1, eta_1, eta_prime_1]
+        self.coordinates = array([[u1.real, u1.imag]])
+        self.periods = array([eta_1])
 
         pdb.set_trace()
 
-
         ##################################
-        # End New Primary Evolution
+        # End Newer Primary Evolution
         ##################################
-
 
 
     # def get_pf_boundary_condition(self):
@@ -550,7 +601,7 @@ class PrimaryKWall(KWall):
         )
         self.check_cuts()
 
-        # pdb.set_trace()
+        pdb.set_trace()
         
 
 
