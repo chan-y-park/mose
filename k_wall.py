@@ -3,7 +3,7 @@ import numpy
 import scipy
 import sympy as sym
 import cmath
-#import pdb
+import pdb
 
 from sympy.utilities.lambdify import lambdify
 from operator import itemgetter
@@ -16,7 +16,7 @@ from sympy import mpmath as mp
 from scipy import interpolate
 
 from branch import BranchPoint
-from misc import complexify, sort_by_abs, left_right, clock
+from misc import complexify, sort_by_abs, left_right, clock, order_roots
 from monodromy import charge_monodromy
 
 class KWall(object):
@@ -113,7 +113,7 @@ class KWall(object):
             intersections = [[br_pt, i] for br_pt, i in intersections if \
                                     not (br_pt in self.parents and i == 0)]
             # add the direction to the intersection data: either 'cw' or 'ccw'
-            intersections = [[br_pt, i, clock(left_right(self.coordinates,i))] \
+            intersections = [[br_pt, i, clock(left_right(self.coordinates,i))]\
                             for br_pt, i in intersections]
 
             self.cuts_intersections += intersections
@@ -223,10 +223,10 @@ class KWall(object):
             # (d eta / d u), with its own  appropriate b.c. and so on!
             ### NOTE THE FOLLOWING TWO OPTIONS FOR DERIVATIVE OF z
             z_1 = exp( 1j * ( theta + pi ) ) / eta
-            # z_1 = exp( 1j * ( theta + pi - phase( eta ) ) )
+            # z_1 = exp( 1j * ( theta + pi - cmath.phase( eta ) ) )
             eta_1 = z_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
             d_eta_1 = z_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
-            return array(
+            return  array(
                     [
                         z_1.real, z_1.imag, 
                         eta_1.real, eta_1.imag, 
@@ -269,6 +269,224 @@ class PrimaryKWall(KWall):
         u = sym.Symbol('u')
         x = sym.Symbol('x')
 
+        ##################################
+        # Begin Old Primary Evolution
+        ##################################
+
+        # eq = 4 * x ** 3 - g2 * x - g3
+        # e1, e2, e3 = sym.simplify(sym.solve(eq, x))
+        # distances = map(abs, [e1-e2, e2-e3, e3-e1])
+        # pair = min(enumerate(map(lambda x: x.subs(u, u0), distances)), 
+        #             key=itemgetter(1))[0]
+        # # print "PAIR %s" % pair
+        # # print "e1 e2 e3: %s" % map(complex, \
+        # #       [e1.subs(u,u0+0.01), e2.subs(u,u0+0.01), e3.subs(u,u0+0.01)])
+        # if pair == 0:
+        #     # f1 = e1
+        #     # f2 = e2
+        #     f1, f2 = sort_by_abs(e1, e2, u0+0.01*(1+1j))
+        #     f3 = e3
+        # elif pair == 1:
+        #     # f1 = e2
+        #     # f2 = e3
+        #     f1, f2 = sort_by_abs(e2, e3, u0+0.01*(1+1j))
+        #     f3 = e1
+        # elif pair == 2:
+        #     # f1 = e3
+        #     # f2 = e1
+        #     f1, f2 = sort_by_abs(e1, e3, u0+0.01*(1+1j))
+        #     f3 = e2
+
+        ## print "f1, f2, f3: %s " % [f1,f2,f3]
+
+        ### TODO: No other way but to define eta_1(), deriv() here?
+        # eta_1_part_1 = lambdify(u, 
+        #     # simplify(sym.expand( (sign) * 4 * (f3 - f1) ** (-0.5) )),
+        #     (sign) * 4 * (f3 - f1) ** (-0.5),
+        #     modules="numpy"
+        # ) 
+        # eta_1_part_2 = lambdify(u, 
+        #     # simplify(sym.expand( ((f2 - f1) / (f3 - f1)) )),
+        #     ((f2 - f1) / (f3 - f1)),
+        #     modules="numpy"
+        # ) 
+        # def eta_1(z):
+        #    return complex(eta_1_part_1(z) * mp.ellipk( eta_1_part_2(z) )/2.0)
+
+        ### pdb.set_trace()
+
+        ### plot real & imaginary parts of eta_1
+        ### plot_eta(eta_1)
+
+        # t0 = 0
+        # y0 = array([(complex(u0)).real,(complex(u0)).imag]) 
+
+        # ### Keep this just in case. 
+        # ### Modifying the boundary condition for ODE int,
+        # ### instead of starting from u0, start from a slightly 
+        # ### displaced position, to avoid trouble with potential        
+        # ### overlapping branch cuts from other branch-points.
+        # # delta = 0.01
+        # # u1 = u0 + delta * exp(1j*(theta + pi - cmath.phase(eta_1(u0))))
+        # # t0 = 0
+        # # y0 = array([(complex(u1)).real,(complex(u1)).imag]) 
+
+        
+        # def deriv(y, t):
+        #     z = complexify(y)
+        #     c = exp(1j*(theta + pi - cmath.phase(eta_1(z))))
+        #     return array([c.real, c.imag])
+
+        # start, stop, num = primary_nint_range
+
+        # time = linspace(start, stop, num)
+   
+        # # Save results to PrimaryKWall.coordinates
+        # self.coordinates = odeint(deriv, y0, time)
+        
+        # # Calculate periods at each location of coordinates
+        # self.periods = map(
+        #     complex, map(eta_1, map(complexify, self.coordinates))
+        # )
+
+        ##################################
+        # End Old Primary Evolution
+        ##################################
+
+        ##################################
+        # Start New Primary Evolution
+        ##################################
+
+        # eq = 4 * x ** 3 - g2 * x - g3
+        # e1, e2, e3 = sym.simplify(sym.solve(eq, x))
+        # distances = map(abs, [e1-e2, e2-e3, e3-e1])
+        # pair = min(enumerate(map(lambda x: x.subs(u, u0), distances)), 
+        #             key=itemgetter(1))[0]
+        # # print "PAIR %s" % pair
+        # # print "e1 e2 e3: %s" % map(complex, \
+        # #       [e1.subs(u,u0+0.01), e2.subs(u,u0+0.01), e3.subs(u,u0+0.01)])
+        # if pair == 0:
+        #     # f1 = e1
+        #     # f2 = e2
+        #     f1, f2 = sort_by_abs(e1, e2, u0+(10**(-5)) * (1+1j))
+        #     f3 = e3
+        # elif pair == 1:
+        #     # f1 = e2
+        #     # f2 = e3
+        #     f1, f2 = sort_by_abs(e2, e3, u0+(10**(-5)) * (1+1j))
+        #     f3 = e1
+        # elif pair == 2:
+        #     # f1 = e3
+        #     # f2 = e1
+        #     f1, f2 = sort_by_abs(e1, e3, u0+(10**(-5)) * (1+1j))
+        #     f3 = e2
+
+        # # print "f1, f2, f3: %s " % [f1,f2,f3]
+
+        # # eta_1_part_1 = lambdify(u, 
+        # #     # simplify(sym.expand( (sign) * 4 * (f3 - f1) ** (-0.5) )),
+        # #     (sign) * 4 * (f3 - f1) ** (-0.5),
+        # #     modules="numpy"
+        # # ) 
+        # # eta_1_part_2 = lambdify(u, 
+        # #     # simplify(sym.expand( ((f2 - f1) / (f3 - f1)) )),
+        # #     ((f2 - f1) / (f3 - f1)),
+        # #     modules="numpy"
+        # # ) 
+        # # def eta_func(z):
+        # #    return (eta_1_part_1(z) * mp.ellipk( eta_1_part_2(z) )/2.0)
+
+        # # print "function eta at u0: %s" % complex(eta_func(u0))
+
+        # # pdb.set_trace()
+
+        # # print eta_func(u)
+        # # print "derivative eta at u0: %s" % diff(eta_func(u),u)#.subs(u,u0)
+
+        # f1_0 = complex(f1.subs(u, u0))
+        # f2_0 = complex(f2.subs(u, u0))
+        # f3_0 = complex(f3.subs(u, u0))
+        # # print "f1_0 = %s" % f1_0
+        # # print "f2_0 = %s" % f2_0
+        # # print "f3_0 = %s" % f3_0
+
+        # eta_0 = (sign) * ((f3_0 - f1_0) ** (-0.5)) * pi / 2.0
+        
+        # g2_prime = diff(g2, u)
+        # g3_prime = diff(g3, u)
+        # g2_prime_0 = g2_prime.subs(u, u0)
+        # g3_prime_0 = g3_prime.subs(u, u0)
+        # # root_prime = lambda alpha: (g2_prime * alpha + g3_prime) / \
+        # #                             (12 * (alpha **2) - g2)
+        # # f1_prime = complex(root_prime(f1_0).subs(u, u0))
+        # # f2_prime = complex(root_prime(f2_0).subs(u, u0))
+        # # f3_prime = complex(root_prime(f3_0).subs(u, u0))
+        # eta_prime_0 = complex( \
+        #                     -1.0 * (sign) * (pi / 24.0) * \
+        #                     ( \
+        #                         (- 2.0 * f1_0 * g2_prime_0 + g3_prime_0)  / \
+        #                         ((f1_0 ** 2) * ((f3_0 - f1_0) ** 1.5)) \
+        #                     ))
+        
+        # # g2_second = diff(g2_prime, u)
+        # # g3_second = diff(g3_prime, u)
+        # # g2_second_0 = diff(g2_prime, u).subs(u, u0)
+        # # g3_second_0 = diff(g3_prime, u).subs(u, u0)
+        # # root_second = lambda alpha: (g2_second * alpha + g3_second \
+        # #                             + 2 * g2_prime * root_prime(alpha) \
+        # #                             - 24 * alpha * (root_prime(alpha) ** 2))/ \
+        # #                             (12 * (alpha **2) - g2)
+        # # f1_second = complex(root_second(f1_0).subs(u, u0))
+        # # f2_second = complex(root_second(f2_0).subs(u, u0))
+        # # f3_second = complex(root_second(f3_0).subs(u, u0))
+        # # eta_second_0 = (sign) * (pi / 16.0) * ((f3_0 - f1_0) ** (-2.5)) * \
+        # #                     (9 * (f1_prime**2) + 9 * (f1_prime**2) \
+        # #                      + 6 * f1_prime * f2_prime \
+        # #                      - 24 * f1_prime * f3_prime \
+        # #                      - 24 * f2_prime * f3_prime \
+        # #                      + 8 * (
+        # #                             3 * (f3_prime**2) \
+        # #                             - (f1_0 - f3_0) \
+        # #                             * (f1_second + f2_second - 2 * f3_second)
+        # #                             )
+        # #                     )
+
+        # # y0 = array([(complex(u0)).real,(complex(u0)).imag]) 
+        # # print "root_prime = %s" % root_prime(x)
+
+        # print "\nu_0 = %s" % u0
+        # print "eta_0 = %s" % eta_0
+        # print "eta_prime_0 = %s" % eta_prime_0
+        # # print "eta_second_0 = %s" % eta_second_0
+
+        # # delta = 0.01
+        # # u1 = u0 + delta * exp(1j*(theta + pi - cmath.phase(eta_0)))
+        # # eta_1 = eta_0 + (u1 - u0) * eta_prime_0 \
+        # #                     + (1 / 2.0) * ((u1 - u0)**2) * eta_second_0
+        # # eta_prime_1 = eta_prime_0 + (u1 - u0) * eta_second_0
+
+        # # print "\nu_1 = %s" % u1
+        # # print "eta_1 = %s" % eta_1
+        # # print "eta_prime_1 = %s" % eta_prime_1
+
+        # # self.pf_bc = [u1, eta_1, eta_prime_1]
+        # # self.coordinates = array([[u1.real, u1.imag]])
+        # # self.periods = array([eta_1])
+
+        # self.pf_bc = [u0, eta_0, eta_prime_0]
+        # self.coordinates = array([[u0.real, u0.imag]])
+        # self.periods = array([eta_0])
+
+        # # pdb.set_trace()
+
+
+        ##################################
+        # End New Primary Evolution
+        ##################################
+
+        ##################################
+        # Start Newer Primary Evolution
+        ##################################
         eq = 4 * x ** 3 - g2 * x - g3
         e1, e2, e3 = sym.simplify(sym.solve(eq, x))
         distances = map(abs, [e1-e2, e2-e3, e3-e1])
@@ -278,95 +496,81 @@ class PrimaryKWall(KWall):
         # print "e1 e2 e3: %s" % map(complex, \
         #       [e1.subs(u,u0+0.01), e2.subs(u,u0+0.01), e3.subs(u,u0+0.01)])
         if pair == 0:
-            # f1 = e1
-            # f2 = e2
-            f1, f2 = sort_by_abs(e1, e2, u0+0.01*(1+1j))
+            f1, f2 = sort_by_abs(e1, e2, u0+(10**(-5)) * (1+1j))
             f3 = e3
         elif pair == 1:
-            # f1 = e2
-            # f2 = e3
-            f1, f2 = sort_by_abs(e2, e3, u0+0.01*(1+1j))
+            f1, f2 = sort_by_abs(e2, e3, u0+(10**(-5)) * (1+1j))
             f3 = e1
         elif pair == 2:
-            # f1 = e3
-            # f2 = e1
-            f1, f2 = sort_by_abs(e1, e3, u0+0.01*(1+1j))
+            f1, f2 = sort_by_abs(e1, e3, u0+(10**(-5)) * (1+1j))
             f3 = e2
 
-        # print "f1, f2, f3: %s " % [f1,f2,f3]
+        f1_0 = complex(f1.subs(u, u0))
+        f2_0 = complex(f2.subs(u, u0))
+        f3_0 = complex(f3.subs(u, u0))
 
-        #TODO: No other way but to define eta_1(), deriv() here?
-        eta_1_part_1 = lambdify(u, 
-            # simplify(sym.expand( (sign) * 4 * (f3 - f1) ** (-0.5) )),
-            (sign) * 4 * (f3 - f1) ** (-0.5),
-            modules="numpy"
-        ) 
-        eta_1_part_2 = lambdify(u, 
-            # simplify(sym.expand( ((f2 - f1) / (f3 - f1)) )),
-            ((f2 - f1) / (f3 - f1)),
-            modules="numpy"
-        ) 
-        def eta_1(z):
-            return complex(eta_1_part_1(z) * mp.ellipk( eta_1_part_2(z) ) / 2.0)
+        eta_0 = (sign) * ((f3_0 - f1_0) ** (-0.5)) * pi / 2.0
 
-        #pdb.set_trace()
+        delta = 0.01
+        u1 = u0 + delta * exp(1j*(theta + pi - cmath.phase(eta_0)))
+        roots = [f1_0, f2_0, f3_0]
+        segment = [u0, u1]
+        [[f1_1, f2_1, f3_1], eta_1] = order_roots(roots, segment, sign, theta)
+        eta_prime_1 = (eta_1 - eta_0) / (u1 - u0)
 
-        # plot real & imaginary parts of eta_1
-        #plot_eta(eta_1)
+        self.pf_bc = [u1, eta_1, eta_prime_1]
+        self.coordinates = array([[u1.real, u1.imag]])
+        self.periods = array([eta_1])
 
-        t0 = 0
-        y0 = array([(complex(u0)).real,(complex(u0)).imag]) 
+        # pdb.set_trace()
 
-        ### Keep this just in case. 
-        ### Modifying the boundary condition for ODE int,
-        ### instead of starting from u0, start from a slightly 
-        ### displaced position, to avoid trouble with potential        
-        ### overlapping branch cuts from other branch-points.
-        # delta = 0.01
-        # u1 = u0 + delta * exp(1j*(theta + pi - cmath.phase(eta_1(u0))))
-        # t0 = 0
-        # y0 = array([(complex(u1)).real,(complex(u1)).imag]) 
+        ##################################
+        # End Newer Primary Evolution
+        ##################################
 
-        
-        def deriv(y, t):
-            z = complexify(y)
-            c = exp(1j*(theta + pi - cmath.phase(eta_1(z))))
-            return array([c.real, c.imag])
 
-        start, stop, num = primary_nint_range
-
-        time = linspace(start, stop, num)
-
-        ##########################################
-        # Save results to PrimaryKWall.coordinates
-        ##########################################
-        self.coordinates = odeint(deriv, y0, time)
-
-        #
-        # Calculate periods at each location of coordinates
-        #
-        self.periods = map(
-            complex, map(eta_1, map(complexify, self.coordinates))
-        )
-
-        #pdb.set_trace()
-
-    def get_pf_boundary_condition(self):
-        """ 
-        Employs data of class PrimaryKWall to produce correctly 
-        formatted boundary conditions for grow_pf(). 
-        """
-        coords = self.coordinates
-        per = self.periods
-        u0 = complexify(coords[-1])
-        eta0 = per[-1]
-        d_eta0 = ((per[-1]-per[-2]) / 
-                  (complexify(coords[-1]) - complexify(coords[-2])))
-        # print "boundary conditions for PF: \n %s " % [u0, eta0, d_eta0]
-        return [u0, eta0, d_eta0]
+    # def get_pf_boundary_condition(self):
+    #     """ 
+    #     Employs data of class PrimaryKWall to produce correctly 
+    #     formatted boundary conditions for grow_pf(). 
+    #     """
+    #     coords = self.coordinates
+    #     per = self.periods
+    #     u0 = complexify(coords[-1])
+    #     eta0 = per[-1]
+    #     d_eta0 = ((per[-1]-per[-2]) / 
+    #               (complexify(coords[-1]) - complexify(coords[-2])))
+    #     # print "boundary conditions for PF: \n %s " % [u0, eta0, d_eta0]
+    #     return [u0, eta0, d_eta0]
 
     def evolve(self, nint_range, trajectory_singularity_threshold,
                pf_odeint_mxstep):
+        ############################################################
+        # Begin Old version
+        ############################################################
+        # ti, tf, nstep = nint_range
+        # if(nstep == 0):
+        #     # Don't evolve, exit immediately.
+        #     return None
+        # if not (isinstance(self.parents[0], BranchPoint)):
+        #     raise TypeError('A parent of this primary K-wall '
+        #                     'is not a BranchPoint class.')
+        # # For a *primary* K-wall the boundary conditions are 
+        # # a bit particular:
+        # bc = self.get_pf_boundary_condition()
+        # pw_data_pf = self.grow_pf(bc, nint_range,
+        #                           trajectory_singularity_threshold,
+        #                           pf_odeint_mxstep)
+        # self.coordinates = numpy.concatenate(
+        #     (self.coordinates, [[row[0], row[1]] for row in pw_data_pf])
+        # )
+        # self.periods = numpy.concatenate(
+        #     (self.periods , [row[2] + 1j* row[3] for row in pw_data_pf])
+        # )
+        # self.check_cuts()
+        ############################################################
+        # End Old version
+        ############################################################
         ti, tf, nstep = nint_range
         if(nstep == 0):
             # Don't evolve, exit immediately.
@@ -376,10 +580,8 @@ class PrimaryKWall(KWall):
                             'is not a BranchPoint class.')
         # For a *primary* K-wall the boundary conditions are 
         # a bit particular:
-        bc = self.get_pf_boundary_condition()
 
-        print "PF boundary conditions: %s " % bc
-
+        bc = self.pf_bc
         pw_data_pf = self.grow_pf(bc, nint_range,
                                   trajectory_singularity_threshold,
                                   pf_odeint_mxstep)
@@ -390,6 +592,9 @@ class PrimaryKWall(KWall):
             (self.periods , [row[2] + 1j* row[3] for row in pw_data_pf])
         )
         self.check_cuts()
+
+        # pdb.set_trace()
+        
 
 
 class DescendantKWall(KWall):
