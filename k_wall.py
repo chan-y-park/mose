@@ -349,6 +349,8 @@ class PrimaryKWall(KWall):
             complex, map(eta_1, map(complexify, self.coordinates))
         )
 
+        #pdb.set_trace()
+
     def get_pf_boundary_condition(self):
         """ 
         Employs data of class PrimaryKWall to produce correctly 
@@ -526,31 +528,3 @@ class DescendantKWall(KWall):
         self.periods =  numpy.array([row[2] + 1j* row[3]
                                     for row in pw_data_pf ]) 
         self.check_cuts()
-
-def plot_eta(eta):
-    import matplotlib.pyplot as plt
-    import numpy as np
-
-    plt.figure()
-    X = np.arange(-10, 10, 0.1)
-    Y = np.arange(-10, 10, 0.1)
-    X, Y = np.meshgrid(X, Y)
-    Z_min = -5.0
-    Z_max = 5.0
-    n_levels = 20
-    levels = [Z_min + (Z_max - Z_min)*i/n_levels for i in range(n_levels)]
-
-    eta_r = np.vectorize(lambda z: complex(eta(z)).real)
-    eta_i = np.vectorize(lambda z: complex(eta(z)).imag)
-    Z_r = eta_r(X + 1j * Y)
-    Z_i = eta_i(X + 1j * Y)
-
-    plt.subplot(1, 2, 1, aspect=1)
-    csr = plt.contourf(X, Y, Z_r, levels=levels)
-    plt.colorbar(csr, shrink=.5)
-
-    plt.subplot(1, 2, 2, aspect=1)
-    csi = plt.contourf(X, Y, Z_i, levels=levels)
-    plt.colorbar(csi, shrink=.5)
-
-    plt.show()
