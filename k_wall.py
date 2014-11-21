@@ -223,10 +223,10 @@ class KWall(object):
             # (d eta / d u), with its own  appropriate b.c. and so on!
             ### NOTE THE FOLLOWING TWO OPTIONS FOR DERIVATIVE OF z
             z_1 = exp( 1j * ( theta + pi ) ) / eta
-            # z_1 = exp( 1j * ( theta + pi - phase( eta ) ) )
+            # z_1 = exp( 1j * ( theta + pi - cmath.phase( eta ) ) )
             eta_1 = z_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
             d_eta_1 = z_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
-            return array(
+            return  array(
                     [
                         z_1.real, z_1.imag, 
                         eta_1.real, eta_1.imag, 
@@ -517,7 +517,7 @@ class PrimaryKWall(KWall):
 
         eta_0 = (sign) * ((f3_0 - f1_0) ** (-0.5)) * pi / 2.0
 
-        delta = 0.05
+        delta = 0.01
         u1 = u0 + delta * exp(1j*(theta + pi - cmath.phase(eta_0)))
         roots = [f1_0, f2_0, f3_0]
         segment = [u0, u1]
@@ -530,7 +530,7 @@ class PrimaryKWall(KWall):
         self.coordinates = array([[u1.real, u1.imag]])
         self.periods = array([eta_1])
 
-        pdb.set_trace()
+        # pdb.set_trace()
 
         ##################################
         # End Newer Primary Evolution
@@ -589,7 +589,6 @@ class PrimaryKWall(KWall):
         # For a *primary* K-wall the boundary conditions are 
         # a bit particular:
         bc = self.pf_bc
-        # print "Boundary conditions for PF: %s " % bc
         pw_data_pf = self.grow_pf(bc, nint_range,
                                   trajectory_singularity_threshold,
                                   pf_odeint_mxstep)
@@ -601,7 +600,7 @@ class PrimaryKWall(KWall):
         )
         self.check_cuts()
 
-        pdb.set_trace()
+        # pdb.set_trace()
         
 
 
