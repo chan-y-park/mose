@@ -103,7 +103,8 @@ def analysis(graphics, save, analysis_type, log, fibration,
             config.get('intersection search', 'bin_size')
         )
         kwn.grow(
-            config.get('ODE', 'primary_k_wall_odeint_range'),
+            # config.get('ODE', 'primary_k_wall_odeint_range'),
+            fibration.primary_k_wall_odeint_range,
             config.get('ODE', 'odeint_range'),
             config.get('ODE', 'trajectory_singularity_threshold'),
             config.get('ODE', 'pf_odeint_mxstep'),
@@ -141,7 +142,8 @@ def analysis(graphics, save, analysis_type, log, fibration,
         k_wall_networks = construct_k_wall_networks(
             fibration,
             config.get('intersection search', 'bin_size'),
-            config.get('ODE', 'primary_k_wall_odeint_range'),
+            # config.get('ODE', 'primary_k_wall_odeint_range'),
+            fibration.primary_k_wall_odeint_range,
             config.get('ODE', 'odeint_range'),
             config.get('ODE', 'trajectory_singularity_threshold'),
             config.get('ODE', 'pf_odeint_mxstep'),

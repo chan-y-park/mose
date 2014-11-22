@@ -103,33 +103,52 @@ def order_roots(roots, segment, sign, theta):
         twins = [e3_0, e1_0]
         e3 = e2_0
 
-    ### First possibility ###
-    f1, f2 = twins
-    eta_u1 = (sign) * 4 * ((e3 - f1) ** (-0.5)) * \
-                                mp.ellipk( ((f2 - f1) / (e3 - f1)) )
-    phase_1 = cmath.phase( \
-                cmath.exp(1j * (theta + cmath.pi - cmath.phase(eta_u1))) / \
-                (u1 - u0) \
-                )
+    if abs(twins[0] - twins[1]) / abs(twins[0] - e3) < 0.3:
+        ### First possibility ###
+        f1, f2 = twins
+        eta_u1 = (sign) * 4 * ((e3 - f1) ** (-0.5)) * \
+                                    mp.ellipk( ((f2 - f1) / (e3 - f1)) )
+        phase_1 = cmath.phase( \
+                    cmath.exp(1j * (theta + cmath.pi - cmath.phase(eta_u1))) / \
+                    (u1 - u0) \
+                    )
 
-    ### Second possibility ###
-    f1, f2 = twins[::-1]
-    eta_u1 = (sign) * 4 * ((e3 - f1) ** (-0.5)) * \
-                                mp.ellipk( ((f2 - f1) / (e3 - f1)) )
-    phase_2 = cmath.phase( \
-                cmath.exp(1j * (theta + cmath.pi - cmath.phase(eta_u1))) / \
-                (u1 - u0) \
-                )
+        ### Second possibility ###
+        f1, f2 = twins[::-1]
+        eta_u1 = (sign) * 4 * ((e3 - f1) ** (-0.5)) * \
+                                    mp.ellipk( ((f2 - f1) / (e3 - f1)) )
+        phase_2 = cmath.phase( \
+                    cmath.exp(1j * (theta + cmath.pi - cmath.phase(eta_u1))) / \
+                    (u1 - u0) \
+                    )
 
-    if abs(phase_1) < abs(phase_2):
-        e1, e2 = twins
+        if abs(phase_1) < abs(phase_2):
+            e1, e2 = twins
+        else:
+            e1, e2 = twins[::-1]
+        
+        eta_u1 = (sign) * 4 * ((e3 - e1) ** (-0.5)) * \
+                                    mp.ellipk( ((e2 - e1) / (e3 - e1)) )
+
+        return [[e1, e2, e3], complex(eta_u1)]
     else:
-        e1, e2 = twins[::-1]
-    
-    eta_u1 = (sign) * 4 * ((e3 - e1) ** (-0.5)) * \
-                                mp.ellipk( ((e2 - e1) / (e3 - e1)) )
+        return 0
 
-    return [[e1, e2, e3], complex(eta_u1)]
+def cut_singular_kwall(kwall):
+    periods = kwall.periods
+    coordinates = kwall.coordinates
+    i_0 = 0
+    epsilon_0 = 10
+    for i, z in enumerate(coordinates):
+        epsilon = abs(complexify(z) - kwall.singular_point)
+        if epsilon < epsilon_0:
+            epsilon_0 = epsilon
+            i_0 = i
+        else:
+            break
+
+    kwall.coordinates = coordinates[0:i_0]
+    kwall.periods = periods[0:i_0]
 
 
 

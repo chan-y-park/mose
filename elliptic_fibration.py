@@ -39,6 +39,23 @@ class EllipticFibration:
                         )
             for i in range(len(branch_point_loci))
         ]
+
+        # The initial evolution of primary kwalls is handled with an
+        # automatic tuning.
+        # The length of the single step is calibrated to be
+        # 1/2000 th of the minimum distance between any two discriminant
+        # loci.
+        # The maximal number of steps is set to 400, although it may
+        # be automatically truncated whenever e_1, e_2, e_3 become too
+        # hard to distinguish.
+        step = minimum_distance(self.branch_points) / 2000.0
+        max_n_steps = 400
+        self.primary_k_wall_odeint_range = [
+                                            0.0,\
+                                            step * max_n_steps ,\
+                                            max_n_steps
+                                            ]
+
         # self.branch_cuts = [
         #     BranchCut(bp) 
         #     for bp in self.branch_points
@@ -91,4 +108,14 @@ def find_singularities(g2, g3):
                         )
     logging.info('singularities:\n%s', disc_points)
     return disc_points
+
+def minimum_distance(branch_points):
+    loci = [bpt.locus for bpt in branch_points]
+    min_dist = abs(loci[0]-loci[1])
+    for i, z_i in enumerate(loci):
+        for j, z_j in list(enumerate(loci))[i+1:]:
+            dist = abs(z_i - z_j)
+            if dist < min_dist:
+                min_dist = dist
+    return min_dist
 

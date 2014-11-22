@@ -217,6 +217,7 @@ class KWall(object):
             # print "PF determinant = %s" % det_pf
             if det_pf > trajectory_singularity_threshold:
                 self.singular = True
+                self.singular_point = z
 
             # A confusing point to bear in mind: here we are solving the 
             # ode with respect to time t, but d_eta is understood to be 
@@ -511,16 +512,31 @@ class PrimaryKWall(KWall):
 
         eta_0 = (sign) * ((f3_0 - f1_0) ** (-0.5)) * pi / 2.0
 
-        delta = 0.05
-        u1 = u0 + delta * exp(1j*(theta + pi - cmath.phase(eta_0)))
-        roots = [f1_0, f2_0, f3_0]
-        segment = [u0, u1]
-        [[f1_1, f2_1, f3_1], eta_1] = order_roots(roots, segment, sign, theta)
-        eta_prime_1 = (eta_1 - eta_0) / (u1 - u0)
+        start, stop, num = primary_nint_range
+        delta = float((stop - start) / num)
+
+        prim_coords = [[u0.real, u0.imag]]
+        prim_periods = [eta_0]
+
+        for i in range(num):
+            u1 = u0 + delta * exp(1j*(theta + pi - cmath.phase(eta_0)))
+            roots = [f1_0, f2_0, f3_0]
+            segment = [u0, u1]
+            try_step = order_roots(roots, segment, sign, theta)
+            # check if root tracking is no longer valid
+            if try_step == 0: 
+                break
+            else:
+                [[f1_1, f2_1, f3_1], eta_1] = try_step
+                eta_prime_1 = (eta_1 - eta_0) / (u1 - u0)
+                prim_coords.append([u1.real, u1.imag])
+                prim_periods.append(eta_1)
+                u0 = u1
+                eta_0 = eta_1
 
         self.pf_bc = [u1, eta_1, eta_prime_1]
-        self.coordinates = array([[u1.real, u1.imag]])
-        self.periods = array([eta_1])
+        self.coordinates = array(prim_coords)
+        self.periods = array(prim_periods)
 
         # pdb.set_trace()
 

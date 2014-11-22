@@ -8,7 +8,7 @@ from elliptic_fibration import EllipticFibration
 from k_wall import PrimaryKWall, DescendantKWall
 from intersection import HitTable
 from intersection_point import find_new_intersections
-from misc import complexify
+from misc import complexify, cut_singular_kwall
 from kswcf import progeny_2
 from k_wall import KWall
 
@@ -55,13 +55,15 @@ class KWallNetwork:
                 if (not k_wall.singular):
                     primary_k_walls.append(k_wall)
                 else:
-                    logging.info(
-                        """
-                        **************
-                        SINGULAR K-WALL! WILL BE DROPPED.
-                        **************
-                        """
-                    )
+                    cut_singular_kwall(k_wall)
+                    primary_k_walls.append(k_wall)
+                    # logging.info(
+                    #     """
+                    #     **************
+                    #     SINGULAR K-WALL! WILL BE DROPPED.
+                    #     **************
+                    #     """
+                    # )
 
         #############################
         # Now grow descendant k-walls.
@@ -117,13 +119,17 @@ class KWallNetwork:
                     if (not k_wall.singular):
                         new_k_walls.append(k_wall)
                     else:
-                        logging.info(
-                            """
-                            **************
-                            SINGULAR K-WALL! WILL BE DROPPED.
-                            **************
-                            """
-                        )
+                        cut_singular_kwall( \
+                                            k_wall\
+                                          )
+                        new_k_walls.append(k_wall)
+                        # logging.info(
+                        #     """
+                        #     **************
+                        #     SINGULAR K-WALL! WILL BE DROPPED.
+                        #     **************
+                        #     """
+                        # )
         # End of iterations.
         self.k_walls += new_k_walls
 
