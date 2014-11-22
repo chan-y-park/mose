@@ -1,0 +1,96 @@
+\documentclass[11pt]{article}
+\usepackage{color}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{fullpage}
+\usepackage{comment}
+\usepackage{amsmath, amssymb}
+\title{	The numerics of k-wall evolution}
+\author{Chan, Daniel, Pietro}
+%\date{}                                           % Activate to display a given date or no date
+\newcommand{\be}{\begin{equation}}
+\newcommand{\ee}{\end{equation}}
+\newcommand{\IR}{\mathbb{R}}
+\newcommand{\IC}{\mathbb{C}}
+
+\usepackage{xcolor}
+\hypersetup{
+    colorlinks,
+    linkcolor={blue!50!black},
+    citecolor={green!50!black},
+    urlcolor={blue!80!black}
+}
+
+\begin{document}
+\maketitle
+\tableofcontents
+
+Efficient evolution is achieved by means of integration of Picard-Fuchs equations.
+However, these are singular at the discriminant loci, where k-wall begin. Therefore a different technique must be adopted for early stage evolution of primary k-walls.
+
+\section{Primary K-walls}
+The basic equation governing k-walls is
+\be
+	arg(Z_{\gamma}(u)) \in e^{i\vartheta}\IR_{-} \qquad \Leftrightarrow \qquad du/dt \sim e^{i(\theta +\pi)} / \eta_{\gamma}(u)
+\ee
+where $\eta_{\gamma}(u):=dZ_{\gamma}(u) / du$.
+
+In the vicinity of $u=u_{0}$ where $\gamma$ shrinks, two of the roots of the elliptic curve come close to each other
+\be
+	y^{2} = 4 x^{3} - g_{2}(u) x -g_{3}(u) = 4\prod_{i=1}^{3}(x-e_{i}(u))
+\ee
+in particular $e_{1}(u_{0})= e_{2}(u_{0})$.
+
+As we move away, the period integral
+\be
+	\eta_{\gamma}(u) = \int_{\gamma} {dx\over y(x,u)} = 2 \int_{e_{1}(u)}^{e_{2}(u)}{dx\over y(x,u)}
+\ee
+can be evaluated by means of elliptic functions (see Gradshteyn-Rhyzhik formula ******).
+\be
+	\eta(u) = \frac{4}{\sqrt{e_{3}-e_{1}}} \, K\left( \frac{e_{2}-e_{1}}{e_{3}-e_{1}} \right)
+\ee
+note that in their conventions the argument of the K-function is the square-root of ours!
+The above expression clearly has branch-cuts, due both to the square-root and to the K-function.
+But near $u=u_{0}$ both pieces are well-behaved since (see Gradshteyn formula ***)
+\be
+	K(z) \sim {\pi\over 2}(1+ {1\over 4}z + {9\over 64} z^{2} +O(z^{3}))
+\ee
+Nevertheless, we cannot directly apply the formula fo $\eta$ to our differential equation, due to \emph{additional} branch-cuts, coming from the roots $e_{i}(u)$. These can be quite bad, as testified by the following plot \\
+****** INSERT PLOT ********\\
+But, having understood the \emph{nature} of branch-cuts, and their effects, we can suitably define evolution as follows.
+We start with $u=u_{0}$, and compute $\eta_{0} = \eta(u_{0})$ there: this will be simply ($e_{3} = -e_{1}-e_{2} = -2e_{1}$)
+\be
+	\eta_{0} = \frac{4}{\sqrt{-3 e_{1}}}\frac{\pi}{2}.
+\ee
+Then we use this into our differential equation, and define
+\be
+	u_{1} = u_{0} + \delta t \cdot  e^{i(\theta +\pi)} / \eta_{0}
+\ee
+with small positive $\delta t$.
+At $u=u_{1}$ we may now use our expression for $\eta$, but we must somehow be careful about branch-cuts. In particular, the ambiguity consists in picking $(e_{1}, e_{2})$ vs $(e_{2}, e_{1})$ to plug into $\eta$. Since there are only two possibilities, we compute them both
+\be
+	\eta_{12} \qquad \text{and} \eta_{21}
+\ee
+then, we use each of these to compute $du/dt$ at $u_{1}$, and we notice that only one of the two will give a tangent direction compatible with $u_{1}-u_{0}$. More precisely we choose the one giving the smaller value of
+\be
+	\left|arg\left(  \frac{e^{i(\theta +\pi)} / \eta_{12}}{u_{1}-u_{0}} \right) \right| %
+	\qquad \text{vs} \qquad %
+	\left|arg\left(  \frac{e^{i(\theta +\pi)} / \eta_{21}}{u_{1}-u_{0}} \right) \right|
+\ee
+this will tell us what is the correct value of $\eta_{u_{1}}$, thus fixing the ambiguity of branch-cuts.
+Having $\eta(u_{1})$ allows also to compute 
+\be
+	\eta'(u_{1}) := \frac{\eta(u_{1}) - \eta(u_{0})}{u_{1}-u_{0}}\,.
+\ee
+We iterate this a few times, moving slowly away from the discriminant locus, until the distinction between $e_{3}$ and the other two roots becomes harder to make. At that point, we switch to Picard-Fuchs.
+
+\bigskip
+
+{\bf Possible substantial improvement of numerics:} instead of keeping track only of the 1st derivative, we could keep track numerically of corrections due to 2nd and higher order derivatives,
+which should become accessible as we compute more and more points.
+
+
+\section{Picard Fuchs}
+For now, see old notes with Dima.
+
+\end{document}  
