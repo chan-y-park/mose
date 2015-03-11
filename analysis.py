@@ -79,9 +79,9 @@ def analysis(graphics, save, analysis_type, log, fibration,
 
         fibration = EllipticFibration(
             config.get('fibration', 'g2'),
-            config.get('fibration', 'g3'),
-            config.get('charge', 'fixed_charges'),
-            config.get('charge', 'dsz_matrix'),
+            config.get('fibration', 'g3')
+            # config.get('charge', 'fixed_charges'),
+            # config.get('charge', 'dsz_matrix'),
         )
 
         KWall.count = 0

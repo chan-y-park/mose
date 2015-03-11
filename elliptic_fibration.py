@@ -1,9 +1,11 @@
 import logging
 import sympy as sym
 import numpy as np
+import math
 import cmath
 import string
 import random
+import weierstrass as wss
 from sympy import Poly
 from branch import BranchPoint
 
@@ -13,13 +15,32 @@ def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
 class EllipticFibration:
-    def __init__(self, g2, g3, branch_point_charges, dsz_matrix):
+    def __init__(self, g2, g3):
 
         self.g2 = g2
         self.g3 = g3
-        self.dsz_matrix = dsz_matrix
-        branch_point_loci = map(complex, find_singularities(g2, g3))
-        
+        u = sym.Symbol('u')
+        self.f_coeffs = np.array(map(complex, Poly(g2, u).all_coeffs())) \
+                                                                * (- 1 / 4.0)
+        self.g_coeffs = np.array(map(complex, Poly(g3, u).all_coeffs())) \
+                                                                * (- 1 / 4.0)
+
+        self.w_model = wss.WeierstrassModelWithPaths(self.f_coeffs,self.g_coeffs)
+
+        # We will work with the convention that the DSZ matrix is fixed to be:
+        self.dsz_matrix = [[0, 1], [-1, 0]]
+        # OLD - REMOVE?
+        # branch_point_loci = map(complex, find_singularities(g2, g3))
+        branch_point_loci = list(w_model.get_D())
+        branch_point_monodromies = \
+                        [wss.monodromy_at_point_wmodel(i, self.w_model) \
+                        for i in range(len(branch_point_loci))]
+        print "these are the monodromies: %s" % branch_point_monodromies
+        branch_point_charges = [monodromy_eigencharge(m) for m \
+                                                in branch_point_monodromies]
+        print "these are the charges: %s" % branch_point_charges
+
+
         ### Introduce string identifiers to label branch-points.
         ### These will be used when building genealogies of intersection 
         ### points, to compare them and build MS walls accordingly.
@@ -28,13 +49,14 @@ class EllipticFibration:
                                             range(len(branch_point_loci))]
 
         # NEED TO DETERMINE THE MONODROMY FROM ANALYSIS OF ELLIPTIC FIBRATION!
-        dummy_monodromy = np.identity(len(branch_point_charges[0]))
+        # dummy_monodromy = np.identity(len(branch_point_charges[0]))
 
         self.branch_points = [
             BranchPoint(
                         branch_point_loci[i],
                         branch_point_charges[i], 
-                        dummy_monodromy,
+                        # dummy_monodromy,
+                        branch_point_monodromies[i]
                         bp_identifiers[i]
                         )
             for i in range(len(branch_point_loci))
@@ -75,39 +97,40 @@ class EllipticFibration:
 #     return disc_points
 
 #### NEW METHOD
-def find_singularities(g2, g3):
-    """
-    find the singularities on the Coulomb branch
-    """
-    u = sym.Symbol('u')
+#### NOW SUPERSEDED BY WEIERSTRASS CLASS ITSELF
+# def find_singularities(g2, g3):
+#     """
+#     find the singularities on the Coulomb branch
+#     """
+#     u = sym.Symbol('u')
 
-    g2_coeffs = map(complex, Poly(g2, u).all_coeffs())
-    g3_coeffs = map(complex, Poly(g3, u).all_coeffs())
+#     g2_coeffs = map(complex, Poly(g2, u).all_coeffs())
+#     g3_coeffs = map(complex, Poly(g3, u).all_coeffs())
     
-    # Converting from
-    # y^2 = 4 x^3 - g_2 x - g_3
-    # to 
-    # y^2 = x^3 + f x + g
+#     # Converting from
+#     # y^2 = 4 x^3 - g_2 x - g_3
+#     # to 
+#     # y^2 = x^3 + f x + g
     
-    f = np.poly1d(g2_coeffs, variable='u') * (- 1 / 4.0)
-    g = np.poly1d(g3_coeffs, variable='u') * (- 1 / 4.0)
-    Delta = 4.0 * f ** 3 + 27.0 * g ** 2
+#     f = np.poly1d(g2_coeffs, variable='u') * (- 1 / 4.0)
+#     g = np.poly1d(g3_coeffs, variable='u') * (- 1 / 4.0)
+#     Delta = 4.0 * f ** 3 + 27.0 * g ** 2
 
-    ### Minor Bug: the polynomial is printed with variable 'x' although I 
-    ### declared it to be 'u'
-    logging.info('discriminant:\n%s', Delta)
+#     ### Minor Bug: the polynomial is printed with variable 'x' although I 
+#     ### declared it to be 'u'
+#     logging.info('discriminant:\n%s', Delta)
 
-    #Accounting for cancellations of higher order terms in discriminant
-    for i, coeff in enumerate(Delta.c):
-        if np.absolute(coeff) > NEGLIGIBLE_BOUND:
-            Delta = np.poly1d(Delta.c[i:])
-            break 
+#     #Accounting for cancellations of higher order terms in discriminant
+#     for i, coeff in enumerate(Delta.c):
+#         if np.absolute(coeff) > NEGLIGIBLE_BOUND:
+#             Delta = np.poly1d(Delta.c[i:])
+#             break 
 
-    disc_points = sorted(Delta.r, \
-                        cmp=lambda x,y: cmp(x.real, y.real) 
-                        )
-    logging.info('singularities:\n%s', disc_points)
-    return disc_points
+#     disc_points = sorted(Delta.r, \
+#                         cmp=lambda x,y: cmp(x.real, y.real) 
+#                         )
+#     logging.info('singularities:\n%s', disc_points)
+#     return disc_points
 
 def minimum_distance(branch_points):
     loci = [bpt.locus for bpt in branch_points]
@@ -119,3 +142,26 @@ def minimum_distance(branch_points):
                 min_dist = dist
     return min_dist
 
+def monodromy_eigencharge(monodromy):
+    # m = magnetic charge
+    # n = electric charge
+    # we work in conventions of Seiberg-Witten 2, with monodromy matrices
+    # acting from the LEFT (hence our matrices are TRANSPOSE os those in SW!), 
+    # and given by:
+    #       1 + 2 n m    &    - m^2       \\
+    #       4 n^2        &    1 - 2 n m
+
+    nm = (monodromy[0][0] - monodromy[1][1]) / 4.0
+    m_temp = math.sqrt(-1.0 * monodromy[0][1])
+    n_temp = 2 * math.sqrt(monodromy[1][0] / 4.0)
+    if nm != 0:
+        if nm > 0:
+            n = n_temp
+            m = m_temp
+        else:
+            n = -n_temp
+            m = m_temp
+    else:
+        m = m_temp
+        n = n_temp
+    return (int(m), int(n))

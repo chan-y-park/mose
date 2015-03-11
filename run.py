@@ -46,7 +46,8 @@ def run_with_optlist(optlist):
         including fibration, ODE solver parameters, etc.
 
     -l LEVEL, --logging_level=LEVEL:
-        set logging level to LEVEL.
+        set logging level to LEVEL. 
+        Possible options include: debug, warning, info
 
     -s THETA:
         produce a single K-wall network at the phase of THETA
