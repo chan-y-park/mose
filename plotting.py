@@ -2,21 +2,27 @@
 Plots singularities, K-walls, walls of marginal stability, etc., on the
 complex 1-dimensional moduli space.
 """
+import numpy
 
 from matplotlib import pyplot
 
-def prepare_k_wall_network_plot(k_wall_network, plot_range=[], plot_bin=False, 
-                        plot_intersections=False, 
-                        display_data_points=False,
-                        display_segments=False): 
+
+def prepare_k_wall_network_plot(
+    k_wall_network, plot_range=[[-5, 5], [-5, 5]], plot_bins=False, 
+    plot_intersections=False, plot_data_points=False,
+    plot_segments=False): 
+
+    hit_table = k_wall_network.hit_table
+    k_walls = k_wall_network.k_walls
+
+    # turning off interactive mode for running remotely in background
+    # EXPERIMENTAL
+    pyplot.ioff() 
 
     # Give an identifier to the figure we are goint to produce
     pyplot.figure("kwall_snapshot")
     pyplot.figure("kwall_snapshot").clear()
 
-    # Range on the plane to search for intersections
-    if(plot_range == []):
-        plot_range = k_wall_network.hit_table.get_search_range()
     [[x_min, x_max], [y_min, y_max]] = plot_range
 
     # Plot setting.
@@ -25,8 +31,8 @@ def prepare_k_wall_network_plot(k_wall_network, plot_range=[], plot_bin=False,
     pyplot.axes().set_aspect('equal')
 
     # Draw a lattice of bins for visualization.
-    if(plot_bin == True):
-        bin_size = k_wall_network.hit_table.get_bin_size()
+    if(plot_bins is True):
+        bin_size = hit_table.get_bin_size()
         xv = x_min
         while xv < x_max:
             xv += bin_size
@@ -56,44 +62,52 @@ def prepare_k_wall_network_plot(k_wall_network, plot_range=[], plot_bin=False,
     # End of plotting intersection points
 
     # If we have segments of curves, draw them in different colors.
-    if(display_segments == True):
-        for bin_key in k_wall_network.hit_table:
+    if(plot_segments == True):
+        for bin_key in hit_table:
             for curve_index in hit_table[bin_key]:
                 for t_i, t_f in hit_table[bin_key][curve_index]:
                     seg_xcoords, seg_ycoords = \
                         [list(c) for c in \
-                            zip(*kwalls[curve_index].coordinates[t_i: t_f + 1])
+                            zip(*k_walls[curve_index].coordinates[t_i: t_f+1])
                         ] 
                     pyplot.plot(seg_xcoords, seg_ycoords, '-')
-                    if(display_data_points == True):
+                    if(plot_data_points == True):
                         pyplot.plot(seg_xcoords, seg_ycoords, 'o', color='b')
     else:
-        for k_wall in k_wall_network.k_walls:
+        for k_wall in k_walls:
             xcoords, ycoords = [list(c) for c in zip(*k_wall.coordinates)] 
             pyplot.plot(xcoords, ycoords, '-', color='b')
-        if(display_data_points == True):
+        if(plot_data_points == True):
             pyplot.plot(xcoords, ycoords, 'o', color='b')
     
     return pyplot.figure("kwall_snapshot")
 
 
 
-def plot_k_wall_network(k_wall_network, plot_range=[], plot_bin=False, 
+def plot_k_wall_network(k_wall_network, plot_range=[], plot_bins=False, 
                         plot_intersections=False, 
-                        display_data_points=False,
-                        display_segments=False):
-    figure = prepare_k_wall_network_plot(k_wall_network, plot_range, plot_bin, 
-                        plot_intersections, display_data_points, 
-                        display_segments)
+                        plot_data_points=False,
+                        plot_segments=False):
+    figure = prepare_k_wall_network_plot(k_wall_network, plot_range, plot_bins, 
+                        plot_intersections, plot_data_points, 
+                        plot_segments)
+    # turning off interactive mode for running remotely in background
+    # EXPERIMENTAL
+    pyplot.ioff() 
+
     pyplot.show(figure)
     return None
 
 
 
-def prepare_ms_plot(ms_walls, plot_range): 
+def prepare_ms_plot(ms_walls, plot_range=[[-5,5],[-5,5]]): 
     """
     Plots MS walls.
     """
+    # turning off interactive mode for running remotely in background
+    # EXPERIMENTAL
+    pyplot.ioff() 
+
     # Give an identifier to the figure we are goint to produce
     pyplot.figure("ms_walls_plot")
 
@@ -122,7 +136,54 @@ def prepare_ms_plot(ms_walls, plot_range):
     
 
 
-def plot_ms_walls(ms_walls, plot_range):
+def plot_ms_walls(ms_walls, plot_range=[[-5, 5], [-5, 5]]):
     figure = prepare_ms_plot(ms_walls, plot_range)
+
+    # turning off interactive mode for running remotely in background
+    # EXPERIMENTAL
+    pyplot.ioff() 
+    
     figure.show()
     return None
+
+def plot_coordinates(coordinates, plot_range=[[-5, 5], [-5, 5]],
+                     plot_data_points=False,):
+    # Plot setting.
+    [[x_min, x_max], [y_min, y_max]] = plot_range
+    pyplot.figure()
+    pyplot.xlim(x_min, x_max)
+    pyplot.ylim(y_min, y_max)
+    pyplot.axes().set_aspect('equal')
+
+    xcoords, ycoords = [list(c) for c in zip(*coordinates)] 
+    pyplot.plot(xcoords, ycoords, '-', color='b')
+
+    if(plot_data_points == True):
+        pyplot.plot(xcoords, ycoords, 'o', color='k', markersize=4)
+
+    pyplot.show()
+
+def plot_eta(eta):
+    pyplot.figure()
+    X = numpy.arange(-10, 10, 0.1)
+    Y = numpy.arange(-10, 10, 0.1)
+    X, Y = numpy.meshgrid(X, Y)
+    Z_min = -5.0
+    Z_max = 5.0
+    n_levels = 20
+    levels = [Z_min + (Z_max - Z_min)*i/n_levels for i in range(n_levels)]
+
+    eta_r = numpy.vectorize(lambda z: complex(eta(z)).real)
+    eta_i = numpy.vectorize(lambda z: complex(eta(z)).imag)
+    Z_r = eta_r(X + 1j * Y)
+    Z_i = eta_i(X + 1j * Y)
+
+    pyplot.subplot(1, 2, 1, aspect=1)
+    csr = pyplot.contourf(X, Y, Z_r, levels=levels)
+    pyplot.colorbar(csr, shrink=.5)
+
+    pyplot.subplot(1, 2, 2, aspect=1)
+    csi = pyplot.contourf(X, Y, Z_i, levels=levels)
+    pyplot.colorbar(csi, shrink=.5)
+
+    pyplot.show()

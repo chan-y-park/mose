@@ -1,4 +1,7 @@
 import logging
+import ast
+from misc import deep_reverse
+from numpy import array
 
 class MarginalStabilityWall:
     """
@@ -40,6 +43,22 @@ class MarginalStabilityWall:
         if gen[1].__class__.__name__ == 'BranchPoint':
             self.points.append(gen[1])
 
+def opposite(data):
+    ### recall that charges of an intersection point are formatted as 
+    ### {'[1,0]','[0,-2]'}
+    ### to turn the above into a format such as
+    ### [[1,0],[0,-2]]
+    ### we do the following
+    charges = map(ast.literal_eval, list(data[0]))
+    genealogy = data[1]
+    ### formatting back to the previous convention
+    opp_charges =  set(map(str, map(list, map(lambda x: -x, \
+                                                    map(array, charges)))))
+    ### apparently, no need to take the "mirror" genealogy: makes sense!
+    # opp_genealogy = set(map(str, deep_reverse(genealogy)))
+    opp_genealogy = genealogy
+    return [opp_charges, opp_genealogy]
+
 
 def build_ms_walls(k_wall_networks):
     """
@@ -61,11 +80,14 @@ def build_ms_walls(k_wall_networks):
                 )
 
     for i in range(len(data)):
-        if not (data[i] in seen):
+        if not (data[i] in seen or opposite(data[i]) in seen):
             walls.append([all_intersections[i]]) #start a new wall
             seen.append(data[i])
+        elif opposite(data[i]) in seen:
+            walls[seen.index(opposite(data[i]))].append(all_intersections[i])
         else:
             walls[seen.index(data[i])].append(all_intersections[i])
+
 
     return [MarginalStabilityWall(x) for x in walls]
 

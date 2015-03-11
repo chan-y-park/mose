@@ -279,8 +279,7 @@ def sample_path_data(dLoc):
     l : minimum distance between two roots
     """
     min_y = min([loc.imag for loc in dLoc])
-    spacing = 0.45*min([dLoc[i+1].real-dLoc[i].real \
-            for i in range(len(dLoc)-1)])
+    spacing = 0.45*min([dLoc[i+1].real-dLoc[i].real for i in range(len(dLoc)-1)])
     initPoint = 1j*(min_y-5*spacing)+(dLoc[0].real-2*spacing)
     min_len=np.absolute(dLoc[0]-dLoc[1])
     for c in combinations(dLoc,2):
@@ -794,10 +793,10 @@ def evolve_to_get_braiding(init_data,f,g,start_end,timesteps=1000):
 #Test Functions to test evolution functions
 
 def animate_roots_and_angles_path(wmodel,dnum,xspan=5,yspan=2,\
-                                timesteps=1000,steps=10,path=None,breaks=None):
+                                  timesteps=1000,steps=10,path=None,breaks=None):
     
     def crds_to_roots(crds):
-        return [crds[0]+1j*crds[1],crds[2]+1j*crds[3],crds[4]+1j*crds[5]]
+        return [crds[0]+1j*crds[1],crds[2]+1j*crds[3],crds[4]+1j*crds[5]]            
                                         
     def boxspan(list,ratio):
         minval=min(list)
@@ -903,19 +902,15 @@ def animate_roots_and_angles_path(wmodel,dnum,xspan=5,yspan=2,\
         for t, line in enumerate(lines_roots):
             line.set_data(root_xcoords[t][:steps*i],root_ycoords[t][:steps*i])
         for t, l in enumerate(lines_angles):
-            l[0].set_data(angle_xcoords[t][:steps*i],\
-                            angle_ycoords[t][:steps*i])
+            l[0].set_data(angle_xcoords[t][:steps*i],angle_ycoords[t][:steps*i])
             l[1].set_data(angle_xcoords[t][steps*i-20:steps*i],\
-                            angle_ycoords[t][steps*i-20:steps*i])
-            l[2].set_data(angle_xcoords[t][steps*i-1],\
-                            angle_ycoords[t][steps*i-1])
+                          angle_ycoords[t][steps*i-20:steps*i])
+            l[2].set_data(angle_xcoords[t][steps*i-1],angle_ycoords[t][steps*i-1])
         lines_point[0].set_data(dLoc_x,dLoc_y)
-        lines_point[1].set_data(point_xcoords[:steps*i],\
-                            point_ycoords[:steps*i])
+        lines_point[1].set_data(point_xcoords[:steps*i],point_ycoords[:steps*i])
         lines_point[2].set_data(point_xcoords[steps*i-20:steps*i],\
                                 point_ycoords[steps*i-20:steps*i])
-        lines_point[3].set_data(point_xcoords[steps*i-1],\
-                                point_ycoords[steps*i-1])
+        lines_point[3].set_data(point_xcoords[steps*i-1],point_ycoords[steps*i-1])
         return (lines_roots+lines_angles[0]+lines_angles[1]+lines_angles[2]+\
                 lines_point),
 
