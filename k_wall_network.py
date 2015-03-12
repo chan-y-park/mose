@@ -32,16 +32,20 @@ class KWallNetwork:
         primary_k_walls = []
 
         for sign in [+1.0, -1.0]:
-            ### Here the sign list should be either 
-            ### [+1,-1] or [-1,+1]
-            ### This must be determined ultimately by the Weierstrass
-            ### analysis
+            ### Here the sign list distinguishes between \gamma and -\gamma
+            ### both of whose K-walls are generated from the same discriminant
+            ### locus. The distinction between these is determined ultimately 
+            ### by the Weierstrass analysis, within the class PrimaryKWall
             for bp in self.fibration.branch_points:
             #for idx, bp in enumerate(self.fibration.branch_points):
                 logging.info('Evolving primary K-wall #%d',
                              len(primary_k_walls))
                 k_wall = PrimaryKWall(
-                    list(int(sign) * array(bp.charge)),    # initial_charge
+                    None,                          # initial_charge
+                    # note: the assignment of charge is only provisional,
+                    # within the creation of the Kwall we will determine the 
+                    # charge from the parent branch point, taking care of 
+                    # the distinction between \gamma and -\gamma.
                     1,                                  # degeneracy
                     self.phase,
                     [bp],                               # parents

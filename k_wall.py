@@ -538,6 +538,30 @@ class PrimaryKWall(KWall):
         self.coordinates = array(prim_coords)
         self.periods = array(prim_periods)
 
+        ### Now we need to find the correct initial charge for the K-wall.
+        ### The parent branch point gives such data, but with ambiguity on the 
+        ### overall sign. This is fixed by comparing the period of the 
+        ### holomorphic differential along the vanishing cycle with the 
+        ### corresponding period as evolved via PF from the basepoint on the 
+        ### u-plane where we trivialized the charge lattice, which we used to 
+        ### compute monodromies.
+        parent_bp = self.parents[0]
+        positive_period = parent_bp.positive_period
+        positive_charge = parent_bp.charge
+        kwall_period = self.periods[0]      # this period is used for evolution
+        kwall_sign = (kwall_period / positive_period).real / \
+                    abs((kwall_period / positive_period).real)
+        kwall_charge = list(int(kwall_sign) * array(positive_charge))
+        self.initial_charge = kwall_charge
+
+
+        print "\n\nHere kwall.py line 558\
+        \nThe K-wall period is %s, the positive period is %s\n\
+        Therefore the sign is %s\nThe charge is %s" \
+        % (kwall_period, positive_period, \
+            kwall_sign, kwall_charge)
+        
+
         # pdb.set_trace()
 
         ##################################
