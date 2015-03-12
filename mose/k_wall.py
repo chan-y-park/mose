@@ -711,6 +711,7 @@ class DescendantKWall(KWall):
 
     def evolve(self, nint_range, trajectory_singularity_threshold,
                 pf_odeint_mxstep):
+        ti, tf, nstep = nint_range
         if(nstep == 0):
             # Don't evolve, exit immediately.
             return None

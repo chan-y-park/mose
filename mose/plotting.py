@@ -30,7 +30,7 @@ class KWallNetworkPlot:
             self.toplevel = tk.Toplevel(root)
         self.toplevel.wm_title('K-wall Network Plot')
         self.plots = []
-        self.current_plot_idx = 0 
+        self.current_plot_idx = None 
 
         self.figure = matplotlib.figure.Figure()
         self.canvas = FigureCanvas(
@@ -122,8 +122,13 @@ class KWallNetworkPlot:
             if(plot_data_points == True):
                 axes.plot(xcoords, ycoords, 'o', color='b')
         
-        axes.set_visible(False)
         self.plots.append(axes)
+        if self.current_plot_idx is not None:
+            self.plots[self.current_plot_idx].set_visible(False)
+            self.current_plot_idx += 1
+        else:
+            self.current_plot_idx = 0
+        axes.set_visible(True)
 
         return None
 

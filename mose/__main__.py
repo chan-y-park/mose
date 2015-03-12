@@ -11,9 +11,7 @@ import pdb
 
 from config import MoseConfig
 from gui import open_gui
-from api import analysis, save_data, load_data, save_config_file
-from plotting import KWallNetworkPlot, MSWallPlot
-from misc import formatted_date_time
+from api import (analysis, save, load, load_config, make_plots,)
 
 
 shortopts = 'c:g:hl:p:'
@@ -25,8 +23,10 @@ longopts = [
     'logging_level=',
     'phase=',
     # options without short versions
-    'load-data=',
-    'save-data=',
+    'load-data',
+    'load-data-from=',
+    'save-data',
+    'save-data-at=',
     'show-plot',
 ]
 
@@ -40,13 +40,17 @@ def run_with_optlist(optlist):
         'gui-mode': False,
         'logging-level': 'info',
         'phase': None,
-        'load-data': None,
-        'save-data': True,
+        'load-data': False,
+        'load-data-from': None,
+        'save-data': False,
+        #'save-data-at': None,
         'show-plot': False,
     }
-        
+
     for opt, arg in optlist:
-        if (opt == '-c' or opt == '--config-file'):
+        if (opt == '-h' or opt == '--help'):
+            return print_help()
+        elif (opt == '-c' or opt == '--config-file'):
             opts['config-file'] = arg
         elif (opt == '-g' or opt == '--gui-mode'):
             opts['gui-mode'] = eval(arg) 
@@ -56,9 +60,13 @@ def run_with_optlist(optlist):
             # Generate a single K-wall network at a phase
             opts['phase'] = float(arg)
         elif opt == '--load-data':
-            opts['load-data'] = arg
+            opts['load-data'] = True 
+        elif opt == '--load-data-from':
+            opts['load-data-from'] = arg
         elif opt == '--save-data':
-            opts['save-data'] = eval(arg) 
+            opts['save-data'] = True 
+        #elif opt == '--save-data-at':
+        #    opts['save-data-at'] = arg 
         elif opt == '--show-plot':
             opts['show-plot'] = True
     # End of option setting.
@@ -76,82 +84,71 @@ def run_with_optlist(optlist):
 
     logging.basicConfig(level=logging_level, format=logging_format, 
                         stream=sys.stdout)
-    # Load config & data according to the command line args. 
-    if opts['load-data'] is not None:
-        data_dir = opts['load-data']
-        config, data = load_data(data_dir)
-    else:
-        # Read in the specified config file.
-        config = MoseConfig()
-        config_file = opts['config-file']
-        # No config file chosen; read the default config file.
-        if config_file is None:
-            logging.warning('No configuration file specified --- '
-                            'load "default.ini" instead.')
-            config_file = os.path.join(os.curdir, 'default.ini')
-        config.read(config_file)
-        data = None 
 
     if opts['gui-mode'] is True:
         return open_gui(config, data)
 
+    # Load config & data. 
+    if opts['load-data'] is True:
+        # Load config & data using a file dialog. 
+        config, data = load()    
+    elif opts['load-data-from'] is not None:
+        # Load config & data according to the command line args. 
+        data_dir = opts['load-data-from']
+        config, data = load(data_dir)
+    else:
+        # Read in the specified config file.
+        config = load_config(opts['config-file'])
+        if config is None:
+            return None
+        data = None 
+
     if data is None:
         data = analysis(config, phase=opts['phase'],)
 
-    k_wall_network_plot = KWallNetworkPlot()
-    ms_wall_plot = MSWallPlot()
-
-    if (opts['show-plot'] or opts['save-data']) is True:
-        # Draw the plots of K-wall networks.
-        for k_wall_network in data['k_wall_networks']:
-            k_wall_network_plot.draw(
-                k_wall_network,
-                plot_range=config['plotting']['range'], 
-            )
-
-        if data['multiple_networks'] is True:
-            # Draw MS walls and save the plot.
-            ms_wall_plot.draw(
-                data['ms_wall'],
-                plot_range=config['plotting']['range'], 
-            )
-
-    if opts['show-plot'] is True:
-        k_wall_network_plot.show()
-        if data['multiple_networks'] is True:
-            ms_wall_network_plot.show()
-
+    if ((opts['show-plot'] or opts['save-data']) is True
+        or (opts['save-data-at'] is not None)):
+        k_wall_network_plot, ms_wall_plot = make_plots(
+            config, data, opts['show-plot']
+        )
 
     if opts['save-data'] is True:
-        # Prepares the folder where to save data.
-        current_dir = os.getcwd()
-        data_dir = os.path.join(current_dir, 'data', formatted_date_time())
-        # If the directory does not exist, create it
-        if not os.path.exists(data_dir):
-            os.makedirs(data_dir)
+        save(config, data, k_wall_network_plot, ms_wall_plot)
 
-        save_config_file(config, file_dir=data_dir)
-        save_data(config, data, data_dir=data_dir)
-        k_wall_network_plot.save(data_dir)
-        if data['multiple_networks'] is True:
-            ms_wall_plot.save(data_dir)
+    return (config, data, k_wall_network_plot, ms_wall_plot)
 
-    return (data, k_wall_network_plot, ms_wall_plot)
+## Set options from sys.argv when running on the command line,
+## then start running the main code.
+#def run_with_sys_argv(argv):    
+#    try:
+#        optlist, args = getopt.getopt(argv, shortopts, longopts,)
+#        run_with_optlist(optlist)
+#
+#    except getopt.GetoptError:
+#        print 'Unknown options.'
 
-# Set options from sys.argv when running on the command line,
-# then start running the main code.
-def run_with_sys_argv(argv):    
+## Set options from string 'optstr' when running on the interpreter, 
+## then start running the main code.
+#def run_with_optstr(optstr):
+#    run_with_sys_argv(optstr.split())
+
+
+def run(optstr='', argv=None):
+    # Set options from string 'optstr' when running on the interpreter, 
+    # then start running the main code.
+    if argv is None:
+        argv = optstr.split()
+
+    # Set options from sys.argv (when running on the command line)
+    # or from argv from optstr (when running on the interpreter),
+    # then start running the main code.
     try:
         optlist, args = getopt.getopt(argv, shortopts, longopts,)
-        run_with_optlist(optlist)
+        return run_with_optlist(optlist)
 
-    except getopt.GetoptError:
-        print 'Unknown options.'
-
-# Set options from string 'optstr' when running on the interpreter, 
-# then start running the main code.
-def run_with_optstr(optstr):
-    run_with_sys_argv(optstr.split())
+    except getopt.GetoptError as e:
+        print 'Unknown option: {}.'.format(e)
+        return None
 
 
 def print_help():
@@ -188,8 +185,10 @@ def print_help():
     will also show the plot of marginal stability walls.
     """)
 
+    return None
+
 
 
 if __name__ == '__main__':
     # Set options when running from a command prompt
-    run_with_sys_argv(sys.argv[1:])
+    run(sys.argv[1:])

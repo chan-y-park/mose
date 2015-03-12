@@ -4,16 +4,21 @@ import sys
 import getopt
 import time
 import pickle
+import Tkinter as tk
+import tkFileDialog
 import pdb
 
 import k_wall_network
 
 from matplotlib import pyplot
 
+from config import MoseConfig
 from elliptic_fibration import EllipticFibration
 from k_wall_network import KWallNetwork, construct_k_wall_networks
 from k_wall import KWall
 from marginal_stability_wall import build_ms_walls
+from plotting import KWallNetworkPlot, MSWallPlot
+from misc import formatted_date_time
 
 
 def analysis(config, phase=None,):
@@ -68,20 +73,58 @@ def analysis(config, phase=None,):
     return data
 
 
-def load_data(data_dir):
+def load_config(config_file=None):
+    config = MoseConfig()
+    if config_file is None:
+        root = tk.Tk()
+        file_opts = {
+            'defaultextension': '.ini',
+            'initialdir': os.curdir,
+            'initialfile': 'config.ini',
+            'parent': root,
+            'title': 'Select a configuration file to load.',
+        }
+        config_file = tkFileDialog.askopenfilename(**file_opts)
+        root.destroy()
+        if config_file == '':
+            return None
+    else:
+        config_file = os.path.join(os.curdir, 'default.ini')
+
+    config.read(config_file)
+    return config
+
+
+def load(data_dir=None):
     """
-    Load data from a file
+    Load config & data from a given directory
     """
+    if data_dir is None:
+        root = tk.Tk()
+        dir_opts = {
+            'initialdir': os.curdir,
+            'mustexist': False,
+            'parent': root,
+            'title': 'Select a directory that contains data files.',
+        }
+        data_dir = tkFileDialog.askdirectory(**dir_opts)
+        root.destroy()
+        if data_dir == '':
+            return None
+
+    logging.info('Opening data directory "{}"...'.format(data_dir))
+
     config = MoseConfig()
     config_file = os.path.join(data_dir, 'config.ini')
     config.read(config_file)
+    data_file = os.path.join(data_dir, 'data.mose')
     with open(data_file, 'rb') as fp:
         data = pickle.load(fp)
 
     return (config, data)
 
 
-def save_config_file(config, file_name='config.ini', file_dir=None):
+def save_config(config, file_name='config.ini', file_dir=None):
     config_file_name = os.path.join(file_dir, file_name)
     logging.info('Save configuration to {}.'.format(config_file_name))
     with open(config_file_name, 'wb') as fp:
@@ -93,3 +136,48 @@ def save_data(config, data, data_dir=None, data_file_name='data'):
     with open(data_file_path, 'wb') as fp:
         pickle.dump(data, fp, config['file IO']['pickle_protocol'])
     logging.info('Data saved as' + data_file_path + '.')
+
+
+def save(config, data, k_wall_network_plot, ms_wall_plot, data_dir=None):
+    """
+    Save config & data files in a directory.
+    """
+    if data_dir is None:
+        # Prepares the folder where to save data.
+        current_dir = os.getcwd()
+        data_dir = os.path.join(current_dir, 'data', formatted_date_time())
+    # If the directory does not exist, create it
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+
+    save_config(config, file_dir=data_dir)
+    save_data(config, data, data_dir=data_dir)
+    k_wall_network_plot.save(data_dir)
+    if data['multiple_networks'] is True:
+        ms_wall_plot.save(data_dir)
+
+
+def make_plots(config, data, show_plot=False): 
+    k_wall_network_plot = KWallNetworkPlot()
+    ms_wall_plot = MSWallPlot()
+
+    # Draw the plots of K-wall networks.
+    for k_wall_network in data['k_wall_networks']:
+        k_wall_network_plot.draw(
+            k_wall_network,
+            plot_range=config['plotting']['range'], 
+        )
+
+    if data['multiple_networks'] is True:
+        # Draw MS walls and save the plot.
+        ms_wall_plot.draw(
+            data['ms_wall'],
+            plot_range=config['plotting']['range'], 
+        )
+
+    if show_plot is True:
+        k_wall_network_plot.show()
+        if data['multiple_networks'] is True:
+            ms_wall_network_plot.show()
+
+    return (k_wall_network_plot, ms_wall_plot)

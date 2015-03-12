@@ -1,5 +1,11 @@
-from __main__ import run_with_optstr
+from __main__ import run
+from api import analysis, load, load_config, make_plots, save
 
 __all__ = [
-    'run_with_optstr',
+    'analysis',
+    'load',
+    'load_config',
+    'make_plots',
+    'save',
+    'run',
 ]
