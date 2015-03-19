@@ -1,4 +1,5 @@
 import logging
+import math
 import cmath
 import string
 import random
@@ -17,7 +18,7 @@ def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
 class EllipticFibration:
-    def __init__(self, g2, g3, params, branch_point_charges, dsz_matrix):
+    def __init__(self, g2, g3, params):
 
         self.g2 = g2
         self.g3 = g3
@@ -28,14 +29,17 @@ class EllipticFibration:
         self.sym_g3 = sympy.sympify(self.g3)
         self.num_g3 = self.sym_g3.subs(self.params)
 
-        u = sym.Symbol('u')
-        self.f_coeffs = np.array(map(complex, Poly(g2, u).all_coeffs())) \
-                                                                * (- 1 / 4.0)
-        self.g_coeffs = np.array(map(complex, Poly(g3, u).all_coeffs())) \
-                                                                * (- 1 / 4.0)
+        u = sympy.Symbol('u')
+        g2_coeffs = map(complex, sympy.Poly(self.num_g2, u).all_coeffs())
+        g3_coeffs = map(complex, sympy.Poly(self.num_g3, u).all_coeffs())
+        # Converting from
+        #   y^2 = 4 x^3 - g_2 x - g_3
+        # to 
+        #   y^2 = x^3 + f x + g
+        f_coeffs = numpy.poly1d(g2_coeffs, variable='u') * (-1 / 4.0)
+        g_coeffs = numpy.poly1d(g3_coeffs, variable='u') * (-1 / 4.0)
 
-        self.w_model = wss.WeierstrassModelWithPaths(self.f_coeffs,\
-                                                                self.g_coeffs)
+        self.w_model = wss.WeierstrassModelWithPaths(f_coeffs, g_coeffs)
 
         # We will work with the convention that the DSZ matrix is fixed to be
         # the following. Must keep this attribute of the class, as it will be 
@@ -54,12 +58,13 @@ class EllipticFibration:
         #                 [wss.monodromy_at_point_wmodel(i, self.w_model) \
         #                 for i in range(len(branch_point_loci))]
         # THIS IS A TEMPORARY DUMMY ASSIGNMENT
-        branch_point_monodromies = \
-                        [ [[1, -2],[0, 1]] \
-                        for i in range(len(branch_point_loci))]
+        branch_point_monodromies = [
+            [[1, -2],[0, 1]] for i in range(len(branch_point_loci))
+        ]
         
-        branch_point_charges = [monodromy_eigencharge(m) for m \
-                                                in branch_point_monodromies]
+        branch_point_charges = [
+            monodromy_eigencharge(m) for m in branch_point_monodromies
+        ]
 
         
         ### Introduce string identifiers to label branch-points.
@@ -69,44 +74,44 @@ class EllipticFibration:
         bp_identifiers = [id_generator() 
                           for i in range(len(branch_point_loci))]
 
-        print "\nHere is the full list of branch point data:\
-               \n-------------------------------------------"
+        print """
+              Here is the full list of branch point data:
+              -------------------------------------------
+              """
         for i in range(len(branch_point_loci)):
-            print "\nBranch point # %s\
-                   \n--------------------\n\
-                    Locus: %s \n\
-                    Monodromy: %s \n\
-                    Charge: %s \n\
-                    Internal label: %s"\
-                    %   ( \
-                        i , \
-                        branch_point_loci[i], \
-                        branch_point_monodromies[i], \
-                        branch_point_charges[i], \
-                        bp_identifiers[i] \
-                        )
+            print (
+                """
+                Branch point # {}
+                --------------------
+                Locus: {}
+                Monodromy: {}
+                Charge: {}
+                Internal label: {}
+                """.format(
+                    i,
+                    branch_point_loci[i],
+                    branch_point_monodromies[i],
+                    branch_point_charges[i],
+                    bp_identifiers[i],
+                )
+            )
         ### Now determine the "positive periods" of the holomorphic form
         ### on the pinching (gauge) cycle for each branch point.
         ### This will be used to fix the sign ambiguity on the charges of
         ### primary K walls.            
-        branch_point_positive_periods = [\
-                                positive_period( \
-                                                i, \
-                                                branch_point_charges[i], \
-                                                self.w_model, \
-                                                self
-                                                ) \
-                                for i in range(len(branch_point_loci)) \
-                                ]
+        branch_point_positive_periods = [
+            positive_period(i, branch_point_charges[i], self.w_model, self)
+            for i in range(len(branch_point_loci))
+        ]
 
 
         self.branch_points = [
             BranchPoint(
-                branch_point_loci[i],
-                branch_point_charges[i], 
-                #dummy_monodromy,
-                branch_point_monodromies[i],
-                bp_identifiers[i]
+                locus=branch_point_loci[i],
+                positive_charge=branch_point_charges[i], 
+                monodromy_matrix=branch_point_monodromies[i],
+                positive_period=branch_point_positive_periods[i],
+                identifier=bp_identifiers[i],
             )
             for i in range(len(branch_point_loci))
         ]
@@ -122,10 +127,8 @@ class EllipticFibration:
         step = minimum_distance(self.branch_points) / 2000.0
         max_n_steps = 400
         self.primary_k_wall_odeint_range = [
-                                            0.0,\
-                                            step * max_n_steps ,\
-                                            max_n_steps
-                                            ]
+            0.0, step * max_n_steps, max_n_steps
+        ]
 
 #        self.branch_cuts = [
 #            BranchCut(bp) 
@@ -134,14 +137,14 @@ class EllipticFibration:
 
 
 #### NOW SUPERSEDED BY WEIERSTRASS CLASS ITSELF
-def find_singularities(g2, g3, params):
+def find_singularities(num_g2, num_g3, params):
     """
     find the singularities on the Coulomb branch
     """
     u = sympy.Symbol('u')
 
-    g2_coeffs = map(complex, sympy.Poly(g2, u).all_coeffs())
-    g3_coeffs = map(complex, sympy.Poly(g3, u).all_coeffs())
+    g2_coeffs = map(complex, sympy.Poly(num_g2, u).all_coeffs())
+    g3_coeffs = map(complex, sympy.Poly(num_g3, u).all_coeffs())
     
     # Converting from
     #   y^2 = 4 x^3 - g_2 x - g_3
@@ -222,22 +225,22 @@ def monodromy_eigencharge(monodromy):
 #     # Setting up generic data for PF evolution
 #     g2 = fibration.g2
 #     g3 = fibration.g3
-#     u = sym.Symbol('u')
-#     x = sym.Symbol('x')
-#     Delta = sym.simplify(g2 ** 3 - 27 * g3 ** 2)
-#     delta = sym.simplify(3 * (g3) * diff(g2, u) - 2 * (g2) * diff(g3, u))
+#     u = sympy.Symbol('u')
+#     x = sympy.Symbol('x')
+#     Delta = sympy.simplify(g2 ** 3 - 27 * g3 ** 2)
+#     delta = sympy.simplify(3 * (g3) * diff(g2, u) - 2 * (g2) * diff(g3, u))
 
 #     pf_matrix = lambdify(u, 
 #         [
 #             [0, 1], 
 #             [
-#                 sym.simplify(
+#                 sympy.simplify(
 #                     (-(3*g2*(delta**2) / (16*(Delta**2))) + 
 #                     ((diff(delta,u) * diff(Delta,u)) / (12*delta*Delta)) - 
 #                     ((diff(Delta, u, 2)) / (12*Delta)) + 
 #                     (((diff(Delta, u))**2) / (144 * (Delta**2) ) ) ) 
 #                 ), 
-#                 sym.simplify( 
+#                 sympy.simplify( 
 #                     ( (diff(delta,u) / delta) - (diff(Delta,u) / Delta) ) 
 #                 ) 
 #             ]

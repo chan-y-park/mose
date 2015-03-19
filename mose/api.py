@@ -42,8 +42,6 @@ def analysis(config, phase=None,):
         config['fibration']['g2'],
         config['fibration']['g3'],
         config['fibration parameters'],
-        config['charge']['fixed_charges'],
-        config['charge']['dsz_matrix'],
     )
 
     #KWall.count = 0
@@ -110,7 +108,7 @@ def load(data_dir=None):
         data_dir = tkFileDialog.askdirectory(**dir_opts)
         root.destroy()
         if data_dir == '':
-            return None
+            return (None, None)
 
     logging.info('Opening data directory "{}"...'.format(data_dir))
 

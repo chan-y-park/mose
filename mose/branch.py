@@ -7,8 +7,14 @@ class BranchPoint:
 
     count = 0
 
-    def __init__(self, locus, positive_charge, monodromy_matrix, \
-                positive_period, identifier):
+    def __init__(
+        self, 
+        locus=None,
+        positive_charge=None,
+        monodromy_matrix=None,
+        positive_period=None,
+        identifier=None,
+    ):
         self.charge = positive_charge
         self.positive_period = positive_period
         self.locus = locus

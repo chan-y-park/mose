@@ -92,6 +92,8 @@ def run_with_optlist(optlist):
     if opts['load-data'] is True:
         # Load config & data using a file dialog. 
         config, data = load()    
+        if data is None:
+            return None
     elif opts['load-data-from'] is not None:
         # Load config & data according to the command line args. 
         data_dir = opts['load-data-from']
@@ -116,21 +118,6 @@ def run_with_optlist(optlist):
         save(config, data, k_wall_network_plot, ms_wall_plot)
 
     return (config, data, k_wall_network_plot, ms_wall_plot)
-
-## Set options from sys.argv when running on the command line,
-## then start running the main code.
-#def run_with_sys_argv(argv):    
-#    try:
-#        optlist, args = getopt.getopt(argv, shortopts, longopts,)
-#        run_with_optlist(optlist)
-#
-#    except getopt.GetoptError:
-#        print 'Unknown options.'
-
-## Set options from string 'optstr' when running on the interpreter, 
-## then start running the main code.
-#def run_with_optstr(optstr):
-#    run_with_sys_argv(optstr.split())
 
 
 def run(optstr='', argv=None):
