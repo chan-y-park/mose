@@ -33,12 +33,21 @@ class EllipticFibration:
         # used when computing the KSWCF for new Kwalls.
         self.dsz_matrix = [[0, 1], [-1, 0]]
 
-        # OLD - REMOVE?
-        # branch_point_loci = map(complex, find_singularities(g2, g3))
-        branch_point_loci = list(self.w_model.get_D())
+        
+        ### RE-ENABLE THIS ###
+        # branch_point_loci = list(self.w_model.get_D())
+        branch_point_loci = map(complex, find_singularities(g2, g3))
+        
+
+        ### RESTORE THIS!
+        # branch_point_monodromies = \
+        #                 [wss.monodromy_at_point_wmodel(i, self.w_model) \
+        #                 for i in range(len(branch_point_loci))]
+        # THIS IS A TEMPORARY DUMMY ASSIGNMENT
         branch_point_monodromies = \
-                        [wss.monodromy_at_point_wmodel(i, self.w_model) \
+                        [ [[1, -2],[0, 1]] \
                         for i in range(len(branch_point_loci))]
+        
         branch_point_charges = [monodromy_eigencharge(m) for m \
                                                 in branch_point_monodromies]
         ### Introducing string identifiers to label branch-points.
@@ -47,16 +56,17 @@ class EllipticFibration:
         bp_identifiers = [id_generator() for i in \
                                             range(len(branch_point_loci))]
 
-        print "\nHere is the full list of branch point data:\n\
-                 -------------------------------------------"
+        print "\nHere is the full list of branch point data:\
+               \n-------------------------------------------"
         for i in range(len(branch_point_loci)):
-            print "\nBranch point # %s\n\
-                    --------------------\n\
+            print "\nBranch point # %s\
+                   \n--------------------\n\
                     Locus: %s \n\
                     Monodromy: %s \n\
                     Charge: %s \n\
                     Internal label: %s"\
                     %   ( \
+                        i , \
                         branch_point_loci[i], \
                         branch_point_monodromies[i], \
                         branch_point_charges[i], \
@@ -124,39 +134,39 @@ class EllipticFibration:
 
 #### NEW METHOD
 #### NOW SUPERSEDED BY WEIERSTRASS CLASS ITSELF
-# def find_singularities(g2, g3):
-#     """
-#     find the singularities on the Coulomb branch
-#     """
-#     u = sym.Symbol('u')
+def find_singularities(g2, g3):
+    """
+    find the singularities on the Coulomb branch
+    """
+    u = sym.Symbol('u')
 
-#     g2_coeffs = map(complex, Poly(g2, u).all_coeffs())
-#     g3_coeffs = map(complex, Poly(g3, u).all_coeffs())
+    g2_coeffs = map(complex, Poly(g2, u).all_coeffs())
+    g3_coeffs = map(complex, Poly(g3, u).all_coeffs())
     
-#     # Converting from
-#     # y^2 = 4 x^3 - g_2 x - g_3
-#     # to 
-#     # y^2 = x^3 + f x + g
+    # Converting from
+    # y^2 = 4 x^3 - g_2 x - g_3
+    # to 
+    # y^2 = x^3 + f x + g
     
-#     f = np.poly1d(g2_coeffs, variable='u') * (- 1 / 4.0)
-#     g = np.poly1d(g3_coeffs, variable='u') * (- 1 / 4.0)
-#     Delta = 4.0 * f ** 3 + 27.0 * g ** 2
+    f = np.poly1d(g2_coeffs, variable='u') * (- 1 / 4.0)
+    g = np.poly1d(g3_coeffs, variable='u') * (- 1 / 4.0)
+    Delta = 4.0 * f ** 3 + 27.0 * g ** 2
 
-#     ### Minor Bug: the polynomial is printed with variable 'x' although I 
-#     ### declared it to be 'u'
-#     logging.info('discriminant:\n%s', Delta)
+    ### Minor Bug: the polynomial is printed with variable 'x' although I 
+    ### declared it to be 'u'
+    logging.info('discriminant:\n%s', Delta)
 
-#     #Accounting for cancellations of higher order terms in discriminant
-#     for i, coeff in enumerate(Delta.c):
-#         if np.absolute(coeff) > NEGLIGIBLE_BOUND:
-#             Delta = np.poly1d(Delta.c[i:])
-#             break 
+    #Accounting for cancellations of higher order terms in discriminant
+    for i, coeff in enumerate(Delta.c):
+        if np.absolute(coeff) > NEGLIGIBLE_BOUND:
+            Delta = np.poly1d(Delta.c[i:])
+            break 
 
-#     disc_points = sorted(Delta.r, \
-#                         cmp=lambda x,y: cmp(x.real, y.real) 
-#                         )
-#     logging.info('singularities:\n%s', disc_points)
-#     return disc_points
+    disc_points = sorted(Delta.r, \
+                        cmp=lambda x,y: cmp(x.real, y.real) 
+                        )
+    logging.info('singularities:\n%s', disc_points)
+    return disc_points
 
 def minimum_distance(branch_points):
     loci = [bpt.locus for bpt in branch_points]
@@ -192,120 +202,126 @@ def monodromy_eigencharge(monodromy):
         n = n_temp
     return (int(m), int(n))
 
+
+# def positive_period(n, charge, w_model, fibration): 
+#     """ 
+#     Detemine the period of the holomorphic one form dx / y along the
+#     cycle that pinches at a given discriminant locus (the n-th).
+#     Uses Picard-Fuchs evolution and initial values of the periods (1,0) and
+#     (0,1) determined at the basepoint used to compute all the monodromies.
+#     """
+    
+#     ### NEED TO EXTRACT THIS DATA FROM W-MODEL
+#     path = ...
+#     nint_range = len(path)
+#     u_0 = path[0]
+#     # Notation: using "eta" for the period of (1,0), using "beta" for (0,1)
+#     eta_0 = ...
+#     eta_prime_0 = ...
+#     beta_0 = ...
+#     beta_prime_0 = ...
+
+#     # Setting up generic data for PF evolution
+#     g2 = fibration.g2
+#     g3 = fibration.g3
+#     u = sym.Symbol('u')
+#     x = sym.Symbol('x')
+#     Delta = sym.simplify(g2 ** 3 - 27 * g3 ** 2)
+#     delta = sym.simplify(3 * (g3) * diff(g2, u) - 2 * (g2) * diff(g3, u))
+
+#     pf_matrix = lambdify(u, 
+#         [
+#             [0, 1], 
+#             [
+#                 sym.simplify(
+#                     (-(3*g2*(delta**2) / (16*(Delta**2))) + 
+#                     ((diff(delta,u) * diff(Delta,u)) / (12*delta*Delta)) - 
+#                     ((diff(Delta, u, 2)) / (12*Delta)) + 
+#                     (((diff(Delta, u))**2) / (144 * (Delta**2) ) ) ) 
+#                 ), 
+#                 sym.simplify( 
+#                     ( (diff(delta,u) / delta) - (diff(Delta,u) / Delta) ) 
+#                 ) 
+#             ]
+#         ] 
+#     )
+    
+#     def deriv(y,t):
+#         z = y[0] + 1j * y[1]
+#         eta = y[2] + 1j * y[3]
+#         d_eta = y[4] + 1j * y[5]
+#         matrix = pf_matrix(z)
+#         det_pf = abs(det(matrix))
+#         # print "PF matrix = %s" % matrix
+#         # print "PF determinant = %s" % det_pf
+#         if det_pf > trajectory_singularity_threshold:
+#             self.singular = True
+#             self.singular_point = z
+
+#         # A confusing point to bear in mind: here we are solving the 
+#         # ode with respect to time t, but d_eta is understood to be 
+#         # (d eta / d u), with its own  appropriate b.c. and so on!
+
+#         # Note here I am adapting the derivative of z to be precisely the
+#         # one determined by the path on the Coulomb branch.
+#         z_1 = (path[int(math.floor(t))] - path[int(math.floor(t+1))]) / 1.0
+#         eta_1 = z_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
+#         d_eta_1 = z_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
+#         return  array(
+#                 [
+#                     z_1.real, z_1.imag, 
+#                     eta_1.real, eta_1.imag, 
+#                     d_eta_1.real, d_eta_1.imag
+#                 ]
+#         )
+#         # the following rescaled matrix will not blow up at singularities, 
+#         # but it will not reach the singularities either..
+#         # return abs(det(matrix)) * array([z_1.real, z_1.imag, 
+#         #              eta_1.real, eta_1.imag, d_eta_1.real, d_eta_1.imag])
+
+
+#     # Now first we PF-evolve the period of (1,0)
+#     singularity_check= False
+#     t0 = 0
+#     y0 = map(N, 
+#         array(
+#             [
+#                 (u_0).real,
+#                 (u_0).imag,
+#                 (eta_0).real,
+#                 (eta_0).imag,
+#                 (eta_prime_0).real,
+#                 (eta_prime_0).imag
+#             ]
+#         )    
+#     )
+#     time = linspace(*nint_range)
+#     y = odeint(deriv, y0, time)
+#     eta_final = y[2] + 1j * y[3]
+
+#     # Second we PF-evolve the period of (0,1)
+#     singularity_check= False
+#     t0 = 0
+#     y0 = map(N, 
+#         array(
+#             [
+#                 (u_0).real,
+#                 (u_0).imag,
+#                 (beta_0).real,
+#                 (beta_0).imag,
+#                 (beta_prime_0).real,
+#                 (beta_prime_0).imag
+#             ]
+#         )    
+#     )
+#     time = linspace(*nint_range)
+#     y = odeint(deriv, y0, time)
+#     beta_final = y[2] + 1j * y[3]    
+
+#     positive_period_final = charge[0] * eta_final + charge[1] * beta_final
+#     return positive_period_final
+
+
 def positive_period(n, charge, w_model, fibration): 
-    """ 
-    Detemine the period of the holomorphic one form dx / y along the
-    cycle that pinches at a given discriminant locus (the n-th).
-    Uses Picard-Fuchs evolution and initial values of the periods (1,0) and
-    (0,1) determined at the basepoint used to compute all the monodromies.
-    """
     
-    ### NEED TO EXTRACT THIS DATA FROM W-MODEL
-    path = ...
-    nint_range = len(path)
-    u_0 = path[0]
-    # Notation: using "eta" for the period of (1,0), using "beta" for (0,1)
-    eta_0 = ...
-    eta_prime_0 = ...
-    beta_0 = ...
-    beta_prime_0 = ...
-
-    # Setting up generic data for PF evolution
-    g2 = fibration.g2
-    g3 = fibration.g3
-    u = sym.Symbol('u')
-    x = sym.Symbol('x')
-    Delta = sym.simplify(g2 ** 3 - 27 * g3 ** 2)
-    delta = sym.simplify(3 * (g3) * diff(g2, u) - 2 * (g2) * diff(g3, u))
-
-    pf_matrix = lambdify(u, 
-        [
-            [0, 1], 
-            [
-                sym.simplify(
-                    (-(3*g2*(delta**2) / (16*(Delta**2))) + 
-                    ((diff(delta,u) * diff(Delta,u)) / (12*delta*Delta)) - 
-                    ((diff(Delta, u, 2)) / (12*Delta)) + 
-                    (((diff(Delta, u))**2) / (144 * (Delta**2) ) ) ) 
-                ), 
-                sym.simplify( 
-                    ( (diff(delta,u) / delta) - (diff(Delta,u) / Delta) ) 
-                ) 
-            ]
-        ] 
-    )
-    
-    def deriv(y,t):
-        z = y[0] + 1j * y[1]
-        eta = y[2] + 1j * y[3]
-        d_eta = y[4] + 1j * y[5]
-        matrix = pf_matrix(z)
-        det_pf = abs(det(matrix))
-        # print "PF matrix = %s" % matrix
-        # print "PF determinant = %s" % det_pf
-        if det_pf > trajectory_singularity_threshold:
-            self.singular = True
-            self.singular_point = z
-
-        # A confusing point to bear in mind: here we are solving the 
-        # ode with respect to time t, but d_eta is understood to be 
-        # (d eta / d u), with its own  appropriate b.c. and so on!
-
-        # Note here I am adapting the derivative of z to be precisely the
-        # one determined by the path on the Coulomb branch.
-        z_1 = (path[int(math.floor(t))] - path[int(math.floor(t+1))]) / 1.0
-        eta_1 = z_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
-        d_eta_1 = z_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
-        return  array(
-                [
-                    z_1.real, z_1.imag, 
-                    eta_1.real, eta_1.imag, 
-                    d_eta_1.real, d_eta_1.imag
-                ]
-        )
-        # the following rescaled matrix will not blow up at singularities, 
-        # but it will not reach the singularities either..
-        # return abs(det(matrix)) * array([z_1.real, z_1.imag, 
-        #              eta_1.real, eta_1.imag, d_eta_1.real, d_eta_1.imag])
-
-
-    # Now first we PF-evolve the period of (1,0)
-    singularity_check= False
-    t0 = 0
-    y0 = map(N, 
-        array(
-            [
-                (u_0).real,
-                (u_0).imag,
-                (eta_0).real,
-                (eta_0).imag,
-                (eta_prime_0).real,
-                (eta_prime_0).imag
-            ]
-        )    
-    )
-    time = linspace(*nint_range)
-    y = odeint(deriv, y0, time)
-    eta_final = y[2] + 1j * y[3]
-
-    # Second we PF-evolve the period of (0,1)
-    singularity_check= False
-    t0 = 0
-    y0 = map(N, 
-        array(
-            [
-                (u_0).real,
-                (u_0).imag,
-                (beta_0).real,
-                (beta_0).imag,
-                (beta_prime_0).real,
-                (beta_prime_0).imag
-            ]
-        )    
-    )
-    time = linspace(*nint_range)
-    y = odeint(deriv, y0, time)
-    beta_final = y[2] + 1j * y[3]    
-
-    positive_period_final = charge[0] * eta_final + charge[1] * beta_final
-    return positive_period_final
+    return 1.0
