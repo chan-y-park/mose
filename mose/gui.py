@@ -7,7 +7,7 @@ import os
 
 # import tkSimpleDialog
 
-from analysis import analysis
+from api import analysis
 
 my_font = ("Helvetica", "14", "bold italic")
 
@@ -351,7 +351,7 @@ class Application(Frame):
         self.pack()
         self.createWidgets()
 
-def run_gui():
+def open_gui(config, data):
     root = Tk()
     root.geometry("300x300")
     root.wm_title("MOSE - MOduli Space Explorer")

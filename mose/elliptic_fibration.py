@@ -1,12 +1,14 @@
 import logging
-import sympy as sym
-import numpy as np
-import math
 import cmath
 import string
 import random
+import pdb
+import sympy
+import numpy
+
 import weierstrass as wss
-from sympy import Poly
+
+#from sympy import Poly
 from branch import BranchPoint
 
 NEGLIGIBLE_BOUND = 0.1**12
@@ -15,10 +17,17 @@ def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
 class EllipticFibration:
-    def __init__(self, g2, g3):
+    def __init__(self, g2, g3, params, branch_point_charges, dsz_matrix):
 
         self.g2 = g2
         self.g3 = g3
+        self.params = params
+
+        self.sym_g2 = sympy.sympify(self.g2)
+        self.num_g2 = self.sym_g2.subs(self.params)
+        self.sym_g3 = sympy.sympify(self.g3)
+        self.num_g3 = self.sym_g3.subs(self.params)
+
         u = sym.Symbol('u')
         self.f_coeffs = np.array(map(complex, Poly(g2, u).all_coeffs())) \
                                                                 * (- 1 / 4.0)
@@ -36,8 +45,9 @@ class EllipticFibration:
         
         ### RE-ENABLE THIS ###
         # branch_point_loci = list(self.w_model.get_D())
-        branch_point_loci = map(complex, find_singularities(g2, g3))
-        
+        branch_point_loci = map(
+            complex, find_singularities(self.num_g2, self.num_g3, self.params)
+        )
 
         ### RESTORE THIS!
         # branch_point_monodromies = \
@@ -50,11 +60,14 @@ class EllipticFibration:
         
         branch_point_charges = [monodromy_eigencharge(m) for m \
                                                 in branch_point_monodromies]
-        ### Introducing string identifiers to label branch-points.
+
+        
+        ### Introduce string identifiers to label branch-points.
         ### These will be used when building genealogies of intersection 
         ### points, to compare them and build MS walls accordingly.
-        bp_identifiers = [id_generator() for i in \
-                                            range(len(branch_point_loci))]
+
+        bp_identifiers = [id_generator() 
+                          for i in range(len(branch_point_loci))]
 
         print "\nHere is the full list of branch point data:\
                \n-------------------------------------------"
@@ -86,15 +99,15 @@ class EllipticFibration:
                                 for i in range(len(branch_point_loci)) \
                                 ]
 
+
         self.branch_points = [
             BranchPoint(
-                        branch_point_loci[i],
-                        branch_point_charges[i], 
-                        # dummy_monodromy,
-                        branch_point_monodromies[i],
-                        branch_point_positive_periods[i],
-                        bp_identifiers[i]
-                        )
+                branch_point_loci[i],
+                branch_point_charges[i], 
+                #dummy_monodromy,
+                branch_point_monodromies[i],
+                bp_identifiers[i]
+            )
             for i in range(len(branch_point_loci))
         ]
 
@@ -114,42 +127,29 @@ class EllipticFibration:
                                             max_n_steps
                                             ]
 
-        # self.branch_cuts = [
-        #     BranchCut(bp) 
-        #     for bp in self.branch_points
-        # ]
+#        self.branch_cuts = [
+#            BranchCut(bp) 
+#            for bp in self.branch_points
+#        ]
 
-#### OLD METHOD
-# def find_singularities(g2, g3):
-#     """
-#     find the singularities on the Coulomb branch
-#     """
-#     u = sym.Symbol('u')
-#     discriminant = sym.simplify(g2 ** 3 - 27 * g3 ** 2)
-#     logging.info('discriminant: %s', discriminant)
-#     disc_points = sym.solve(discriminant, u)
-#     # disc_points = Poly(discriminant).all_roots()
-#     logging.info('singularities: %s', disc_points)
-#     return disc_points
 
-#### NEW METHOD
 #### NOW SUPERSEDED BY WEIERSTRASS CLASS ITSELF
-def find_singularities(g2, g3):
+def find_singularities(g2, g3, params):
     """
     find the singularities on the Coulomb branch
     """
-    u = sym.Symbol('u')
+    u = sympy.Symbol('u')
 
-    g2_coeffs = map(complex, Poly(g2, u).all_coeffs())
-    g3_coeffs = map(complex, Poly(g3, u).all_coeffs())
+    g2_coeffs = map(complex, sympy.Poly(g2, u).all_coeffs())
+    g3_coeffs = map(complex, sympy.Poly(g3, u).all_coeffs())
     
     # Converting from
-    # y^2 = 4 x^3 - g_2 x - g_3
+    #   y^2 = 4 x^3 - g_2 x - g_3
     # to 
-    # y^2 = x^3 + f x + g
+    #   y^2 = x^3 + f x + g
     
-    f = np.poly1d(g2_coeffs, variable='u') * (- 1 / 4.0)
-    g = np.poly1d(g3_coeffs, variable='u') * (- 1 / 4.0)
+    f = numpy.poly1d(g2_coeffs, variable='u') * (-1 / 4.0)
+    g = numpy.poly1d(g3_coeffs, variable='u') * (-1 / 4.0)
     Delta = 4.0 * f ** 3 + 27.0 * g ** 2
 
     ### Minor Bug: the polynomial is printed with variable 'x' although I 
@@ -158,13 +158,11 @@ def find_singularities(g2, g3):
 
     #Accounting for cancellations of higher order terms in discriminant
     for i, coeff in enumerate(Delta.c):
-        if np.absolute(coeff) > NEGLIGIBLE_BOUND:
-            Delta = np.poly1d(Delta.c[i:])
+        if numpy.absolute(coeff) > NEGLIGIBLE_BOUND:
+            Delta = numpy.poly1d(Delta.c[i:])
             break 
 
-    disc_points = sorted(Delta.r, \
-                        cmp=lambda x,y: cmp(x.real, y.real) 
-                        )
+    disc_points = sorted(Delta.r, cmp=lambda x, y: cmp(x.real, y.real))
     logging.info('singularities:\n%s', disc_points)
     return disc_points
 

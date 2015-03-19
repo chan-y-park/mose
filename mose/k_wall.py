@@ -147,7 +147,6 @@ class KWall(object):
             self.local_charge.append(new_charge)
 
 
-
     def grow_pf(self, boundary_conditions, nint_range, 
                 trajectory_singularity_threshold, pf_odeint_mxstep): 
         """ 
@@ -164,8 +163,8 @@ class KWall(object):
         # To this end, when calling this function from inside evolve() of 
         # a primary K-wall, use get_primary_bc(...)
 
-        g2 = self.fibration.g2
-        g3 = self.fibration.g3
+        g2 = self.fibration.sym_g2
+        g3 = self.fibration.sym_g3
         theta = self.phase
         u = sym.Symbol('u')
         x = sym.Symbol('x')
@@ -173,23 +172,18 @@ class KWall(object):
         Delta = sym.simplify(g2 ** 3 - 27 * g3 ** 2)
         delta = sym.simplify(3 * (g3) * diff(g2, u) - 2 * (g2) * diff(g3, u))
 
+        M10 = sym.simplify(
+            (-(3*g2*(delta**2) / (16*(Delta**2))) + 
+            ((diff(delta,u) * diff(Delta,u)) / (12*delta*Delta)) - 
+            ((diff(Delta, u, 2)) / (12*Delta)) + 
+            (((diff(Delta, u))**2) / (144 * (Delta**2) ) ) ) 
+        ).subs(self.fibration.params)
+        M11 = sym.simplify( 
+            (diff(delta,u) / delta) - (diff(Delta,u) / Delta)
+        ).subs(self.fibration.params)
+
         
-        pf_matrix = lambdify(u, 
-            [
-                [0, 1], 
-                [
-                    sym.simplify(
-                        (-(3*g2*(delta**2) / (16*(Delta**2))) + 
-                        ((diff(delta,u) * diff(Delta,u)) / (12*delta*Delta)) - 
-                        ((diff(Delta, u, 2)) / (12*Delta)) + 
-                        (((diff(Delta, u))**2) / (144 * (Delta**2) ) ) ) 
-                    ), 
-                    sym.simplify( 
-                        ( (diff(delta,u) / delta) - (diff(Delta,u) / Delta) ) 
-                    ) 
-                ]
-            ] 
-        )
+        pf_matrix = lambdify(u, [[0, 1], [M10, M11]])
 
         singularity_check= False
         t0 = 0
@@ -206,7 +200,6 @@ class KWall(object):
             )    
         )
 
-        # TODO: No other way but to define deriv() here?
         def deriv(y,t):
             z = y[0] + 1j * y[1]
             eta = y[2] + 1j * y[3]
@@ -263,8 +256,8 @@ class PrimaryKWall(KWall):
         Implementation of the ODE for evolving primary walls, 
         valid in neighborhood of an A_1 singularity. 
         """
-        g2 = self.fibration.g2
-        g3 = self.fibration.g3
+        g2 = self.fibration.num_g2
+        g3 = self.fibration.num_g3
         theta = self.phase
         u0, sign = self.boundary_condition
         u = sym.Symbol('u')

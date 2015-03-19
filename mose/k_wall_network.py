@@ -15,16 +15,28 @@ from k_wall import KWall
 
 
 class KWallNetwork:
-    def __init__(self, theta, fibration, bin_size):
-        self.phase = theta
+    def __init__(self, phase, fibration, config):
+        self.phase = phase
         self.fibration = fibration
-        self.hit_table = HitTable(bin_size)
+        self.hit_table = HitTable(config['intersection search']['bin_size'])
         self.k_walls = []
         self.intersections = []
 
-    def grow(self, primary_nint_range, nint_range,
-             trajectory_singularity_threshold, pf_odeint_mxstep,
-             n_iterations, ks_filtration_degree):
+
+    def save_data(self, file_object, **kwargs):
+        pass
+
+
+    def grow(self, config):
+        primary_nint_range = config['ODE']['primary_k_wall_odeint_range']
+        nint_range = config['ODE']['odeint_range']
+        trajectory_singularity_threshold = (
+            config['ODE']['trajectory_singularity_threshold']
+        )
+        pf_odeint_mxstep = config['ODE']['pf_odeint_mxstep']
+        n_iterations = config['K-wall network']['n_iterations']
+        ks_filtration_degree = config['KSWCF']['filtration_degree']
+
         logging.info('Growing a K-Wall network at phase %.8f', self.phase)
         ##############################
         # First, grow primary k-walls.
@@ -146,31 +158,28 @@ def init_process():
     signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 
-def parallel_get_k_wall_network(phase, fibration, bin_size,
-                                shared_n_started_kwns,
-                                shared_n_finished_kwns,
-                                *args):
+def parallel_get_k_wall_network(phase, fibration, config, 
+                                shared_n_started_kwns, shared_n_finished_kwns):
     shared_n_started_kwns.value += 1
     logging.info('Start generating K-wall network #%d',
                  shared_n_started_kwns.value)
-    kwn = KWallNetwork(phase, fibration, bin_size)
-    kwn.grow(*args)
+    kwn = KWallNetwork(phase, fibration, config,)
+    kwn.grow(config)
     shared_n_finished_kwns.value += 1
     logging.info('Finished generating K-wall network #%d',
                  shared_n_finished_kwns.value)
     return kwn
 
 
-def construct_k_wall_networks(fibration, bin_size, primary_nint_range,
-                              nint_range, trajectory_singularity_threshold,
-                              pf_odeint_mxstep, n_iterations,
-                              ks_filtration_degree, theta_range,
-                              n_processes=0):
+def construct_k_wall_networks(fibration, config):
     """
     Scans various values of theta, returns an array of
     IntersectionPoint objects.
     The argument is of the form: theta_range = [theta_i, theta_f, steps]
     """
+ 
+    theta_range = config['MS wall']['theta_range']
+    n_processes= config['multiprocessing']['n_processes']
 
     logging.debug('theta_range = %s', theta_range)
     theta_i, theta_f, steps = theta_range
@@ -198,15 +207,13 @@ def construct_k_wall_networks(fibration, bin_size, primary_nint_range,
     logging.debug('Number of processes: %d', n_processes)
     pool = multiprocessing.Pool(n_processes, init_process)
     try:
-        results = [pool.apply_async(parallel_get_k_wall_network,
-                                    args=(phase, fibration, bin_size,
-                                          shared_n_started_kwns,
-                                          shared_n_finished_kwns,
-                                          primary_nint_range, nint_range,
-                                          trajectory_singularity_threshold,
-                                          pf_odeint_mxstep, n_iterations,
-                                          ks_filtration_degree))
-                   for phase in angles]
+        results = [
+            pool.apply_async(
+                parallel_get_k_wall_network,
+                args=(phase, fibration, config, shared_n_started_kwns,
+                      shared_n_finished_kwns,)
+            ) for phase in angles
+        ]
         pool.close()
 
         for r in results:
