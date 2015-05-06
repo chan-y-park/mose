@@ -948,8 +948,8 @@ if __name__=="__main__":
     wmodel=WeierstrassProto([-1.0],[rot**2*1.0,0,0])
     dnum=2
     
-    animate_roots_and_angles_path(wmodel,dnum,2,3,\
-                                  timesteps=5000,steps=120,\
-                                  path=None,breaks=None)
+    #animate_roots_and_angles_path(wmodel,dnum,2,3,\
+    #                              timesteps=5000,steps=120,\
+    #                              path=None,breaks=None)
 
     mon = monodromy_at_point_wmodel(dnum,wmodel,5000,1000,option='p')

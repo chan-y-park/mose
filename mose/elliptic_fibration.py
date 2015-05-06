@@ -9,6 +9,9 @@ import numpy
 
 import weierstrass as wss
 
+from cmath import pi, exp, phase, sqrt
+from scipy.integrate import quad as n_int
+
 #from sympy import Poly
 from branch import BranchPoint
 
@@ -321,6 +324,37 @@ def monodromy_eigencharge(monodromy):
 
 #     positive_period_final = charge[0] * eta_final + charge[1] * beta_final
 #     return positive_period_final
+
+
+def integrand_A(*args):
+    x, a, b, c = [complex(v) for v in args]
+    arg_c = (phase(x-c)+pi)/2.0
+    return 1/(sqrt(abs(x-a)*abs(x-b)*abs(x-c))*(1j)*exp(1j*arg_c))
+
+
+def integrand_B(*args):
+    x, a, b, c = [complex(v) for v in args]
+    arg_a = phase((x-a)/(a-b))/2
+    arg_b = phase((x-b)/(a-b))/2
+    arg_c = (phase(x-c)+pi)/2.0
+    return 1/(sqrt(abs(x-a)*abs(x-b)*abs(x-c)) * 
+              exp(1.0j*(arg_a + arg_b + arg_c)))
+
+
+def period_A(a, b, c):
+    fr = lambda t: ((a-b) * integrand_A(b+(a-b)*t, a, b, c)).real
+    fi = lambda t: ((a-b) * integrand_A(b+(a-b)*t, a, b, c)).imag
+    r_part, r_error = n_int(fr, 0, 1)
+    i_part, i_error = n_int(fi, 0, 1)
+    return (r_part + 1j*i_part, r_error, i_error)
+
+
+def period_B(a, b, c):
+    fr = lambda t: ((c-b) * integrand_B(b+(c-b)*t, a, b, c)).real
+    fi = lambda t: ((c-b) * integrand_B(b+(c-b)*t, a, b, c)).imag
+    r_part, r_error = n_int(fr, 0, 1)
+    i_part, i_error = n_int(fi, 0, 1)
+    return (r_part + 1j*i_part, r_error, i_error)
 
 
 def positive_period(n, charge, w_model, fibration): 
