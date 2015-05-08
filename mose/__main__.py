@@ -26,7 +26,7 @@ longopts = [
     'load-data',
     'load-data-from=',
     'save-data',
-    'save-data-at=',
+    #'save-data-at=',
     'show-plot',
 ]
 
@@ -44,7 +44,7 @@ def run_with_optlist(optlist):
         'load-data-from': None,
         'save-data': False,
         #'save-data-at': None,
-        'show-plot': False,
+        'show-plot': True,
     }
 
     for opt, arg in optlist:
@@ -108,8 +108,10 @@ def run_with_optlist(optlist):
     if data is None:
         data = analysis(config, phase=opts['phase'],)
 
-    if ((opts['show-plot'] or opts['save-data']) is True
-        or (opts['save-data-at'] is not None)):
+    if (
+        (opts['show-plot'] or opts['save-data']) is True
+        #or (opts['save-data-at'] is not None)
+    ):
         k_wall_network_plot, ms_wall_plot = make_plots(
             config, data, opts['show-plot']
         )
