@@ -134,21 +134,22 @@ def order_roots(roots, segment, sign, theta):
     else:
         return 0
 
-def cut_singular_kwall(kwall):
-    periods = kwall.periods
-    coordinates = kwall.coordinates
+
+def cut_singular_k_wall(k_wall):
+    periods = k_wall.periods
+    coordinates = k_wall.coordinates
     i_0 = 0
     epsilon_0 = 10
     for i, z in enumerate(coordinates):
-        epsilon = abs(complexify(z) - kwall.singular_point)
+        epsilon = abs(complexify(z) - k_wall.singular_point)
         if epsilon < epsilon_0:
             epsilon_0 = epsilon
             i_0 = i
         else:
             break
 
-    kwall.coordinates = coordinates[0:i_0]
-    kwall.periods = periods[0:i_0]
+    k_wall.coordinates = coordinates[0:i_0]
+    k_wall.periods = periods[0:i_0]
 
 
 def integrand_A(*args):

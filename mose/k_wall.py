@@ -15,7 +15,7 @@ from sympy import diff, N, simplify
 from sympy import mpmath as mp
 from scipy import interpolate
 
-from branch import BranchPoint
+from branch import BranchPoint, minimum_distance
 from misc import complexify, sort_by_abs, left_right, clock, order_roots
 from monodromy import charge_monodromy
 
@@ -30,22 +30,25 @@ class KWall(object):
     parents, boundary_condition)
     """
 
-#    count = 0
-
-    def __init__(self, initial_charge, degeneracy, phase, parents, 
-                 fibration, boundary_condition, network, color='b'):
+    def __init__(self, initial_charge=None, degeneracy=None, phase=None,
+                 parents=None, fibration=None,
+                 #network=None,
+                 color='b'):
         self.initial_charge = initial_charge
         self.degeneracy = degeneracy
         self.phase = phase
         self.parents = parents
-        self.boundary_condition = boundary_condition
+        # NOTE: pf_boundary_conditions should be given in the following form:
+        #   u_0 = boundary_conditions[0] 
+        #   eta_0 = boundary_conditions[1]
+        #   (d eta / du)_0 = boundary_conditions[2] 
+        # They must all be given as complex numbers. 
+        self.pf_boundary_conditions = None 
         self.fibration = fibration
         self.color = color
-        self.network = network
+        #self.network = network
         self.singular = False
         self.cuts_intersections = []
-#        logging.info('Creating K-wall #%d', KWall.count)
-#        KWall.count += 1
 
     # def __str__(self):
     #     return ('KWall info: initial charge {}, '
@@ -67,102 +70,97 @@ class KWall(object):
         # will use data in self.splittings
 
     def check_cuts(self):
-        #print "Checking intersections with cuts, determining charges"
-        self.splittings = (55, 107, 231) 
-        self.local_charge = (self.initial_charge, (2,1), (0,-1), (1,1))
-        # determine at which points the wall crosses a cut, for instance
-        # (55,107,231) would mean that we change charge 3 times
-        # hence self.splittings would have length, 3 while
-        # self.local_charge would have length 4.
-        # local charges are determined one the branch-cut data is given,
-        # perhaps computed by an external function.
-        disc_locus_position = [bp.locus for bp in self.fibration.branch_points]
-        # the x-coordinates of the discriminant loci
-        disc_x = [z.real for z in disc_locus_position]
-        # parametrizing the x-coordinate of the k-wall's coordinates
-        # as a function of proper time
-        traj_t = numpy.array(range(len(self.coordinates)))
-        traj_x = numpy.array([z[0] for z in self.coordinates])
-        # traj_y = numpy.array([z[1] for z in self.coordinates])
-        # f = interp1d(traj_t, traj_x, kind = 'linear')
+        pass
+#        self.splittings = (55, 107, 231) 
+#        self.local_charge = (self.initial_charge, (2,1), (0,-1), (1,1))
+#        # determine at which points the wall crosses a cut, for instance
+#        # (55,107,231) would mean that we change charge 3 times
+#        # hence self.splittings would have length, 3 while
+#        # self.local_charge would have length 4.
+#        # local charges are determined one the branch-cut data is given,
+#        # perhaps computed by an external function.
+#        disc_locus_position = [bp.locus for bp in self.fibration.branch_points]
+#        # the x-coordinates of the discriminant loci
+#        disc_x = [z.real for z in disc_locus_position]
+#        # parametrizing the x-coordinate of the k-wall's coordinates
+#        # as a function of proper time
+#        traj_t = numpy.array(range(len(self.coordinates)))
+#        traj_x = numpy.array([z[0] for z in self.coordinates])
+#        # traj_y = numpy.array([z[1] for z in self.coordinates])
+#        # f = interp1d(traj_t, traj_x, kind = 'linear')
+#
+#        # all_cuts_intersections = []
+#
+#        # Scan over branch cuts, see if path ever crosses one 
+#        # based on x-coordinates only
+#        for b_pt_num, x_0 in list(enumerate(disc_x)):
+#            g = interpolate.splrep(traj_t, traj_x - x_0, s=0)
+#            # now produce a list of integers corresponding to points in the 
+#            # k-wall's coordinate list that seem to cross branch-cuts
+#            # based on the x-coordinate.
+#            # Will get a list [i_0, i_1, ...] of intersections
+#            intersections = map(int, map(round, interpolate.sproot(g)))
+#            # removing duplicates
+#            intersections = list(set(intersections))
+#            # enforcing y-coordinate intersection criterion:
+#            # branch cuts extend vertically
+#            y_0 = self.fibration.branch_points[b_pt_num].locus.imag
+#            intersections = [i for i in intersections if \
+#                                                self.coordinates[i][1] > y_0 ]
+#            # adding the branch-point identifier to each intersection
+#            intersections = [[self.fibration.branch_points[b_pt_num], i] \
+#                                                    for i in intersections]
+#            # dropping intersections of a primary k-wall with the 
+#            # branch cut emanating from its parent branch-point
+#            # if such intersections happens at t=0
+#            intersections = [[br_pt, i] for br_pt, i in intersections if \
+#                                    not (br_pt in self.parents and i == 0)]
+#            # add the direction to the intersection data: either 'cw' or 'ccw'
+#            intersections = [[br_pt, i, clock(left_right(self.coordinates,i))]\
+#                            for br_pt, i in intersections]
+#
+#            self.cuts_intersections += intersections
+#        ### Might be worth implementing an algorithm for handling 
+#        ### overlapping branch cuts: e.g. the one with a lower starting point 
+#        ### will be taken to be on the left, or a similar criterion.
+#        ### Still, there will be other sorts of problems, it is necessary
+#        ### to just rotate the u-plane and avoid such situations.
+#
+#        # now sort intersections according to where they happen in proper time
+#        # recall that the elements of cuts_intersections  are organized as
+#        # [..., [branch_point, t, 'ccw'] ,...]
+#        # where 't' is the integer of proper time at the intersection.
+#        self.cuts_intersections = sorted(self.cuts_intersections , \
+#                                        cmp = lambda k1,k2: cmp(k1[1],k2[1]))
+#
+#        # print \
+#        # "\nK-wall %s\nintersects the following cuts at the points\n%s\n" \
+#        # % (self, intersections)
+#
+#        # now define the lis of splitting points (for convenience) ad the 
+#        # list of local charges
+#        self.splittings = [t for br_pt, t, chi in self.cuts_intersections]
+#        self.local_charge = [self.initial_charge]
+#        for k in range(len(self.cuts_intersections)):
+#            branch_point = self.cuts_intersections[k][0]   # branch-point
+#            # t = self.cuts_intersections[k][1]       # proper time
+#            direction = self.cuts_intersections[k][2]     # 'ccw' or 'cw'
+#            charge = self.local_charge[-1]
+#            new_charge = charge_monodromy(charge, branch_point, direction)
+#            self.local_charge.append(new_charge)
 
-        # all_cuts_intersections = []
 
-        # Scan over branch cuts, see if path ever crosses one 
-        # based on x-coordinates only
-        for b_pt_num, x_0 in list(enumerate(disc_x)):
-            g = interpolate.splrep(traj_t, traj_x - x_0, s=0)
-            # now produce a list of integers corresponding to points in the 
-            # k-wall's coordinate list that seem to cross branch-cuts
-            # based on the x-coordinate.
-            # Will get a list [i_0, i_1, ...] of intersections
-            intersections = map(int, map(round, interpolate.sproot(g)))
-            # removing duplicates
-            intersections = list(set(intersections))
-            # enforcing y-coordinate intersection criterion:
-            # branch cuts extend vertically
-            y_0 = self.fibration.branch_points[b_pt_num].locus.imag
-            intersections = [i for i in intersections if \
-                                                self.coordinates[i][1] > y_0 ]
-            # adding the branch-point identifier to each intersection
-            intersections = [[self.fibration.branch_points[b_pt_num], i] \
-                                                    for i in intersections]
-            # dropping intersections of a primary k-wall with the 
-            # branch cut emanating from its parent branch-point
-            # if such intersections happens at t=0
-            intersections = [[br_pt, i] for br_pt, i in intersections if \
-                                    not (br_pt in self.parents and i == 0)]
-            # add the direction to the intersection data: either 'cw' or 'ccw'
-            intersections = [[br_pt, i, clock(left_right(self.coordinates,i))]\
-                            for br_pt, i in intersections]
-
-            self.cuts_intersections += intersections
-        ### Might be worth implementing an algorithm for handling 
-        ### overlapping branch cuts: e.g. the one with a lower starting point 
-        ### will be taken to be on the left, or a similar criterion.
-        ### Still, there will be other sorts of problems, it is necessary
-        ### to just rotate the u-plane and avoid such situations.
-
-        # now sort intersections according to where they happen in proper time
-        # recall that the elements of cuts_intersections  are organized as
-        # [..., [branch_point, t, 'ccw'] ,...]
-        # where 't' is the integer of proper time at the intersection.
-        self.cuts_intersections = sorted(self.cuts_intersections , \
-                                        cmp = lambda k1,k2: cmp(k1[1],k2[1]))
-
-        # print \
-        # "\nK-wall %s\nintersects the following cuts at the points\n%s\n" \
-        # % (self, intersections)
-
-        # now define the lis of splitting points (for convenience) ad the 
-        # list of local charges
-        self.splittings = [t for br_pt, t, chi in self.cuts_intersections]
-        self.local_charge = [self.initial_charge]
-        for k in range(len(self.cuts_intersections)):
-            branch_point = self.cuts_intersections[k][0]   # branch-point
-            # t = self.cuts_intersections[k][1]       # proper time
-            direction = self.cuts_intersections[k][2]     # 'ccw' or 'cw'
-            charge = self.local_charge[-1]
-            new_charge = charge_monodromy(charge, branch_point, direction)
-            self.local_charge.append(new_charge)
-
-
-    def grow_pf(self, boundary_conditions, nint_range, 
-                trajectory_singularity_threshold, ode_nsteps): 
+    def grow_pf(self, trajectory_singularity_threshold=None,
+                ode_size_of_step=None, ode_num_steps=None, **ode_kwargs):
         """ 
         implementation of the growth of kwalls 
         by means of picard-fuchs ODEs 
         """
-        # NOTE: the argument boundary_conditions should be passed 
-        # in the following form:
-        #   u_0 = boundary_conditions[0] 
-        #   eta_0 = boundary_conditions[1]
-        #   (d eta / du)_0 = boundary_conditions[2] 
-        # They must all be given as complex numbers. 
-        # (Warning: u0 must be formatted to comply)
-        # To this end, when calling this function from inside evolve() of 
-        # a primary K-wall, use get_primary_bc(...)
 
+        if(ode_num_steps is None or ode_num_steps == 0):
+            # Don't grow this K-wall, exit immediately.
+            return None
+        
         g2 = self.fibration.sym_g2
         g3 = self.fibration.sym_g3
         theta = self.phase
@@ -182,11 +180,9 @@ class KWall(object):
             (diff(delta,u) / delta) - (diff(Delta,u) / Delta)
         ).subs(self.fibration.params)
 
-        
         pf_matrix = lambdify(u, [[0, 1], [M10, M11]])
 
         singularity_check= False
-        t0 = 0
 
         def deriv(t, y):
             u, eta, d_eta = y 
@@ -207,35 +203,51 @@ class KWall(object):
             d_eta_1 = u_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
             return  array([u_1, eta_1, d_eta_1])
 
-        y_0 = boundary_conditions
-        t_i, t_f, num_t = nint_range
-        dt = float(t_f - t_i)/num_t
+        y_0 = self.pf_boundary_conditions
         ode = scipy.integrate.ode(deriv)
-        ode.set_integrator("zvode", nsteps=ode_nsteps)
+        ode.set_integrator("zvode", **ode_kwargs)
         ode.set_initial_value(y_0)
 
         step = 0
-        y = numpy.empty([num_t, 3], dtype=complex)
-        while ode.successful() and step < num_t:
-            y[step] = ode.y 
-            ode.integrate(ode.t + dt)
+        i_0 = len(self.coordinates)
+        if i_0 == 0:
+            self.coordinates = numpy.empty((ode_num_steps, 2), dtype=float)
+            self.periods = numpy.empty(ode_num_steps, complex)
+        elif i_0 > 0:
+            self.coordinates.resize((i_0 + ode_num_steps, 2))
+            self.periods.resize(i_0 + ode_num_steps)
+        while ode.successful() and step < ode_num_steps:
+            u, eta, d_eta = ode.y
+            self.coordinates[i_0 + step] = [u.real, u.imag]
+            self.periods[i_0 + step] = eta
+            ode.integrate(ode.t + ode_size_of_step)
             step += 1
-        return y
+        if step < ode_num_steps:
+            self.coordinates.resize((i_0 + step, 2))
+            self.periods.resize(i_0 + step)
+
+        self.check_cuts()
 
 
 class PrimaryKWall(KWall):
     """
     K-wall that starts from a branch point.
     """
-    def __init__(self, initial_charge, degeneracy, phase, parents, 
-                 fibration, boundary_condition, primary_nint_range,
-                 network, color='b'):
+    def __init__(
+        self, initial_charge=None, degeneracy=None, phase=None, parents=None,
+        fibration=None, initial_condition=None, color='b',
+        #network=None,
+    ):
+        if not (isinstance(parents[0], BranchPoint)):
+            raise TypeError('A parent of this primary K-wall '
+                            'is not a BranchPoint class.')
         super(PrimaryKWall, self).__init__(
-            initial_charge, degeneracy, phase, parents, 
-            fibration, boundary_condition, color
+            initial_charge=initial_charge, degeneracy=degeneracy,
+            phase=phase, parents=parents, fibration=fibration, color=color,
+            #network,
         )
         self.initial_point = self.parents[0]
-        self.network = network
+        #self.network = network
 
         """ 
         Implementation of the ODE for evolving primary walls, 
@@ -244,13 +256,10 @@ class PrimaryKWall(KWall):
         g2 = self.fibration.num_g2
         g3 = self.fibration.num_g3
         theta = self.phase
-        u0, sign = self.boundary_condition
+        u0, sign = initial_condition
         u = sym.Symbol('u')
         x = sym.Symbol('x')
 
-        ##################################
-        # Start Newer Primary Evolution
-        ##################################
         eq = 4 * x ** 3 - g2 * x - g3
         e1, e2, e3 = sym.simplify(sym.solve(eq, x))
         distances = map(abs, [e1-e2, e2-e3, e3-e1])
@@ -272,14 +281,31 @@ class PrimaryKWall(KWall):
 
         eta_0 = (sign) * ((f3_0 - f1_0) ** (-0.5)) * pi / 2.0
 
-        start, stop, num = primary_nint_range
-        delta = float((stop - start) / num)
+        # The initial evolution of primary kwalls is handled with an
+        # automatic tuning.
+        # The length of the single step is calibrated to be
+        # 1/2000 th of the minimum distance between any two discriminant
+        # loci.
+        # The maximal number of steps is set to 400, although it may
+        # be automatically truncated whenever e_1, e_2, e_3 become too
+        # hard to distinguish.
+        size_of_step = minimum_distance(self.fibration.branch_points)/2000.0
+        max_num_steps = 400
+        #self.primary_k_wall_ode_params = {
+        #    0.0, step * max_n_steps, max_n_steps
+        #}
+        #start, stop, num = primary_nint_range
+        #delta = float((stop - start) / num)
 
-        prim_coords = [[u0.real, u0.imag]]
-        prim_periods = [eta_0]
+        self.coordinates = numpy.empty((max_num_steps, 2), dtype=float)
+        self.periods = numpy.empty(max_num_steps, dtype=complex) 
 
-        for i in range(num):
-            u1 = u0 + delta * exp(1j*(theta + pi - cmath.phase(eta_0)))
+        for i in range(max_num_steps):
+            self.coordinates[i] = [u0.real, u0.imag]
+            self.periods[i] = eta_0
+            if i == max_num_steps -1:
+                break
+            u1 = u0 + size_of_step * exp(1j*(theta + pi - cmath.phase(eta_0)))
             roots = [f1_0, f2_0, f3_0]
             segment = [u0, u1]
             try_step = order_roots(roots, segment, sign, theta)
@@ -289,14 +315,15 @@ class PrimaryKWall(KWall):
             else:
                 [[f1_1, f2_1, f3_1], eta_1] = try_step
                 eta_prime_1 = (eta_1 - eta_0) / (u1 - u0)
-                prim_coords.append([u1.real, u1.imag])
-                prim_periods.append(eta_1)
                 u0 = u1
                 eta_0 = eta_1
 
-        self.pf_bc = [u1, eta_1, eta_prime_1]
-        self.coordinates = array(prim_coords)
-        self.periods = array(prim_periods)
+        last_step = i + 1
+        if last_step < max_num_steps:
+            self.coordinates.resize((last_step, 2))
+            self.periods.resize(last_step)
+            
+        self.pf_boundary_conditions = [u1, eta_1, eta_prime_1]
 
         ### Now we need to find the correct initial charge for the K-wall.
         ### The parent branch point gives such data, but with ambiguity on the 
@@ -309,96 +336,72 @@ class PrimaryKWall(KWall):
         positive_period = parent_bp.positive_period
         positive_charge = parent_bp.charge
         kwall_period = self.periods[0]      # this period is used for evolution
-        kwall_sign = (kwall_period / positive_period).real / \
-                    abs((kwall_period / positive_period).real)
+        kwall_sign = ((kwall_period / positive_period).real /
+                      abs((kwall_period / positive_period).real))
         kwall_charge = list(int(kwall_sign) * array(positive_charge))
         self.initial_charge = kwall_charge
 
 
-        #print "\n\nHere kwall.py line 558\
-        #\nThe K-wall period is %s, the positive period is %s\n\
-        #Therefore the sign is %s\nThe charge is %s" \
-        #% (kwall_period, positive_period, \
-        #    kwall_sign, kwall_charge)
-        
-
-        # pdb.set_trace()
-
-        ##################################
-        # End Newer Primary Evolution
-        ##################################
-
-
-    # def get_pf_boundary_condition(self):
-    #     """ 
-    #     Employs data of class PrimaryKWall to produce correctly 
-    #     formatted boundary conditions for grow_pf(). 
-    #     """
-    #     coords = self.coordinates
-    #     per = self.periods
-    #     u0 = complexify(coords[-1])
-    #     eta0 = per[-1]
-    #     d_eta0 = ((per[-1]-per[-2]) / 
-    #               (complexify(coords[-1]) - complexify(coords[-2])))
-    #     # print "boundary conditions for PF: \n %s " % [u0, eta0, d_eta0]
-    #     return [u0, eta0, d_eta0]
-
-    def evolve(self, nint_range, trajectory_singularity_threshold,
-               pf_odeint_mxstep):
-
-        ti, tf, nstep = nint_range
-        if(nstep == 0):
-            # Don't evolve, exit immediately.
-            return None
-        if not (isinstance(self.parents[0], BranchPoint)):
-            raise TypeError('A parent of this primary K-wall '
-                            'is not a BranchPoint class.')
-        # For a *primary* K-wall the boundary conditions are 
-        # a bit particular:
-
-        bc = self.pf_bc
-        pw_data_pf = self.grow_pf(bc, nint_range,
-                                  trajectory_singularity_threshold,
-                                  pf_odeint_mxstep)
-        self.coordinates = numpy.concatenate(
-            #(self.coordinates, [[row[0], row[1]] for row in pw_data_pf])
-            (
-                self.coordinates, 
-                [[row[0].real, row[0].imag] for row in pw_data_pf]
-            )
-        )
-        self.periods = numpy.concatenate(
-            #(self.periods , [row[2] + 1j* row[3] for row in pw_data_pf])
-            (self.periods , [row[1] for row in pw_data_pf])
-        )
-        self.check_cuts()
-
-        # pdb.set_trace()
-        
+#    def evolve(self, nint_range, trajectory_singularity_threshold,
+#               pf_odeint_mxstep):
+#
+#        ti, tf, nstep = nint_range
+#        if(nstep == 0):
+#            # Don't evolve, exit immediately.
+#            return None
+#        if not (isinstance(self.parents[0], BranchPoint)):
+#            raise TypeError('A parent of this primary K-wall '
+#                            'is not a BranchPoint class.')
+#        # For a *primary* K-wall the boundary conditions are 
+#        # a bit particular:
+#
+#        bc = self.pf_bc
+#        pw_data_pf = self.grow_pf(bc, nint_range,
+#                                  trajectory_singularity_threshold,
+#                                  pf_odeint_mxstep)
+#        self.coordinates = numpy.concatenate(
+#            #(self.coordinates, [[row[0], row[1]] for row in pw_data_pf])
+#            (
+#                self.coordinates, 
+#                [[row[0].real, row[0].imag] for row in pw_data_pf]
+#            )
+#        )
+#        self.periods = numpy.concatenate(
+#            #(self.periods , [row[2] + 1j* row[3] for row in pw_data_pf])
+#            (self.periods , [row[1] for row in pw_data_pf])
+#        )
+#        self.check_cuts()
+#
+#        # pdb.set_trace()
+#        
 
 
 class DescendantKWall(KWall):
     """
     K-wall that starts from an intersection point.
     """
-    def __init__(self, initial_charge, degeneracy, phase, parents, fibration, 
-                intersection, charge_wrt_parents, color='b'):
+    def __init__(self, initial_charge=None, degeneracy=None, phase=None,
+                 parents=None, fibration=None, intersection=None, 
+                 charge_wrt_parents=None, color='b'):
         """
         intersection: must be an instance of the IntersecionPoint class.
         charge_wrt_parents: must be the charge relative to 
             the parents' charge basis, hence a list of length 2.
         """
+        if not (isinstance(parents[0], KWall)):
+            raise TypeError('A parent of this primary K-wall '
+                            'is not a KWall class.')
         super(DescendantKWall, self).__init__(
-            initial_charge, degeneracy, phase, parents, 
-            fibration, 
-            [], #boundary_condition 
-            color
+            initial_charge, degeneracy, phase, parents, fibration, color,
         )
         self.initial_point = intersection
         self.charge_wrt_parents = charge_wrt_parents
-        self.network = parents[0].network
+        #self.network = parents[0].network
+        self.pf_boundary_conditions = self.get_pf_boundary_conditions()
+        self.coordinates = []
+        self.periods = []
 
-    def set_pf_boundary_condition(self):
+    def get_pf_boundary_conditions(self):
         """ 
         Employs data of class DescendantKWall to produce correctly 
         formatted boundary conditions for grow_pf(). 
@@ -494,22 +497,22 @@ class DescendantKWall(KWall):
         ### The use of complex() is necessary here, because sometimes 
         # the charge vector wil be deriving from an algorithm using sympy, 
         # and will turn j's into I's...
-        self.boundary_condition = [u_0, eta_0, d_eta_0]
+        return [u_0, eta_0, d_eta_0]
 
-    def evolve(self, nint_range, trajectory_singularity_threshold,
-                pf_odeint_mxstep):
-        ti, tf, nstep = nint_range
-        if(nstep == 0):
-            # Don't evolve, exit immediately.
-            return None
-        if not (isinstance(self.parents[0], KWall)):
-            raise TypeError('A parent of this primary K-wall '
-                            'is not a KWall class.')
-        self.set_pf_boundary_condition()
-        pw_data_pf = self.grow_pf(self.boundary_condition, nint_range,
-                                    trajectory_singularity_threshold,
-                                    pf_odeint_mxstep)
-        self.coordinates =  numpy.array([[row[0].real, row[0].imag]
-                                        for row in pw_data_pf])
-        self.periods =  numpy.array([row[1] for row in pw_data_pf ]) 
-        self.check_cuts()
+#    def evolve(self, nint_range, trajectory_singularity_threshold,
+#                pf_odeint_mxstep):
+#        ti, tf, nstep = nint_range
+#        if(nstep == 0):
+#            # Don't evolve, exit immediately.
+#            return None
+#        if not (isinstance(self.parents[0], KWall)):
+#            raise TypeError('A parent of this primary K-wall '
+#                            'is not a KWall class.')
+#        self.set_pf_boundary_condition()
+#        pw_data_pf = self.grow_pf(self.boundary_condition, nint_range,
+#                                    trajectory_singularity_threshold,
+#                                    pf_odeint_mxstep)
+#        self.coordinates =  numpy.array([[row[0].real, row[0].imag]
+#                                        for row in pw_data_pf])
+#        self.periods =  numpy.array([row[1] for row in pw_data_pf ]) 
+#        self.check_cuts()

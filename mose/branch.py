@@ -49,3 +49,16 @@ class BranchPoint:
 #         self.monodromy_matrix = branch_point.monodromy_matrix
 #         self.locus = branch_point.locus
 #         BranchCut.count += 1
+
+
+def minimum_distance(branch_points):
+    loci = [bpt.locus for bpt in branch_points]
+    min_dist = abs(loci[0]-loci[1])
+    for i, z_i in enumerate(loci):
+        for j, z_j in list(enumerate(loci))[i+1:]:
+            dist = abs(z_i - z_j)
+            if dist < min_dist:
+                min_dist = dist
+    return min_dist
+
+

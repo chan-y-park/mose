@@ -42,6 +42,7 @@ def analysis(config, phase=None,):
         config['fibration']['g2'],
         config['fibration']['g3'],
         config['fibration parameters'],
+        branch_point_charges=config['charge']['fixed_charges']
     )
 
     #KWall.count = 0
@@ -87,7 +88,7 @@ def load_config(config_file=None):
         if config_file == '':
             return None
     else:
-        config_file = os.path.join(os.curdir, 'default.ini')
+        config_file = os.path.join(os.curdir, config_file)
 
     config.read(config_file)
     return config

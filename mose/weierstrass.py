@@ -47,9 +47,7 @@ import cmath
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import numpy as np
-from scipy.integrate import odeint
 from itertools import combinations
-
 
 
 NEGLIGIBLE_BOUND = 0.1**12
