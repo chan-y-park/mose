@@ -291,11 +291,6 @@ class PrimaryKWall(KWall):
         # hard to distinguish.
         size_of_step = minimum_distance(self.fibration.branch_points)/2000.0
         max_num_steps = 400
-        #self.primary_k_wall_ode_params = {
-        #    0.0, step * max_n_steps, max_n_steps
-        #}
-        #start, stop, num = primary_nint_range
-        #delta = float((stop - start) / num)
 
         self.coordinates = numpy.empty((max_num_steps, 2), dtype=float)
         self.periods = numpy.empty(max_num_steps, dtype=complex) 
@@ -342,40 +337,6 @@ class PrimaryKWall(KWall):
         self.initial_charge = kwall_charge
 
 
-#    def evolve(self, nint_range, trajectory_singularity_threshold,
-#               pf_odeint_mxstep):
-#
-#        ti, tf, nstep = nint_range
-#        if(nstep == 0):
-#            # Don't evolve, exit immediately.
-#            return None
-#        if not (isinstance(self.parents[0], BranchPoint)):
-#            raise TypeError('A parent of this primary K-wall '
-#                            'is not a BranchPoint class.')
-#        # For a *primary* K-wall the boundary conditions are 
-#        # a bit particular:
-#
-#        bc = self.pf_bc
-#        pw_data_pf = self.grow_pf(bc, nint_range,
-#                                  trajectory_singularity_threshold,
-#                                  pf_odeint_mxstep)
-#        self.coordinates = numpy.concatenate(
-#            #(self.coordinates, [[row[0], row[1]] for row in pw_data_pf])
-#            (
-#                self.coordinates, 
-#                [[row[0].real, row[0].imag] for row in pw_data_pf]
-#            )
-#        )
-#        self.periods = numpy.concatenate(
-#            #(self.periods , [row[2] + 1j* row[3] for row in pw_data_pf])
-#            (self.periods , [row[1] for row in pw_data_pf])
-#        )
-#        self.check_cuts()
-#
-#        # pdb.set_trace()
-#        
-
-
 class DescendantKWall(KWall):
     """
     K-wall that starts from an intersection point.
@@ -411,28 +372,7 @@ class DescendantKWall(KWall):
 
         u_0 = intersection.locus
         parents = intersection.parents
-        
-        # index_1 = intersection.index_1
-        # index_2 = intersection.index_2
-        # path_1 = map(complexify, parents[0].coordinates)
-        # path_2 = map(complexify, parents[1].coordinates)
-        # periods_1 = parents[0].periods
-        # periods_2 = parents[1].periods
-        # eta_1 = periods_1[index_1]
-        # eta_2 = periods_2[index_2]
-        # d_eta_1 = ((periods_1[index_1] - periods_1[index_1-1]) / 
-        #             (path_1[index_1] - path_1[index_1-1]))
-        # d_eta_2 = ((periods_2[index_2] - periods_2[index_2-1]) / 
-        #             (path_2[index_2] - path_2[index_2-1]))
-        # # NOTE: The use of complex() is necessary here, because sometimes 
-        # # the charge vector wil be deriving from an algorithm using sympy, 
-        # # and will turn j's into I's...
-        # eta_0 = eta_1*complex(charge[0]) + eta_2*complex(charge[1])  
-        # d_eta_0 = d_eta_1*complex(charge[0]) + d_eta_2*complex(charge[1])
-
-        # self.boundary_condition = [u_0, eta_0, d_eta_0]
-
-
+       
         ### a parameter related to handling  0 / 0 cases of d_eta_1, d_eta_2
         ### specifies how far backwards one should scan in case two consecutive 
         ### steps of a kwall have same position and periods
@@ -452,14 +392,6 @@ class DescendantKWall(KWall):
         periods_2 = parents[1].periods
         eta_1 = periods_1[index_1]
         eta_2 = periods_2[index_2]
-        
-        # d_eta_1 = ((periods_1[index_1] - periods_1[index_1-1]) / 
-        #               (path_1[index_1] - path_1[index_1-1]))
-        # d_eta_2 = ((periods_2[index_2] - periods_2[index_2-1]) / 
-        #               (path_2[index_2] - path_2[index_2-1]))
-        
-        ### substituted the above two lines with the following, 
-        ### since in some cases you get 0 / 0 = 'nan'
         
         for i in range(n_trials):
             i += 1      # start from i = 1
@@ -498,21 +430,3 @@ class DescendantKWall(KWall):
         # the charge vector wil be deriving from an algorithm using sympy, 
         # and will turn j's into I's...
         return [u_0, eta_0, d_eta_0]
-
-#    def evolve(self, nint_range, trajectory_singularity_threshold,
-#                pf_odeint_mxstep):
-#        ti, tf, nstep = nint_range
-#        if(nstep == 0):
-#            # Don't evolve, exit immediately.
-#            return None
-#        if not (isinstance(self.parents[0], KWall)):
-#            raise TypeError('A parent of this primary K-wall '
-#                            'is not a KWall class.')
-#        self.set_pf_boundary_condition()
-#        pw_data_pf = self.grow_pf(self.boundary_condition, nint_range,
-#                                    trajectory_singularity_threshold,
-#                                    pf_odeint_mxstep)
-#        self.coordinates =  numpy.array([[row[0].real, row[0].imag]
-#                                        for row in pw_data_pf])
-#        self.periods =  numpy.array([row[1] for row in pw_data_pf ]) 
-#        self.check_cuts()
