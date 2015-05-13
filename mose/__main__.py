@@ -7,11 +7,12 @@ import os
 import getopt
 import time
 import sys
+import Tkinter as tk
 import pdb
 
 from config import MoseConfig
 from gui import open_gui
-from api import (analysis, save, load, load_config, make_plots,)
+from api import (set_logging, analysis, save, load, load_config, make_plots,)
 
 
 shortopts = 'c:g:hl:p:'
@@ -44,7 +45,7 @@ def run_with_optlist(optlist):
         'load-data-from': None,
         'save-data': False,
         #'save-data-at': None,
-        'show-plot': True,
+        'show-plot': False,
     }
 
     for opt, arg in optlist:
@@ -71,19 +72,7 @@ def run_with_optlist(optlist):
             opts['show-plot'] = True
     # End of option setting.
 
-    # Set logging.
-    if opts['logging-level'] == 'debug':
-        logging_level = logging.DEBUG
-        logging_format = '%(module)s@%(lineno)d: %(funcName)s: %(message)s'
-    elif opts['logging-level'] == 'info':
-        logging_level = logging.INFO
-        logging_format = '%(process)d: %(message)s'
-    else:
-        logging_level = logging.WARNING
-        logging_format = '%(message)s'
-
-    logging.basicConfig(level=logging_level, format=logging_format, 
-                        stream=sys.stdout)
+    set_logging(opts['logging-level'])
 
     if opts['gui-mode'] is True:
         return open_gui(config, data)
@@ -113,13 +102,13 @@ def run_with_optlist(optlist):
         #or (opts['save-data-at'] is not None)
     ):
         k_wall_network_plot, ms_wall_plot = make_plots(
-            config, data, opts['show-plot']
+            config, data, show_plot=opts['show-plot'],
         )
+        raw_input("Press any key to continue.")
 
     if opts['save-data'] is True:
-        save(config, data, k_wall_network_plot, ms_wall_plot)
-
-    return (config, data, k_wall_network_plot, ms_wall_plot)
+        #save(config, data, k_wall_network_plot, ms_wall_plot)
+        save(config, data, open_dialog=False)
 
 
 def run(optstr='', argv=None):
@@ -157,7 +146,11 @@ def print_help():
     produce a single K-wall network at the phase of THETA
     and plot the K-wall network.
 
---load-data=DATA_FOLDER:
+--load-data:
+    open a dialog window to choose a folder containing
+    configuration & data files to load.
+
+--load-data-from=DATA_FOLDER:
     load data from a folder containing configuration & data
     files.
 

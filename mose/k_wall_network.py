@@ -64,6 +64,7 @@ class KWallNetwork:
                     parents=[bp],
                     fibration=self.fibration,
                     initial_condition=[bp.locus, sign],
+                    #label="K-wall #{}".format(len(self.k_walls))
                 )
                 k_wall.grow_pf(
                     trajectory_singularity_threshold,
@@ -130,6 +131,7 @@ class KWallNetwork:
                         fibration=self.fibration,
                         intersection=intersection,
                         charge_wrt_parents=charge,
+                        #label="K-wall #{}".format(len(self.k_walls))
                     )
                     k_wall.grow_pf(
                         trajectory_singularity_threshold,

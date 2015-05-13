@@ -23,14 +23,13 @@ MOduli Space Explorer: Python program to study moduli spaces of elliptic fibrati
     1. To get multiple K-wall networks according to the configuration, run
       * ```>>> data = mose.analysis(config)```
 * Plotting a K-wall network
-  1. Run ```make_plots```, which returns ```(k_wall_network_plot, ms_wall_plot)```.
-    * ```>>> kp, mp = mose.make_plots(config, data)```
-  1. If you want to see the plot again, run ```*_plot.show()```
-    * ```>>> kp.show()```
-    * Currently this is not working; will be debugged.
+  1. Run ```make_plots```.
+    * ```>>> mose.make_plots(config, data)```
+  1. Click an object in each figure to display its label.
+  1. Press ```d``` to delete all the displayed labels.
 * Saving the data
-  1. ```>>> mose.save(config, data, kp, mp)```
-  1. Then ```config.ini```, ```data.mose```, and plots are saved in ```data/yyyy-mm-dd-tt-mm```
+  1. ```>>> mose.save(config, data)```
+  1. Then you get a directory dialog window to select a directory to save ```config.ini``` and ```data.mose```.
 * Loading the data
   1. ```>>> config, data = mose.load()```
   1. Then you first get a directory dialog window to select a directory that contains the configuration & the data file. Select a directory and it returns ```(config, data)```.

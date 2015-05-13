@@ -11,126 +11,50 @@ import pdb
 import matplotlib
 # use() directive must be called before importing matplotlib.pyplot
 matplotlib.use('TkAgg')     
+import mpldatacursor
 
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg as FigureCanvas,
     NavigationToolbar2TkAgg as NavigationToolbar,
 )
 from matplotlib import pyplot
+from network_plot import NetworkPlot
 
 
-class KWallNetworkPlot:
-    def __init__(self, root=None):
-        # Create a Toplevel widget, which is a child of GUILoom 
-        # and contains plots,
-        self.root = root
-        if root is None:
-            self.toplevel = tk.Tk()
-        else:
-            self.toplevel = tk.Toplevel(root)
-        self.toplevel.wm_title('K-wall Network Plot')
-        self.plots = []
-        self.current_plot_idx = None 
-
-        self.figure = matplotlib.figure.Figure()
-        self.canvas = FigureCanvas(
-            self.figure,
-            master=self.toplevel,
-            #resize_callback=(
-            #    lambda event: self.set_data_cursor()
-            #)
+class KWallNetworkPlot(NetworkPlot):
+    def __init__(self, master=None, plot_joints=False, plot_data_points=False):
+        super(KWallNetworkPlot, self).__init__(
+            master=master, plot_joints=plot_joints,
+            plot_data_points=plot_data_points,
         )
-        self.canvas.show()
-        self.canvas.get_tk_widget().pack()
-
-        toolbar = NavigationToolbar(self.canvas, self.toplevel)
-        toolbar.update()
-        self.canvas.get_tk_widget().pack()
+        self.toplevel.wm_title('K-wall Network Plot')
 
     def draw(
         self,
         k_wall_network, 
         plot_range=[[-5, 5], [-5, 5]], 
-        plot_bins=False, 
-        plot_intersections=False, 
-        plot_data_points=False,
-        plot_segments=False,
     ):
-        hit_table = k_wall_network.hit_table
-        k_walls = k_wall_network.k_walls
-        phase = k_wall_network.phase
-
         [[x_min, x_max], [y_min, y_max]] = plot_range
+        branch_points = []
+        joints = []
+        labels = {'branch_points': [], 'joints': [], 'walls': []}
+        for i, bp in enumerate(k_wall_network.fibration.branch_points):
+            branch_points.append([bp.locus.real, bp.locus.imag])
+            labels['branch_points'].append("branch point #{}".format(i))
+        for i, ip in enumerate(k_wall_network.intersections):
+            joints.append([ip.locus.real, ip.locus.imag])
+            labels['joints'].append("intersection point #{}".format(i))
+        for i, wall in enumerate(k_wall_network.k_walls):
+            labels['walls'].append("K-wall #{}".format(i))
 
-        rect = [0.125, 0.15, 0.8, 0.75]
-        axes = self.figure.add_axes(
-            rect,
-            label='kwn_snapshot@{}.'.format(phase),    
-            xlim=(x_min, x_max),
-            ylim=(y_min, y_max),
-            aspect='equal',
+        super(KWallNetworkPlot, self).draw(
+            phase=k_wall_network.phase,
+            branch_points=branch_points,
+            joints=joints,
+            walls=k_wall_network.k_walls,
+            labels=labels,
+            plot_range=[x_min, x_max, y_min, y_max],
         )
-
-        # Draw a lattice of bins for visualization.
-        if(plot_bins is True):
-            bin_size = hit_table.get_bin_size()
-            xv = x_min
-            while xv < x_max:
-                xv += bin_size
-                axes.axvline(x = xv, linewidth=0.5, color='0.75')
-
-            yh = y_min  
-            while yh < y_max:
-                yh += bin_size
-                axes.axhline(y = yh, linewidth=0.5, color='0.75')
-        # End of drawing the bin lattice.
-
-        # Plot branch points
-        for bp in k_wall_network.fibration.branch_points:
-            bpx = bp.locus.real 
-            bpy = bp.locus.imag 
-            axes.plot(bpx, bpy, 'x', markeredgewidth=2, markersize=8, 
-                        color='k')
-        # End of plotting branch points
-
-        # Plot intersection points
-        if(plot_intersections == True):
-            for ip in k_wall_network.intersections:
-                ipx = ip.locus.real 
-                ipy = ip.locus.imag 
-                axes.plot(ipx, ipy, '+', markeredgewidth=2, markersize=8, 
-                            color='k')
-        # End of plotting intersection points
-
-        # If we have segments of curves, draw them in different colors.
-        if(plot_segments == True):
-            for bin_key in hit_table:
-                for curve_index in hit_table[bin_key]:
-                    for t_i, t_f in hit_table[bin_key][curve_index]:
-                        seg_xcoords, seg_ycoords = [
-                            list(c) for c in
-                            zip(*k_walls[curve_index].coordinates[t_i: t_f+1])
-                        ] 
-                        axes.plot(seg_xcoords, seg_ycoords, '-')
-                        if(plot_data_points == True):
-                            axes.plot(seg_xcoords, seg_ycoords, 'o',
-                                        color='b')
-        else:
-            for k_wall in k_walls:
-                xcoords, ycoords = [list(c) for c in zip(*k_wall.coordinates)] 
-                axes.plot(xcoords, ycoords, '-', color='b')
-            if(plot_data_points == True):
-                axes.plot(xcoords, ycoords, 'o', color='b')
-        
-        self.plots.append(axes)
-        if self.current_plot_idx is not None:
-            self.plots[self.current_plot_idx].set_visible(False)
-            self.current_plot_idx += 1
-        else:
-            self.current_plot_idx = 0
-        axes.set_visible(True)
-
-        return None
 
 
     def save(self, plot_dir, file_prefix='k_wall_network_'):
@@ -142,15 +66,11 @@ class KWallNetworkPlot:
             )
             self.figure.savefig(plot_file_path)
 
-    def show(self):
-        self.plots[self.current_plot_idx].set_visible(True)
-        if self.root is None:
-            self.toplevel.mainloop()
-
 
 class MSWallPlot:
-    def __init__(self):
-        self.figure = matplotlib.figure.Figure() 
+    def __init__(self, master=None):
+        title="Walls of marginal stability"
+        self.figure = matplotlib.pyplot.figure(title) 
 
     def draw(
         self,
@@ -172,17 +92,28 @@ class MSWallPlot:
             aspect='equal',
         )
 
-        count = 0
-        colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
+        #count = 0
+        #colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
 
         # Plot intersection points
-        for wall in ms_walls:
-            count += 1
-            for ip in wall.points:
-                ipx = ip.locus.real
-                ipy = ip.locus.imag
-                axes.plot(ipx, ipy, colors[count % len(colors)]+'o', 
-                    markersize=4)
+        for i, wall in enumerate(ms_walls):
+            label = "MS wall #{}".format(i)
+            xs = []
+            ys = []
+            for l in wall.locus:
+                xs.append(l.real)
+                ys.append(l.imag)
+            axes.plot(xs, ys, '-', markersize=4, label=label)
+            axes.plot(xs, ys, 'o', markersize=4, label=label)
+
+        data_cursor = mpldatacursor.datacursor(
+            axes=axes,
+            formatter='{label}'.format,
+            tolerance=2,
+            #hover=True,
+            #display='single',
+            display='multiple',
+        )
 
     def show(self):
         self.figure.show()

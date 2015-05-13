@@ -5,10 +5,11 @@ IntersectionPoint class.
 Uses general-purpose module, intersection.py
 """
 import logging
+import cmath
 from itertools import combinations
-from misc import dsz_pairing
+from misc import dsz_pairing, complexify
 from intersection import NoIntersection, find_intersection_of_segments
-from genealogy import build_genealogy_tree
+#from genealogy import build_genealogy_tree
 
 
 class IntersectionPoint:
@@ -190,24 +191,30 @@ def find_new_intersections(kwalls, new_kwalls, intersections, hit_table,
                     'found %d of them.', len(new_ints))
 
     return new_ints
+
+
+def build_genealogy_tree(intersection):
+    """
+    this function will return the genealogy tree of an intersection \
+    in the form of a list such as [[BP1,BP2],BP3] for an intersection with the\
+    obvious history
+    """
     
-#def adjust_intersection_search_range(fibration, search_range):
-#    [[x_min, x_max], [y_min, y_max]] = search_range
-#    loci = [bp.locus for bp in fibration.branch_points]
-#    center = sum(loci) / float(len(loci))
-#    distance = 2*max([abs(l - center) for l in loci]) 
-#    new_x_min = center.real - distance
-#    new_x_max = center.real + distance
-#    new_y_min = center.imag - distance
-#    new_y_max = center.imag + distance
-#    # Check if the given search_range is smaller than 
-#    # the calculated region.
-#    if ((new_x_min < x_min) or (x_max < new_x_max) or
-#        (new_y_min < y_min) or (y_max < new_y_max)):
-#        new_search_range = [[new_x_min, new_x_max], [new_y_min, new_y_max]]
-#        logging.warning('Intersection search range in the configuration '
-#                        'is too small; adjust to a new search range %s',
-#                        new_search_range)
-#        return new_search_range
-#    else:
-#        return search_range
+    parents = intersection.parents
+    index_1 = intersection.index_1
+    index_2 = intersection.index_2
+    
+    ### determine who's mom and who's dad by relative orientation
+    delta_z_1 = complexify(parents[0].coordinates[index_1+1]) - \
+                                    complexify(parents[0].coordinates[index_1])
+    delta_z_2 = complexify(parents[1].coordinates[index_2+1]) - \
+                                    complexify(parents[1].coordinates[index_2])
+
+    if cmath.phase(delta_z_1 / delta_z_2) > 0:
+        dad = parents[0].initial_point
+        mom = parents[1].initial_point
+    else:
+        dad = parents[1].initial_point
+        mom = parents[0].initial_point
+
+    return [dad.genealogy, mom.genealogy]    

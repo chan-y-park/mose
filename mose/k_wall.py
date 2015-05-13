@@ -30,10 +30,11 @@ class KWall(object):
     parents, boundary_condition)
     """
 
-    def __init__(self, initial_charge=None, degeneracy=None, phase=None,
-                 parents=None, fibration=None,
-                 #network=None,
-                 color='b'):
+    def __init__(
+        self, initial_charge=None, degeneracy=None, phase=None, parents=None,
+        fibration=None, color='b', label=None,
+        #network=None,
+    ):
         self.initial_charge = initial_charge
         self.degeneracy = degeneracy
         self.phase = phase
@@ -47,6 +48,7 @@ class KWall(object):
         self.fibration = fibration
         self.color = color
         #self.network = network
+        #self.label = label
         self.singular = False
         self.cuts_intersections = []
 
@@ -59,10 +61,22 @@ class KWall(object):
         return self.color
     
     def get_xcoordinates(self):
+        """
+        Deprecated. Use get_xs()
+        """
         return [z[0] for z in self.coordinates]
 
+    def get_xs(self):
+        return self.coordinates.T[0]
+
     def get_ycoordinates(self):
+        """
+        Deprecated. Use get_ys()
+        """
         return [z[1] for z in self.coordinates]
+
+    def get_ys(self):
+        return self.coordinates.T[1]
 
     def charge(self, point):
         return self.initial_charge
@@ -235,7 +249,7 @@ class PrimaryKWall(KWall):
     """
     def __init__(
         self, initial_charge=None, degeneracy=None, phase=None, parents=None,
-        fibration=None, initial_condition=None, color='b',
+        fibration=None, initial_condition=None, color='k', label=None,
         #network=None,
     ):
         if not (isinstance(parents[0], BranchPoint)):
@@ -244,6 +258,7 @@ class PrimaryKWall(KWall):
         super(PrimaryKWall, self).__init__(
             initial_charge=initial_charge, degeneracy=degeneracy,
             phase=phase, parents=parents, fibration=fibration, color=color,
+            label=label,
             #network,
         )
         self.initial_point = self.parents[0]
@@ -343,7 +358,7 @@ class DescendantKWall(KWall):
     """
     def __init__(self, initial_charge=None, degeneracy=None, phase=None,
                  parents=None, fibration=None, intersection=None, 
-                 charge_wrt_parents=None, color='b'):
+                 charge_wrt_parents=None, color='b', label=None):
         """
         intersection: must be an instance of the IntersecionPoint class.
         charge_wrt_parents: must be the charge relative to 
@@ -353,7 +368,9 @@ class DescendantKWall(KWall):
             raise TypeError('A parent of this primary K-wall '
                             'is not a KWall class.')
         super(DescendantKWall, self).__init__(
-            initial_charge, degeneracy, phase, parents, fibration, color,
+            initial_charge=initial_charge, degeneracy=degeneracy, 
+            phase=phase, parents=parents, fibration=fibration, color=color,
+            label=label
         )
         self.initial_point = intersection
         self.charge_wrt_parents = charge_wrt_parents

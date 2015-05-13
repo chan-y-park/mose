@@ -20,6 +20,20 @@ from marginal_stability_wall import build_ms_walls
 from plotting import KWallNetworkPlot, MSWallPlot
 from misc import formatted_date_time
 
+def set_logging(level):
+    if level == 'debug':
+        logging_level = logging.DEBUG
+        logging_format = '%(module)s@%(lineno)d: %(funcName)s: %(message)s'
+    elif level == 'info':
+        logging_level = logging.INFO
+        logging_format = '%(process)d: %(message)s'
+    else:
+        logging_level = logging.WARNING
+        logging_format = '%(message)s'
+
+    logging.basicConfig(level=logging_level, format=logging_format, 
+                        stream=sys.stdout)
+
 
 def analysis(config, phase=None,):
     data = {
@@ -137,10 +151,24 @@ def save_data(config, data, data_dir=None, data_file_name='data'):
     logging.info('Data saved as' + data_file_path + '.')
 
 
-def save(config, data, k_wall_network_plot, ms_wall_plot, data_dir=None):
+def save(config, data, k_wall_network_plot=None, ms_wall_plot=None,
+         data_dir=None, open_dialog=True):
     """
     Save config & data files in a directory.
     """
+    if open_dialog is True:
+        root = tk.Tk()
+        dir_opts = {
+            'initialdir': os.curdir,
+            'mustexist': False,
+            'parent': root,
+            'title': 'Select a directory to save files.',
+        }
+        data_dir = tkFileDialog.askdirectory(**dir_opts)
+        root.destroy()
+        if data_dir == '':
+            return None 
+
     if data_dir is None:
         # Prepares the folder where to save data.
         current_dir = os.getcwd()
@@ -151,14 +179,14 @@ def save(config, data, k_wall_network_plot, ms_wall_plot, data_dir=None):
 
     save_config(config, file_dir=data_dir)
     save_data(config, data, data_dir=data_dir)
-    k_wall_network_plot.save(data_dir)
-    if data['multiple_networks'] is True:
+    if k_wall_network_plot is not None:
+        k_wall_network_plot.save(data_dir)
+    if ms_wall_plot is not None:
         ms_wall_plot.save(data_dir)
 
 
-def make_plots(config, data, show_plot=False): 
-    k_wall_network_plot = KWallNetworkPlot()
-    ms_wall_plot = MSWallPlot()
+def make_plots(config, data, show_plot=True):
+    k_wall_network_plot = KWallNetworkPlot(master=config.tk_root)
 
     # Draw the plots of K-wall networks.
     for k_wall_network in data['k_wall_networks']:
@@ -168,15 +196,18 @@ def make_plots(config, data, show_plot=False):
         )
 
     if data['multiple_networks'] is True:
+        ms_wall_plot = MSWallPlot(master=config.tk_root)
         # Draw MS walls and save the plot.
         ms_wall_plot.draw(
-            data['ms_wall'],
+            data['ms_walls'],
             plot_range=config['plotting']['range'], 
         )
+    else:
+        ms_wall_plot = None
 
     if show_plot is True:
         k_wall_network_plot.show()
-        if data['multiple_networks'] is True:
-            ms_wall_network_plot.show()
+        if ms_wall_plot is not None:
+            ms_wall_plot.show()
 
     return (k_wall_network_plot, ms_wall_plot)

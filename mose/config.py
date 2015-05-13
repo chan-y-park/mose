@@ -1,5 +1,6 @@
 import ConfigParser
 import logging
+import Tkinter as tk
 
 from math import pi
 
@@ -31,7 +32,9 @@ class MoseConfig:
     """
     def __init__(self):
         self.data = {}
-        self.parser = None 
+        self.parser = None
+        self.tk_root = tk.Tk()
+        self.tk_root.withdraw()
 
 
     def __setitem__(self, option, value):
