@@ -33,8 +33,6 @@ class MoseConfig:
     def __init__(self):
         self.data = {}
         self.parser = None
-        self.tk_root = tk.Tk()
-        self.tk_root.withdraw()
 
 
     def __setitem__(self, option, value):

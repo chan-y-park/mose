@@ -186,7 +186,7 @@ def save(config, data, k_wall_network_plot=None, ms_wall_plot=None,
 
 
 def make_plots(config, data, show_plot=True):
-    k_wall_network_plot = KWallNetworkPlot(master=config.tk_root)
+    k_wall_network_plot = KWallNetworkPlot()
 
     # Draw the plots of K-wall networks.
     for k_wall_network in data['k_wall_networks']:
@@ -196,7 +196,7 @@ def make_plots(config, data, show_plot=True):
         )
 
     if data['multiple_networks'] is True:
-        ms_wall_plot = MSWallPlot(master=config.tk_root)
+        ms_wall_plot = MSWallPlot()
         # Draw MS walls and save the plot.
         ms_wall_plot.draw(
             data['ms_walls'],

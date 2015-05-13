@@ -3,9 +3,6 @@
 MOduli Space Explorer: Python program to study moduli spaces of elliptic fibrations.
 
 ## To Do List
-1. Plotting multiple networks.
-1. Labeling objects in plots
-1. use ```scipy.integrate.ode``` that works for complex ode.
 
 ## How to run
 
@@ -14,8 +11,11 @@ MOduli Space Explorer: Python program to study moduli spaces of elliptic fibrati
   1. In the root directory that contains ```mose``` directory, start the python interpreter.
   1. ```>>> import mose```
   1. Load a configuration file.
-    1. ```>>> config = mose.load_config()```
-    1. A file dialog window opens, select a configuration file to use.
+    1. Load it interactively.
+      * ```>>> config = mose.load_config()```
+      * A file dialog window opens, select a configuration file to use.
+    1. Or give the file name as an argument.
+      * ```>>> config = mose.load_config('default.ini')```.
     1. The returned value is ```MoseConfig``` that contains all the configuration information.
   1. Run ```analysis```, which returns ```data```.
     1. To get a K-wall network at a fixed phase, run
@@ -31,8 +31,11 @@ MOduli Space Explorer: Python program to study moduli spaces of elliptic fibrati
   1. ```>>> mose.save(config, data)```
   1. Then you get a directory dialog window to select a directory to save ```config.ini``` and ```data.mose```.
 * Loading the data
-  1. ```>>> config, data = mose.load()```
-  1. Then you first get a directory dialog window to select a directory that contains the configuration & the data file. Select a directory and it returns ```(config, data)```.
+  1. Load it interactively.
+    * ```>>> config, data = mose.load()```
+    * Then you first get a directory dialog window to select a directory that contains the configuration & the data file. Select a directory and it returns ```(config, data)```.
+  1. Or give the directory name as an argument.
+    * ```>>> config, data = mose.load('data/name')```.
 
 ### From the Linux shell
 * In the root directory, there is an executable Python script ```main.py```. Running it without any option prints the help screen.
@@ -42,7 +45,7 @@ MOduli Space Explorer: Python program to study moduli spaces of elliptic fibrati
   * producing its plot,
   * and saving the resulting data at ```data/yyyy-mm-dd-tt-mm```,
 ```
-> ./main.py --config-file default.ini --phase 1.0 --show-plot --save-data
+> ./main.py --config-file=default.ini --phase=1.0 --show-plot --save-data
 ```
 * If you want to load a data and show the plot, 
 ```
