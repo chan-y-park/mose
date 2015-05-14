@@ -1,67 +1,28 @@
 import numpy
 import pdb
 import logging
-import Tkinter as tk
 import mpldatacursor
 
 import matplotlib
-# use() directive must be called before importing matplotlib.pyplot
-matplotlib.use('TkAgg')     
 
-from matplotlib.backends.backend_tkagg import (
-    FigureCanvasTkAgg as FigureCanvas,
-    NavigationToolbar2TkAgg as NavigationToolbar,
-)
 from matplotlib import pyplot
+from matplotlib.widgets import Button
 from math import pi
 
 class NetworkPlot(object):
     def __init__(self, 
-        master=None,
-        #plot_on_cylinder=False,
-        #plot_bins=False, 
+        matplotlib_figure=None,
         plot_joints=False,
         plot_data_points=False,
-        #plot_segments=False,
     ):
-        if master is None:
-            master = tk.Tk()
-            master.withdraw()
-
-        self.master = master
-        #self.plot_on_cylinder = plot_on_cylinder
-        #self.plot_bins = plot_bins
         self.plot_joints = plot_joints
         self.plot_data_points = plot_data_points
-        #self.plot_segments = plot_segments
-
-        # Create a Toplevel widget, which is a child of GUILoom 
-        # and contains plots,
-        self.toplevel = tk.Toplevel(master)
-        #self.toplevel.wm_title('Spectral Network Plot')
 
         self.plots = []
         self.data_cursor = None
         self.current_plot_idx = None 
 
-        self.plot_idx_scale = None
-
-        self.plot_idx_entry = None
-        self.plot_idx_entry_var = tk.StringVar() 
-        self.plot_idx_entry_var.trace('w', self.plot_idx_entry_change)
-
-        self.figure = matplotlib.figure.Figure()
-        self.canvas = FigureCanvas(
-            self.figure,
-            master=self.toplevel,
-            resize_callback=self.canvas_resize_callback
-        )
-        self.canvas.show()
-        self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
-
-        toolbar = NavigationToolbar(self.canvas, self.toplevel)
-        toolbar.update()
-        self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+        self.figure = matplotlib_figure
     
 
     def draw(self, phase=None, branch_points=None, joints=None, walls=None,
@@ -79,7 +40,7 @@ class NetworkPlot(object):
 
         axes = self.figure.add_axes(
             rect,
-            label=phase,
+            label="Network #{}".format(len(self.plots)),
             xlim=(x_min, x_max),
             ylim=(y_min, y_max),
             aspect='equal',
@@ -114,8 +75,6 @@ class NetworkPlot(object):
         axes.set_visible(False)
         self.plots.append(axes)
 
-        return None
-
 
     def set_data_cursor(self):
         if self.current_plot_idx is None:
@@ -131,36 +90,16 @@ class NetworkPlot(object):
             #display='single',
             display='multiple',
         )
-    
-        return None 
 
 
-    def scale_action(self, scale_value):
-        new_plot_idx = int(scale_value)
-        self.update_current_plot(new_plot_idx)
-        self.plot_idx_entry_var.set(new_plot_idx)
+    def change_current_plot(self, new_plot_idx):
+        if new_plot_idx == self.current_plot_idx:
+            return None
+        elif new_plot_idx < 0:
+            new_plot_idx = 0
+        elif new_plot_idx > len(self.plots) - 1:
+            new_plot_idx = len(self.plots) - 1
 
-
-    def plot_idx_entry_change(self, *args):
-        try:
-            new_plot_idx = int(self.plot_idx_entry_var.get())
-
-            if new_plot_idx == self.current_plot_idx:
-                return None
-            elif new_plot_idx < 0:
-                new_plot_idx = 0
-            elif new_plot_idx > len(self.plots) - 1:
-                new_plot_idx = len(self.plots) - 1
-
-            self.plot_idx_scale.set(new_plot_idx)
-            self.update_current_plot(new_plot_idx)
-
-        except ValueError:
-            pass
-
-        return None
-
-    def update_current_plot(self, new_plot_idx):
         if self.data_cursor is not None:
             self.data_cursor.hide()
 
@@ -169,14 +108,14 @@ class NetworkPlot(object):
         # Update the index variable for the currently displayed plot.
         self.current_plot_idx = new_plot_idx
         self.set_data_cursor()
-        self.canvas.draw_idle()
-        self.canvas.get_tk_widget().focus_set()
-
-        return None
 
 
-    def canvas_resize_callback(self, event):
-        self.set_data_cursor()
+    def show_prev_plot(self, event):
+        self.change_current_plot(self.current_plot_idx-1)
+
+
+    def show_next_plot(self, event):
+        self.change_current_plot(self.current_plot_idx+1)
 
 
     def show(self):
@@ -186,35 +125,13 @@ class NetworkPlot(object):
         self.set_data_cursor()
 
         if(len(self.plots) > 1):
-            tk.Label(
-                self.toplevel,
-                text='Plot #',
-            ).pack(side=tk.LEFT)
+            axes_prev = self.figure.add_axes([.7, .05, .1, .075])
+            self.button_prev = Button(axes_prev, '<')
+            self.button_prev.on_clicked(self.show_prev_plot)
 
-            self.plot_idx_entry_var.set(plot_idx)
-            self.plot_idx_entry = tk.Entry(
-                self.toplevel,
-                textvariable=self.plot_idx_entry_var,
-                width=len(str(len(self.plots)-1)),
-            )
-            self.plot_idx_entry.pack(side=tk.LEFT)
+            axes_next = self.figure.add_axes([.81, .05, .1, .075])
+            self.button_next = Button(axes_next, '>')
+            self.button_next.on_clicked(self.show_next_plot)
 
-            tk.Label(
-                self.toplevel,
-                text='/{}'.format(len(self.plots)-1),
-            ).pack(side=tk.LEFT)
+        self.figure.show()
 
-            self.plot_idx_scale = tk.Scale(
-                self.toplevel,
-                command=self.scale_action,
-                #length=100*len(self.plots),
-                orient=tk.HORIZONTAL,
-                showvalue=0,
-                to=len(self.plots)-1,
-                variable=self.current_plot_idx,
-            ) 
-            self.plot_idx_scale.pack(
-                expand=True,
-                fill=tk.X,
-                side=tk.LEFT,
-            )

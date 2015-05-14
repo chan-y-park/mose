@@ -9,25 +9,19 @@ import logging
 import Tkinter as tk
 import pdb
 import matplotlib
-# use() directive must be called before importing matplotlib.pyplot
-matplotlib.use('TkAgg')     
 import mpldatacursor
 
-from matplotlib.backends.backend_tkagg import (
-    FigureCanvasTkAgg as FigureCanvas,
-    NavigationToolbar2TkAgg as NavigationToolbar,
-)
 from matplotlib import pyplot
 from network_plot import NetworkPlot
 
 
 class KWallNetworkPlot(NetworkPlot):
-    def __init__(self, master=None, plot_joints=False, plot_data_points=False):
+    def __init__(self, matplotlib_figure=None, plot_joints=False, 
+                 plot_data_points=False):
         super(KWallNetworkPlot, self).__init__(
-            master=master, plot_joints=plot_joints,
+            matplotlib_figure=matplotlib_figure, plot_joints=plot_joints,
             plot_data_points=plot_data_points,
         )
-        self.toplevel.wm_title('K-wall Network Plot')
 
     def draw(
         self,
@@ -68,9 +62,8 @@ class KWallNetworkPlot(NetworkPlot):
 
 
 class MSWallPlot:
-    def __init__(self, master=None):
-        title="Walls of marginal stability"
-        self.figure = matplotlib.pyplot.figure(title) 
+    def __init__(self, matplotlib_figure=None):
+        self.figure = matplotlib_figure
 
     def draw(
         self,
@@ -114,6 +107,7 @@ class MSWallPlot:
             #display='single',
             display='multiple',
         )
+
 
     def show(self):
         self.figure.show()

@@ -186,7 +186,8 @@ def save(config, data, k_wall_network_plot=None, ms_wall_plot=None,
 
 
 def make_plots(config, data, show_plot=True):
-    k_wall_network_plot = KWallNetworkPlot()
+    k_wall_network_figure = pyplot.figure("K-wall network")
+    k_wall_network_plot = KWallNetworkPlot(k_wall_network_figure)
 
     # Draw the plots of K-wall networks.
     for k_wall_network in data['k_wall_networks']:
@@ -196,7 +197,8 @@ def make_plots(config, data, show_plot=True):
         )
 
     if data['multiple_networks'] is True:
-        ms_wall_plot = MSWallPlot()
+        ms_wall_figure = pyplot.figure("Walls of marginal stability")
+        ms_wall_plot = MSWallPlot(ms_wall_figure)
         # Draw MS walls and save the plot.
         ms_wall_plot.draw(
             data['ms_walls'],
@@ -209,5 +211,6 @@ def make_plots(config, data, show_plot=True):
         k_wall_network_plot.show()
         if ms_wall_plot is not None:
             ms_wall_plot.show()
+        pyplot.show()
 
     return (k_wall_network_plot, ms_wall_plot)

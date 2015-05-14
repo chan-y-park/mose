@@ -104,7 +104,6 @@ def run_with_optlist(optlist):
         k_wall_network_plot, ms_wall_plot = make_plots(
             config, data, show_plot=opts['show-plot'],
         )
-        raw_input("Press any key to continue.")
 
     if opts['save-data'] is True:
         #save(config, data, k_wall_network_plot, ms_wall_plot)
