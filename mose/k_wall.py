@@ -82,7 +82,7 @@ class KWall(object):
         sp = [0]+self.splittings+[len(self.coordinates)-1]
         if point < sp[0] or point > sp[-1]:
             print "charge(pt) must be called with pt from %s to %s for this \
-            trajectory!" % (sp[0], sp[-1])
+trajectory!" % (sp[0], sp[-1])
             return None
         else:
             for i in range(len(sp)):
@@ -182,26 +182,67 @@ class KWall(object):
             # Don't grow this K-wall, exit immediately.
             return None
         
-        g2 = self.fibration.sym_g2
-        g3 = self.fibration.sym_g3
-        theta = self.phase
         u = sym.Symbol('u')
-        x = sym.Symbol('x')
 
-        Delta = sym.simplify(g2 ** 3 - 27 * g3 ** 2)
-        delta = sym.simplify(3 * (g3) * diff(g2, u) - 2 * (g2) * diff(g3, u))
+        g2 = self.fibration.sym_g2.subs(self.fibration.params)
+        g3 = self.fibration.sym_g3.subs(self.fibration.params)
+        g2_p = diff(g2, u)
+        g3_p = diff(g3, u)
+        g2_p_p = diff(g2_p, u)
+        g3_p_p = diff(g3_p, u)
 
-        M10 = sym.simplify(
-            (-(3*g2*(delta**2) / (16*(Delta**2))) + 
-            ((diff(delta,u) * diff(Delta,u)) / (12*delta*Delta)) - 
-            ((diff(Delta, u, 2)) / (12*Delta)) + 
-            (((diff(Delta, u))**2) / (144 * (Delta**2) ) ) ) 
-        ).subs(self.fibration.params)
-        M11 = sym.simplify( 
-            (diff(delta,u) / delta) - (diff(Delta,u) / Delta)
-        ).subs(self.fibration.params)
+        theta = self.phase
+        # x = sym.Symbol('x')
 
-        pf_matrix = lambdify(u, [[0, 1], [M10, M11]])
+        g2_n = lambdify(u, g2)
+        g3_n = lambdify(u, g3)
+        g2_p_n = lambdify(u, g2_p)
+        g3_p_n = lambdify(u, g3_p)
+        g2_p_p_n = lambdify(u, g2_p_p)
+        g3_p_p_n = lambdify(u, g3_p_p)
+        Delta_n = lambda z: (g2_n(z) ** 3 - 27 * g3_n(z) ** 2)
+        delta_n = lambda z: (3 * (g3_n(z)) * g2_p_n(z) - 2 * \
+                                                (g2_n(z)) * g3_p_n(z))
+
+        def M10(z): 
+            return (\
+                -18 * (g2_n(z) ** 2) * (g2_p_n(z) ** 2) * g3_p_n(z) \
+                + 3 * g2_n(z) * (7 * g3_n(z) * (g2_p_n(z) ** 3) \
+                + 40 * (g3_p_n(z) ** 3)) \
+                + (g2_n(z) ** 3) * (-8 * g3_p_n(z) * g2_p_p_n(z) \
+                + 8 * g2_p_n(z) * g3_p_p_n(z)) \
+                -108 * g3_n(z) \
+                * (-2 * g3_n(z) * g3_p_n(z) * g2_p_p_n(z) \
+                + g2_p_n(z) \
+                * ((g3_p_n(z) ** 2) + 2 * g3_n(z) * g3_p_p_n(z))) \
+                ) \
+                / (16 * ((g2_n(z) ** 3) -27 * (g3_n(z) ** 2)) \
+                * (-3 * g3_n(z) * g2_p_n(z) + 2 * g2_n(z) * g3_p_n(z))) 
+        def M11(z):
+            return \
+            (-3 * (g2_n(z) ** 2) * g2_p_n(z) + 54 * g3_n(z) * g3_p_n(z)) \
+            / ((g2_n(z) ** 3) - (27 * g3_n(z) ** 2)) \
+            + (g2_p_n(z) * g3_p_n(z) + 3 * g3_n(z) * g2_p_p_n(z) \
+            - 2 * g2_n(z) * g3_p_p_n(z)) \
+            / (3 * g3_n(z) * g2_p_n(z) - 2 * g2_n(z) * g3_p_n(z))
+
+        def pf_matrix(z): 
+            return [[0, 1], [M10(z), M11(z)]]
+
+        # Delta = sym.simplify(g2 ** 3 - 27 * g3 ** 2)
+        # delta = sym.simplify(3 * (g3) * g2_p - 2 * (g2) * g3_p)
+
+        # M10 = sym.simplify(
+        #     (-(3*g2*(delta**2) / (16*(Delta**2))) + 
+        #     ((diff(delta,u) * diff(Delta,u)) / (12*delta*Delta)) - 
+        #     ((diff(Delta, u, 2)) / (12*Delta)) + 
+        #     (((diff(Delta, u))**2) / (144 * (Delta**2) ) ) ) 
+        # ).subs(self.fibration.params)
+        # M11 = sym.simplify( 
+        #     (diff(delta,u) / delta) - (diff(Delta,u) / Delta)
+        # ).subs(self.fibration.params)
+
+        # pf_matrix = lambdify(u, [[0, 1], [M10, M11]])
 
         singularity_check= False
 
