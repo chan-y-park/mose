@@ -108,6 +108,7 @@ class NetworkPlot(object):
         # Update the index variable for the currently displayed plot.
         self.current_plot_idx = new_plot_idx
         self.set_data_cursor()
+        self.figure.show()
 
 
     def show_prev_plot(self, event):

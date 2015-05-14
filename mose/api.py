@@ -211,6 +211,6 @@ def make_plots(config, data, show_plot=True):
         k_wall_network_plot.show()
         if ms_wall_plot is not None:
             ms_wall_plot.show()
-        pyplot.draw()
+        pyplot.show()
 
     return (k_wall_network_plot, ms_wall_plot)
