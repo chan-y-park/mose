@@ -55,6 +55,7 @@ class KWallNetworkPlot(NetworkPlot):
         # TODO: change the current figure to plot_id.
         digits = len(str(len(self.plots)-1))
         for i, axes in enumerate(self.plots):
+            self.change_current_plot(i)
             plot_file_path = os.path.join(
                 plot_dir, file_prefix + str(i).zfill(digits) + '.png'
             )
@@ -102,10 +103,10 @@ class MSWallPlot:
         data_cursor = mpldatacursor.datacursor(
             axes=axes,
             formatter='{label}'.format,
-            tolerance=2,
-            #hover=True,
+            #tolerance=2,
+            hover=True,
             #display='single',
-            display='multiple',
+            #display='multiple',
         )
 
 

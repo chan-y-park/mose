@@ -25,8 +25,9 @@ MOduli Space Explorer: Python program to study moduli spaces of elliptic fibrati
 * Plotting a K-wall network
   1. Run ```make_plots```.
     * ```>>> mose.make_plots(config, data)```
-  1. Click an object in each figure to display its label.
-  1. Press ```d``` to delete all the displayed labels.
+  1. According to the setup, you can either:
+    * Hover the mouse cover over the object to display its label, or
+    * Click an object in each figure to display its label and press ```d``` to delete all the displayed labels.
 * Saving the data
   1. ```>>> mose.save(config, data)```
   1. Then you get a directory dialog window to select a directory to save ```config.ini``` and ```data.mose```.
