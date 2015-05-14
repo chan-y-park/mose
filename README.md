@@ -24,19 +24,21 @@ MOduli Space Explorer: Python program to study moduli spaces of elliptic fibrati
       * ```>>> data = mose.analysis(config)```
 * Plotting a K-wall network
   1. Run ```make_plots```.
-    * ```>>> mose.make_plots(config, data)```
+    * ```>>> k_wall_network_plot, ms_wall_plot = mose.make_plots(config, data)```
   1. According to the setup, you can either:
     * Hover the mouse cover over the object to display its label, or
     * Click an object in each figure to display its label and press ```d``` to delete all the displayed labels.
 * Saving the data
-  1. ```>>> mose.save(config, data)```
-  1. Then you get a directory dialog window to select a directory to save ```config.ini``` and ```data.mose```.
+  1. ```>>> mose.save(config, data, k_wall_network_plot, ms_wall_plot, data_dir='data/name/', open_dialog=False)```
+    * This saves ```config.ini```, ```data.mose```, and plots in ```png`` files at ```data/name/``` directory.
+  1. ```>>> mose.save(config, data, k_wall_network_plot, ms_wall_plot)```
+    * This opens a directory dialog window to select a directory to save ```config.ini``` and ```data.mose```.
 * Loading the data
   1. Load it interactively.
     * ```>>> config, data = mose.load()```
     * Then you first get a directory dialog window to select a directory that contains the configuration & the data file. Select a directory and it returns ```(config, data)```.
   1. Or give the directory name as an argument.
-    * ```>>> config, data = mose.load('data/name')```.
+    * ```>>> config, data = mose.load('data/name/')```.
 
 ### From the Linux shell
 * In the root directory, there is an executable Python script ```main.py```. Running it without any option prints the help screen.

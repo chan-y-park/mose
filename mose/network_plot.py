@@ -105,15 +105,10 @@ class NetworkPlot(object):
         elif new_plot_idx > len(self.plots) - 1:
             new_plot_idx = len(self.plots) - 1
 
-        #if self.data_cursor is not None:
-        #    self.data_cursor.hide()
-
         self.plots[self.current_plot_idx].set_visible(False)
         self.plots[new_plot_idx].set_visible(True)
         # Update the index variable for the currently displayed plot.
         self.current_plot_idx = new_plot_idx
-        #self.set_data_cursor()
-        self.figure.show()
         if self.index_text is not None:
             self.index_text.set_text(
                 "{}/{}".format(self.current_plot_idx, len(self.plots)-1)
@@ -125,6 +120,7 @@ class NetworkPlot(object):
             self.data_cursor.hide().disable()
         self.change_current_plot(self.current_plot_idx-1)
         self.set_data_cursor()
+        self.figure.show()
 
 
     def show_next_plot(self, event):
@@ -132,6 +128,7 @@ class NetworkPlot(object):
             self.data_cursor.hide().disable()
         self.change_current_plot(self.current_plot_idx+1)
         self.set_data_cursor()
+        self.figure.show()
 
 
     def show(self):

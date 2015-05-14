@@ -148,7 +148,7 @@ def save_data(config, data, data_dir=None, data_file_name='data'):
     data_file_path = os.path.join(data_dir, data_file_name + '.mose')
     with open(data_file_path, 'wb') as fp:
         pickle.dump(data, fp, config['file IO']['pickle_protocol'])
-    logging.info('Data saved as' + data_file_path + '.')
+    logging.info("Data saved as {}.".format(data_file_path))
 
 
 def save(config, data, k_wall_network_plot=None, ms_wall_plot=None,
