@@ -63,7 +63,7 @@ def analysis(config, phase=None,):
     #KWallNetwork.count = 0
 
     if data['single_network'] is True:
-        kwn = KWallNetwork(phase, fibration, config,)
+        kwn = KWallNetwork(phase, fibration, config)
         kwn.grow(config)
         data['k_wall_networks'] = [kwn]
 
@@ -73,7 +73,7 @@ def analysis(config, phase=None,):
 
     elif data['multiple_networks'] is True:
         k_wall_networks = construct_k_wall_networks(
-            fibration, config,
+            fibration, config
         )
         data['k_wall_networks'] = k_wall_networks
         ms_walls = build_ms_walls(k_wall_networks)

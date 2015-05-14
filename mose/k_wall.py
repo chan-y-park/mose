@@ -79,89 +79,96 @@ class KWall(object):
         return self.coordinates.T[1]
 
     def charge(self, point):
-        return self.initial_charge
-        # to be updated by taking into account branch-cuts, 
-        # will use data in self.splittings
+        sp = [0]+self.splittings+[len(self.coordinates)-1]
+        if point < sp[0] or point > sp[-1]:
+            print "charge(pt) must be called with pt from %s to %s for this \
+            trajectory!" % (sp[0], sp[-1])
+            return None
+        else:
+            for i in range(len(sp)):
+                if point <= sp[i+1]:
+                    return self.local_charge[i]
+                    break
+
 
     def check_cuts(self):
-        pass
-#        self.splittings = (55, 107, 231) 
-#        self.local_charge = (self.initial_charge, (2,1), (0,-1), (1,1))
-#        # determine at which points the wall crosses a cut, for instance
-#        # (55,107,231) would mean that we change charge 3 times
-#        # hence self.splittings would have length, 3 while
-#        # self.local_charge would have length 4.
-#        # local charges are determined one the branch-cut data is given,
-#        # perhaps computed by an external function.
-#        disc_locus_position = [bp.locus for bp in self.fibration.branch_points]
-#        # the x-coordinates of the discriminant loci
-#        disc_x = [z.real for z in disc_locus_position]
-#        # parametrizing the x-coordinate of the k-wall's coordinates
-#        # as a function of proper time
-#        traj_t = numpy.array(range(len(self.coordinates)))
-#        traj_x = numpy.array([z[0] for z in self.coordinates])
-#        # traj_y = numpy.array([z[1] for z in self.coordinates])
-#        # f = interp1d(traj_t, traj_x, kind = 'linear')
-#
-#        # all_cuts_intersections = []
-#
-#        # Scan over branch cuts, see if path ever crosses one 
-#        # based on x-coordinates only
-#        for b_pt_num, x_0 in list(enumerate(disc_x)):
-#            g = interpolate.splrep(traj_t, traj_x - x_0, s=0)
-#            # now produce a list of integers corresponding to points in the 
-#            # k-wall's coordinate list that seem to cross branch-cuts
-#            # based on the x-coordinate.
-#            # Will get a list [i_0, i_1, ...] of intersections
-#            intersections = map(int, map(round, interpolate.sproot(g)))
-#            # removing duplicates
-#            intersections = list(set(intersections))
-#            # enforcing y-coordinate intersection criterion:
-#            # branch cuts extend vertically
-#            y_0 = self.fibration.branch_points[b_pt_num].locus.imag
-#            intersections = [i for i in intersections if \
-#                                                self.coordinates[i][1] > y_0 ]
-#            # adding the branch-point identifier to each intersection
-#            intersections = [[self.fibration.branch_points[b_pt_num], i] \
-#                                                    for i in intersections]
-#            # dropping intersections of a primary k-wall with the 
-#            # branch cut emanating from its parent branch-point
-#            # if such intersections happens at t=0
-#            intersections = [[br_pt, i] for br_pt, i in intersections if \
-#                                    not (br_pt in self.parents and i == 0)]
-#            # add the direction to the intersection data: either 'cw' or 'ccw'
-#            intersections = [[br_pt, i, clock(left_right(self.coordinates,i))]\
-#                            for br_pt, i in intersections]
-#
-#            self.cuts_intersections += intersections
-#        ### Might be worth implementing an algorithm for handling 
-#        ### overlapping branch cuts: e.g. the one with a lower starting point 
-#        ### will be taken to be on the left, or a similar criterion.
-#        ### Still, there will be other sorts of problems, it is necessary
-#        ### to just rotate the u-plane and avoid such situations.
-#
-#        # now sort intersections according to where they happen in proper time
-#        # recall that the elements of cuts_intersections  are organized as
-#        # [..., [branch_point, t, 'ccw'] ,...]
-#        # where 't' is the integer of proper time at the intersection.
-#        self.cuts_intersections = sorted(self.cuts_intersections , \
-#                                        cmp = lambda k1,k2: cmp(k1[1],k2[1]))
-#
-#        # print \
-#        # "\nK-wall %s\nintersects the following cuts at the points\n%s\n" \
-#        # % (self, intersections)
-#
-#        # now define the lis of splitting points (for convenience) ad the 
-#        # list of local charges
-#        self.splittings = [t for br_pt, t, chi in self.cuts_intersections]
-#        self.local_charge = [self.initial_charge]
-#        for k in range(len(self.cuts_intersections)):
-#            branch_point = self.cuts_intersections[k][0]   # branch-point
-#            # t = self.cuts_intersections[k][1]       # proper time
-#            direction = self.cuts_intersections[k][2]     # 'ccw' or 'cw'
-#            charge = self.local_charge[-1]
-#            new_charge = charge_monodromy(charge, branch_point, direction)
-#            self.local_charge.append(new_charge)
+       ## self.splittings = (55, 107, 231) 
+       ## self.local_charge = (self.initial_charge, (2,1), (0,-1), (1,1))
+       # determine at which points the wall crosses a cut, for instance
+       # (55,107,231) would mean that we change charge 3 times
+       # hence self.splittings would have length, 3 while
+       # self.local_charge would have length 4.
+       # local charges are determined one the branch-cut data is given,
+       # perhaps computed by an external function.
+       disc_locus_position = [bp.locus for bp in self.fibration.branch_points]
+       # the x-coordinates of the discriminant loci
+       disc_x = [z.real for z in disc_locus_position]
+       # parametrizing the x-coordinate of the k-wall's coordinates
+       # as a function of proper time
+       traj_t = numpy.array(range(len(self.coordinates)))
+       traj_x = numpy.array([z[0] for z in self.coordinates])
+       # traj_y = numpy.array([z[1] for z in self.coordinates])
+       # f = interp1d(traj_t, traj_x, kind = 'linear')
+
+       # all_cuts_intersections = []
+
+       # Scan over branch cuts, see if path ever crosses one 
+       # based on x-coordinates only
+       for b_pt_num, x_0 in list(enumerate(disc_x)):
+           g = interpolate.splrep(traj_t, traj_x - x_0, s=0)
+           # now produce a list of integers corresponding to points in the 
+           # k-wall's coordinate list that seem to cross branch-cuts
+           # based on the x-coordinate.
+           # Will get a list [i_0, i_1, ...] of intersections
+           intersections = map(int, map(round, interpolate.sproot(g)))
+           # removing duplicates
+           intersections = list(set(intersections))
+           # enforcing y-coordinate intersection criterion:
+           # branch cuts extend vertically
+           y_0 = self.fibration.branch_points[b_pt_num].locus.imag
+           intersections = [i for i in intersections if \
+                                               self.coordinates[i][1] > y_0 ]
+           # adding the branch-point identifier to each intersection
+           intersections = [[self.fibration.branch_points[b_pt_num], i] \
+                                                   for i in intersections]
+           # dropping intersections of a primary k-wall with the 
+           # branch cut emanating from its parent branch-point
+           # if such intersections happens at t=0
+           intersections = [[br_pt, i] for br_pt, i in intersections if \
+                                   not (br_pt in self.parents and i == 0)]
+           # add the direction to the intersection data: either 'cw' or 'ccw'
+           intersections = [[br_pt, i, clock(left_right(self.coordinates,i))]\
+                           for br_pt, i in intersections]
+
+           self.cuts_intersections += intersections
+       ### Might be worth implementing an algorithm for handling 
+       ### overlapping branch cuts: e.g. the one with a lower starting point 
+       ### will be taken to be on the left, or a similar criterion.
+       ### Still, there will be other sorts of problems, it is necessary
+       ### to just rotate the u-plane and avoid such situations.
+
+       # now sort intersections according to where they happen in proper time
+       # recall that the elements of cuts_intersections  are organized as
+       # [..., [branch_point, t, 'ccw'] ,...]
+       # where 't' is the integer of proper time at the intersection.
+       self.cuts_intersections = sorted(self.cuts_intersections , \
+                                       cmp = lambda k1,k2: cmp(k1[1],k2[1]))
+
+       # print \
+       # "\nK-wall %s\nintersects the following cuts at the points\n%s\n" \
+       # % (self, intersections)
+
+       # now define the lis of splitting points (for convenience) ad the 
+       # list of local charges
+       self.splittings = [t for br_pt, t, chi in self.cuts_intersections]
+       self.local_charge = [self.initial_charge]
+       for k in range(len(self.cuts_intersections)):
+           branch_point = self.cuts_intersections[k][0]   # branch-point
+           # t = self.cuts_intersections[k][1]       # proper time
+           direction = self.cuts_intersections[k][2]     # 'ccw' or 'cw'
+           charge = self.local_charge[-1]
+           new_charge = charge_monodromy(charge, branch_point, direction)
+           self.local_charge.append(new_charge)
 
 
     def grow_pf(self, trajectory_singularity_threshold=None,
