@@ -308,22 +308,24 @@ class PrimaryKWall(KWall):
         g3 = self.fibration.num_g3
         theta = self.phase
         u0, sign = initial_condition
+        # the following parameter is to get three distinct roots e_1, e_2, e_3
+        delta_u0 = (10**(-5)) * (1+1j)
         u = sym.Symbol('u')
         x = sym.Symbol('x')
 
-        eq = 4 * x ** 3 - g2 * x - g3
+        eq = sym.simplify((4 * x ** 3 - g2 * x - g3).subs(u, u0 + delta_u0))
         e1, e2, e3 = sym.simplify(sym.solve(eq, x))
-        distances = map(abs, [e1-e2, e2-e3, e3-e1])
-        pair = min(enumerate(map(lambda x: x.subs(u, u0), distances)), 
+        distances = map(abs, [e1 - e2, e2 - e3, e3 - e1])
+        pair = min(enumerate(map(lambda x: x, distances)), 
                     key=itemgetter(1))[0]
         if pair == 0:
-            f1, f2 = sort_by_abs(e1, e2, u0+(10**(-5)) * (1+1j))
+            f1, f2 = sort_by_abs(e1, e2)
             f3 = e3
         elif pair == 1:
-            f1, f2 = sort_by_abs(e2, e3, u0+(10**(-5)) * (1+1j))
+            f1, f2 = sort_by_abs(e2, e3)
             f3 = e1
         elif pair == 2:
-            f1, f2 = sort_by_abs(e1, e3, u0+(10**(-5)) * (1+1j))
+            f1, f2 = sort_by_abs(e1, e3)
             f3 = e2
 
         f1_0 = complex(f1.subs(u, u0))
