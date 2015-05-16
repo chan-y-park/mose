@@ -35,6 +35,7 @@ class EllipticFibration:
         u = sympy.Symbol('u')
         self.g2_coeffs = map(complex, sympy.Poly(self.num_g2, u).all_coeffs())
         self.g3_coeffs = map(complex, sympy.Poly(self.num_g3, u).all_coeffs())
+        
         # Converting from
         #   y^2 = 4 x^3 - g_2 x - g_3
         # to 
@@ -48,8 +49,7 @@ class EllipticFibration:
         # the following. Must keep this attribute of the class, as it will be 
         # used when computing the KSWCF for new Kwalls.
         self.dsz_matrix = [[0, 1], [-1, 0]]
-
-        
+       
         branch_point_loci = list(self.w_model.get_D().r)
 
         if branch_point_charges is None:
@@ -121,6 +121,40 @@ class EllipticFibration:
 #            BranchCut(bp) 
 #            for bp in self.branch_points
 #        ]
+    
+    def pf_matrix(self, z):
+        
+        g2 = numpy.poly1d(self.g2_coeffs)
+        g3 = numpy.poly1d(self.g3_coeffs)
+        g2_p = g2.deriv()
+        g3_p = g3.deriv()
+        g2_p_p = g2_p.deriv()
+        g3_p_p = g3_p.deriv()
+
+        def M10(z): 
+            return (\
+                -18 * (g2(z) ** 2) * (g2_p(z) ** 2) * g3_p(z) \
+                + 3 * g2(z) * (7 * g3(z) * (g2_p(z) ** 3) \
+                + 40 * (g3_p(z) ** 3)) \
+                + (g2(z) ** 3) * (-8 * g3_p(z) * g2_p_p(z) \
+                + 8 * g2_p(z) * g3_p_p(z)) \
+                -108 * g3(z) \
+                * (-2 * g3(z) * g3_p(z) * g2_p_p(z) \
+                + g2_p(z) \
+                * ((g3_p(z) ** 2) + 2 * g3(z) * g3_p_p(z))) \
+                ) \
+                / (16 * ((g2(z) ** 3) -27 * (g3(z) ** 2)) \
+                * (-3 * g3(z) * g2_p(z) + 2 * g2(z) * g3_p(z))) 
+        def M11(z):
+            return \
+            (-3 * (g2(z) ** 2) * g2_p(z) + 54 * g3(z) * g3_p(z)) \
+            / ((g2(z) ** 3) - (27 * g3(z) ** 2)) \
+            + (g2_p(z) * g3_p(z) + 3 * g3(z) * g2_p_p(z) \
+            - 2 * g2(z) * g3_p_p(z)) \
+            / (3 * g3(z) * g2_p(z) - 2 * g2(z) * g3_p(z))
+
+
+        return [[0, 1], [M10(z), M11(z)]]
 
 
 #### NOW SUPERSEDED BY WEIERSTRASS CLASS ITSELF
