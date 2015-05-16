@@ -33,14 +33,14 @@ class EllipticFibration:
         self.num_g3 = self.sym_g3.subs(self.params)
 
         u = sympy.Symbol('u')
-        g2_coeffs = map(complex, sympy.Poly(self.num_g2, u).all_coeffs())
-        g3_coeffs = map(complex, sympy.Poly(self.num_g3, u).all_coeffs())
+        self.g2_coeffs = map(complex, sympy.Poly(self.num_g2, u).all_coeffs())
+        self.g3_coeffs = map(complex, sympy.Poly(self.num_g3, u).all_coeffs())
         # Converting from
         #   y^2 = 4 x^3 - g_2 x - g_3
         # to 
         #   y^2 = x^3 + f x + g
-        f_coeffs = numpy.poly1d(g2_coeffs, variable='u') * (-1 / 4.0)
-        g_coeffs = numpy.poly1d(g3_coeffs, variable='u') * (-1 / 4.0)
+        f_coeffs = numpy.poly1d(self.g2_coeffs, variable='u') * (-1 / 4.0)
+        g_coeffs = numpy.poly1d(self.g3_coeffs, variable='u') * (-1 / 4.0)
 
         self.w_model = wss.WeierstrassModelWithPaths(f_coeffs, g_coeffs)
 

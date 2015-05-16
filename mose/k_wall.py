@@ -182,52 +182,85 @@ trajectory!" % (sp[0], sp[-1])
             # Don't grow this K-wall, exit immediately.
             return None
         
-        u = sym.Symbol('u')
+        # u = sym.Symbol('u')
 
-        g2 = self.fibration.sym_g2.subs(self.fibration.params)
-        g3 = self.fibration.sym_g3.subs(self.fibration.params)
-        g2_p = diff(g2, u)
-        g3_p = diff(g3, u)
-        g2_p_p = diff(g2_p, u)
-        g3_p_p = diff(g3_p, u)
+        # g2 = self.fibration.sym_g2.subs(self.fibration.params)
+        # g3 = self.fibration.sym_g3.subs(self.fibration.params)
+        # g2_p = diff(g2, u)
+        # g3_p = diff(g3, u)
+        # g2_p_p = diff(g2_p, u)
+        # g3_p_p = diff(g3_p, u)
+        #
+        # #
+        # # Now we switch from symbolic expressions to functions
+        # #
+        # 
+        # g2_n = lambdify(u, g2)
+        # g3_n = lambdify(u, g3)
+        # g2_p_n = lambdify(u, g2_p)
+        # g3_p_n = lambdify(u, g3_p)
+        # g2_p_p_n = lambdify(u, g2_p_p)
+        # g3_p_p_n = lambdify(u, g3_p_p)
+        # Delta_n = lambda z: (g2_n(z) ** 3 - 27 * g3_n(z) ** 2)
+        # delta_n = lambda z: (3 * (g3_n(z)) * g2_p_n(z) - 2 * \
+        #                                         (g2_n(z)) * g3_p_n(z))
+        # 
+        # theta = self.phase
+        # 
+        # def M10(z): 
+        #     return (\
+        #         -18 * (g2_n(z) ** 2) * (g2_p_n(z) ** 2) * g3_p_n(z) \
+        #         + 3 * g2_n(z) * (7 * g3_n(z) * (g2_p_n(z) ** 3) \
+        #         + 40 * (g3_p_n(z) ** 3)) \
+        #         + (g2_n(z) ** 3) * (-8 * g3_p_n(z) * g2_p_p_n(z) \
+        #         + 8 * g2_p_n(z) * g3_p_p_n(z)) \
+        #         -108 * g3_n(z) \
+        #         * (-2 * g3_n(z) * g3_p_n(z) * g2_p_p_n(z) \
+        #         + g2_p_n(z) \
+        #         * ((g3_p_n(z) ** 2) + 2 * g3_n(z) * g3_p_p_n(z))) \
+        #         ) \
+        #         / (16 * ((g2_n(z) ** 3) -27 * (g3_n(z) ** 2)) \
+        #         * (-3 * g3_n(z) * g2_p_n(z) + 2 * g2_n(z) * g3_p_n(z))) 
+        # def M11(z):
+        #     return \
+        #     (-3 * (g2_n(z) ** 2) * g2_p_n(z) + 54 * g3_n(z) * g3_p_n(z)) \
+        #     / ((g2_n(z) ** 3) - (27 * g3_n(z) ** 2)) \
+        #     + (g2_p_n(z) * g3_p_n(z) + 3 * g3_n(z) * g2_p_p_n(z) \
+        #     - 2 * g2_n(z) * g3_p_p_n(z)) \
+        #     / (3 * g3_n(z) * g2_p_n(z) - 2 * g2_n(z) * g3_p_n(z))
+
+        g2 = numpy.poly1d(self.fibration.g2_coeffs)
+        g3 = numpy.poly1d(self.fibration.g3_coeffs)
+        g2_p = g2.deriv()
+        g3_p = g3.deriv()
+        g2_p_p = g2_p.deriv()
+        g3_p_p = g3_p.deriv()
 
         theta = self.phase
 
-        #
-        # Now we switch from symbolic expressions to functions
-        #
-
-        g2_n = lambdify(u, g2)
-        g3_n = lambdify(u, g3)
-        g2_p_n = lambdify(u, g2_p)
-        g3_p_n = lambdify(u, g3_p)
-        g2_p_p_n = lambdify(u, g2_p_p)
-        g3_p_p_n = lambdify(u, g3_p_p)
-        Delta_n = lambda z: (g2_n(z) ** 3 - 27 * g3_n(z) ** 2)
-        delta_n = lambda z: (3 * (g3_n(z)) * g2_p_n(z) - 2 * \
-                                                (g2_n(z)) * g3_p_n(z))
-
         def M10(z): 
             return (\
-                -18 * (g2_n(z) ** 2) * (g2_p_n(z) ** 2) * g3_p_n(z) \
-                + 3 * g2_n(z) * (7 * g3_n(z) * (g2_p_n(z) ** 3) \
-                + 40 * (g3_p_n(z) ** 3)) \
-                + (g2_n(z) ** 3) * (-8 * g3_p_n(z) * g2_p_p_n(z) \
-                + 8 * g2_p_n(z) * g3_p_p_n(z)) \
-                -108 * g3_n(z) \
-                * (-2 * g3_n(z) * g3_p_n(z) * g2_p_p_n(z) \
-                + g2_p_n(z) \
-                * ((g3_p_n(z) ** 2) + 2 * g3_n(z) * g3_p_p_n(z))) \
+                -18 * (g2(z) ** 2) * (g2_p(z) ** 2) * g3_p(z) \
+                + 3 * g2(z) * (7 * g3(z) * (g2_p(z) ** 3) \
+                + 40 * (g3_p(z) ** 3)) \
+                + (g2(z) ** 3) * (-8 * g3_p(z) * g2_p_p(z) \
+                + 8 * g2_p(z) * g3_p_p(z)) \
+                -108 * g3(z) \
+                * (-2 * g3(z) * g3_p(z) * g2_p_p(z) \
+                + g2_p(z) \
+                * ((g3_p(z) ** 2) + 2 * g3(z) * g3_p_p(z))) \
                 ) \
-                / (16 * ((g2_n(z) ** 3) -27 * (g3_n(z) ** 2)) \
-                * (-3 * g3_n(z) * g2_p_n(z) + 2 * g2_n(z) * g3_p_n(z))) 
+                / (16 * ((g2(z) ** 3) -27 * (g3(z) ** 2)) \
+                * (-3 * g3(z) * g2_p(z) + 2 * g2(z) * g3_p(z))) 
         def M11(z):
             return \
-            (-3 * (g2_n(z) ** 2) * g2_p_n(z) + 54 * g3_n(z) * g3_p_n(z)) \
-            / ((g2_n(z) ** 3) - (27 * g3_n(z) ** 2)) \
-            + (g2_p_n(z) * g3_p_n(z) + 3 * g3_n(z) * g2_p_p_n(z) \
-            - 2 * g2_n(z) * g3_p_p_n(z)) \
-            / (3 * g3_n(z) * g2_p_n(z) - 2 * g2_n(z) * g3_p_n(z))
+            (-3 * (g2(z) ** 2) * g2_p(z) + 54 * g3(z) * g3_p(z)) \
+            / ((g2(z) ** 3) - (27 * g3(z) ** 2)) \
+            + (g2_p(z) * g3_p(z) + 3 * g3(z) * g2_p_p(z) \
+            - 2 * g2(z) * g3_p_p(z)) \
+            / (3 * g3(z) * g2_p(z) - 2 * g2(z) * g3_p(z))
+
+        
 
         def pf_matrix(z): 
             return [[0, 1], [M10(z), M11(z)]]
