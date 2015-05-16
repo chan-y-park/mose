@@ -62,6 +62,8 @@ class EllipticFibration:
             branch_point_charges = [
                 monodromy_eigencharge(m) for m in branch_point_monodromies
             ]
+        ### ONCE THE WEIERSTRASS MODULE WORKS RELIABLY, NEED TO REMOVE THE 
+        ### 'IF' STRUCTURE, THE FOLLOWING PART WON'T BE NEEDED.
         else:
             # THIS IS A TEMPORARY DUMMY ASSIGNMENT
             branch_point_monodromies = [

@@ -56,7 +56,10 @@ def analysis(config, phase=None,):
         config['fibration']['g2'],
         config['fibration']['g3'],
         config['fibration parameters'],
-        branch_point_charges=config['charge']['fixed_charges']
+        ### Enable the following line to switch-off automatic monodromy
+        ### determination via weierstrass.py, and use instead the 
+        ### parameters given by hand in the config file
+        # branch_point_charges=config['charge']['fixed_charges']
     )
 
     #KWall.count = 0

@@ -182,7 +182,41 @@ trajectory!" % (sp[0], sp[-1])
             # Don't grow this K-wall, exit immediately.
             return None
         
-        theta = self.phase
+        ### The following part has been moved to elliptic_fibration.py ###
+        #
+        # g2 = numpy.poly1d(self.fibration.g2_coeffs)
+        # g3 = numpy.poly1d(self.fibration.g3_coeffs)
+        # g2_p = g2.deriv()
+        # g3_p = g3.deriv()
+        # g2_p_p = g2_p.deriv()
+        # g3_p_p = g3_p.deriv()
+
+        # theta = self.phase
+
+        # def M10(z): 
+        #     return (\
+        #         -18 * (g2(z) ** 2) * (g2_p(z) ** 2) * g3_p(z) \
+        #         + 3 * g2(z) * (7 * g3(z) * (g2_p(z) ** 3) \
+        #         + 40 * (g3_p(z) ** 3)) \
+        #         + (g2(z) ** 3) * (-8 * g3_p(z) * g2_p_p(z) \
+        #         + 8 * g2_p(z) * g3_p_p(z)) \
+        #         -108 * g3(z) \
+        #         * (-2 * g3(z) * g3_p(z) * g2_p_p(z) \
+        #         + g2_p(z) \
+        #         * ((g3_p(z) ** 2) + 2 * g3(z) * g3_p_p(z))) \
+        #         ) \
+        #         / (16 * ((g2(z) ** 3) -27 * (g3(z) ** 2)) \
+        #         * (-3 * g3(z) * g2_p(z) + 2 * g2(z) * g3_p(z))) 
+        # def M11(z):
+        #     return \
+        #     (-3 * (g2(z) ** 2) * g2_p(z) + 54 * g3(z) * g3_p(z)) \
+        #     / ((g2(z) ** 3) - (27 * g3(z) ** 2)) \
+        #     + (g2_p(z) * g3_p(z) + 3 * g3(z) * g2_p_p(z) \
+        #     - 2 * g2(z) * g3_p_p(z)) \
+        #     / (3 * g3(z) * g2_p(z) - 2 * g2(z) * g3_p(z))
+        #
+        # def pf_matrix(z): 
+        #     return [[0, 1], [M10(z), M11(z)]]
 
         singularity_check= False
 
