@@ -6,6 +6,7 @@ import random
 import pdb
 import sympy
 import numpy
+import scipy
 
 import weierstrass as wss
 
@@ -13,8 +14,20 @@ from cmath import pi, exp, phase, sqrt
 from scipy.integrate import quad as n_int
 from numpy import linalg as LA
 
-#from sympy import Poly
 from branch import BranchPoint
+
+from scipy.integrate import odeint
+from scipy import interpolate
+
+# temporarily added the following:
+from sympy import diff, N, simplify
+from sympy import mpmath as mp
+from sympy.utilities.lambdify import lambdify
+from cmath import exp, pi
+from numpy import array, linspace
+from numpy.linalg import det
+from operator import itemgetter
+
 
 NEGLIGIBLE_BOUND = 0.1**12
 
@@ -119,7 +132,7 @@ class EllipticFibration:
         ### Now determine the "positive periods" of the holomorphic form
         ### on the pinching (gauge) cycle for each branch point.
         ### This will be used to fix the sign ambiguity on the charges of
-        ### primary K walls.            
+        ### primary K walls.    
         branch_point_positive_periods = [
             positive_period(i, branch_point_charges[i], self.w_model, self)
             for i in range(len(branch_point_loci))
@@ -298,125 +311,159 @@ def monodromy_eigencharge(monodromy):
             \n'+str(monodromy))
 
 
-# def positive_period(n, charge, w_model, fibration): 
-#     """ 
-#     Detemine the period of the holomorphic one form dx / y along the
-#     cycle that pinches at a given discriminant locus (the n-th).
-#     Uses Picard-Fuchs evolution and initial values of the periods (1,0) and
-#     (0,1) determined at the basepoint used to compute all the monodromies.
-#     """
-    
-#     ### NEED TO EXTRACT THIS DATA FROM W-MODEL
-#     path = ...
-#     nint_range = len(path)
-#     u_0 = path[0]
-#     # Notation: using "eta" for the period of (1,0), using "beta" for (0,1)
-#     eta_0 = ...
-#     eta_prime_0 = ...
-#     beta_0 = ...
-#     beta_prime_0 = ...
-
-#     # Setting up generic data for PF evolution
-#     g2 = fibration.g2
-#     g3 = fibration.g3
-#     u = sympy.Symbol('u')
-#     x = sympy.Symbol('x')
-#     Delta = sympy.simplify(g2 ** 3 - 27 * g3 ** 2)
-#     delta = sympy.simplify(3 * (g3) * diff(g2, u) - 2 * (g2) * diff(g3, u))
-
-#     pf_matrix = lambdify(u, 
-#         [
-#             [0, 1], 
-#             [
-#                 sympy.simplify(
-#                     (-(3*g2*(delta**2) / (16*(Delta**2))) + 
-#                     ((diff(delta,u) * diff(Delta,u)) / (12*delta*Delta)) - 
-#                     ((diff(Delta, u, 2)) / (12*Delta)) + 
-#                     (((diff(Delta, u))**2) / (144 * (Delta**2) ) ) ) 
-#                 ), 
-#                 sympy.simplify( 
-#                     ( (diff(delta,u) / delta) - (diff(Delta,u) / Delta) ) 
-#                 ) 
-#             ]
-#         ] 
-#     )
-    
-#     def deriv(y,t):
-#         z = y[0] + 1j * y[1]
-#         eta = y[2] + 1j * y[3]
-#         d_eta = y[4] + 1j * y[5]
-#         matrix = pf_matrix(z)
-#         det_pf = abs(det(matrix))
-#         # print "PF matrix = %s" % matrix
-#         # print "PF determinant = %s" % det_pf
-#         if det_pf > trajectory_singularity_threshold:
-#             self.singular = True
-#             self.singular_point = z
-
-#         # A confusing point to bear in mind: here we are solving the 
-#         # ode with respect to time t, but d_eta is understood to be 
-#         # (d eta / d u), with its own  appropriate b.c. and so on!
-
-#         # Note here I am adapting the derivative of z to be precisely the
-#         # one determined by the path on the Coulomb branch.
-#         z_1 = (path[int(math.floor(t))] - path[int(math.floor(t+1))]) / 1.0
-#         eta_1 = z_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
-#         d_eta_1 = z_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
-#         return  array(
-#                 [
-#                     z_1.real, z_1.imag, 
-#                     eta_1.real, eta_1.imag, 
-#                     d_eta_1.real, d_eta_1.imag
-#                 ]
-#         )
-#         # the following rescaled matrix will not blow up at singularities, 
-#         # but it will not reach the singularities either..
-#         # return abs(det(matrix)) * array([z_1.real, z_1.imag, 
-#         #              eta_1.real, eta_1.imag, d_eta_1.real, d_eta_1.imag])
-
-
-#     # Now first we PF-evolve the period of (1,0)
-#     singularity_check= False
-#     t0 = 0
-#     y0 = map(N, 
-#         array(
-#             [
-#                 (u_0).real,
-#                 (u_0).imag,
-#                 (eta_0).real,
-#                 (eta_0).imag,
-#                 (eta_prime_0).real,
-#                 (eta_prime_0).imag
-#             ]
-#         )    
-#     )
-#     time = linspace(*nint_range)
-#     y = odeint(deriv, y0, time)
-#     eta_final = y[2] + 1j * y[3]
-
-#     # Second we PF-evolve the period of (0,1)
-#     singularity_check= False
-#     t0 = 0
-#     y0 = map(N, 
-#         array(
-#             [
-#                 (u_0).real,
-#                 (u_0).imag,
-#                 (beta_0).real,
-#                 (beta_0).imag,
-#                 (beta_prime_0).real,
-#                 (beta_prime_0).imag
-#             ]
-#         )    
-#     )
-#     time = linspace(*nint_range)
-#     y = odeint(deriv, y0, time)
-#     beta_final = y[2] + 1j * y[3]    
-
-#     positive_period_final = charge[0] * eta_final + charge[1] * beta_final
-#     return positive_period_final
-
-
 def positive_period(n, charge, w_model, fibration): 
+    """ 
+    Detemine the period of the holomorphic one form dx / y along the
+    cycle that pinches at a given discriminant locus (the n-th).
+    Uses Picard-Fuchs evolution and initial values of the periods (1,0) and
+    (0,1) determined at the basepoint used to compute all the monodromies.
+    """
     
-    return 1.0
+    print "\n******************************************\
+           \nEvolving periods for discriminant locus %s\
+           \n******************************************\n" % n
+
+    ### NEED TO EXTRACT THIS DATA FROM W-MODEL
+    u_0, u_1, u_2 = w_model.paths_for_periods[n]
+    path = [u_0 + (u_1 - u_0) * x for x in numpy.linspace(0.0,1.0,1000)] + \
+           [u_1 + (u_2 - u_1) * x for x in numpy.linspace(0.0,1.0,1000)]
+    nint_range = len(path)
+
+    
+    # Notation: using "eta" for the period of (1,0), using "beta" for (0,1)
+    period_data = w_model.compute_initial_periods()
+    eta_0 = period_data[0]
+    eta_prime_0 = period_data[1]
+    beta_0 = period_data[2]
+    beta_prime_0 = period_data[3]
+
+    # print "\nThe integration path\
+    #        \n--------------------\
+    #        \n%s" % path
+
+    print "\nu_0, eta_0, beta_0:\n%s\n" % [u_0, eta_0, beta_0]
+
+###### IMPROVE THE FOLLOWING PART ACCORDING TO NEW STANDARDS OF PF EVOLUTION!
+
+    # # Setting up generic data for PF evolution
+    # g2 = fibration.num_g2
+    # g3 = fibration.num_g3
+    # u = sympy.Symbol('u')
+    # x = sympy.Symbol('x')
+    # Delta = sympy.simplify(g2 ** 3 - 27 * g3 ** 2)
+    # delta = sympy.simplify(3 * (g3) * diff(g2, u) - 2 * (g2) * diff(g3, u))
+
+    # pf_matrix = lambdify(u, 
+    #     [
+    #         [0, 1], 
+    #         [
+    #             sympy.simplify(
+    #                 (-(3*g2*(delta**2) / (16*(Delta**2))) + 
+    #                 ((diff(delta,u) * diff(Delta,u)) / (12*delta*Delta)) - 
+    #                 ((diff(Delta, u, 2)) / (12*Delta)) + 
+    #                 (((diff(Delta, u))**2) / (144 * (Delta**2) ) ) ) 
+    #             ), 
+    #             sympy.simplify( 
+    #                 ( (diff(delta,u) / delta) - (diff(Delta,u) / Delta) ) 
+    #             ) 
+    #         ]
+    #     ] 
+    # )
+    
+    # def deriv(y,t):
+    #     z = y[0] + 1j * y[1]
+    #     eta = y[2] + 1j * y[3]
+    #     d_eta = y[4] + 1j * y[5]
+    #     matrix = pf_matrix(z)
+    #     det_pf = abs(det(matrix))
+    #     # print "PF matrix = %s" % matrix
+    #     # print "PF determinant = %s" % det_pf
+    #     trajectory_singularity_threshold = 10**4
+    #     if det_pf > trajectory_singularity_threshold:
+    #         self.singular = True
+    #         self.singular_point = z
+
+    #     # A confusing point to bear in mind: here we are solving the 
+    #     # ode with respect to time t, but d_eta is understood to be 
+    #     # (d eta / d u), with its own  appropriate b.c. and so on!
+
+    #     # Note here I am adapting the derivative of z to be precisely the
+    #     # one determined by the path on the Coulomb branch.
+    #     z_1 = (path[int(math.floor(t))] - path[int(math.floor(t+1))]) / 1.0
+    #     eta_1 = z_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
+    #     d_eta_1 = z_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
+    #     return  array(
+    #             [
+    #                 z_1.real, z_1.imag, 
+    #                 eta_1.real, eta_1.imag, 
+    #                 d_eta_1.real, d_eta_1.imag
+    #             ]
+    #     )
+    #     # the following rescaled matrix will not blow up at singularities, 
+    #     # but it will not reach the singularities either..
+    #     # return abs(det(matrix)) * array([z_1.real, z_1.imag, 
+    #     #              eta_1.real, eta_1.imag, d_eta_1.real, d_eta_1.imag])
+
+    def deriv(t, y):
+        u, eta, d_eta = y 
+
+        matrix = fibration.pf_matrix(u)
+        det_pf = abs(det(matrix))
+        ###
+        ### MOVE THIS PARAMETER ELSEWHERE !!!
+        ###
+        trajectory_singularity_threshold = 10**4
+        ###
+        if det_pf > trajectory_singularity_threshold:
+            self.singular = True
+            self.singular_point = u
+
+        # A confusing point to bear in mind: here we are solving the 
+        # ode with respect to time t, but d_eta is understood to be 
+        # (d eta / d u), with its own  appropriate b.c. and so on!
+        ### NOTE THE FOLLOWING TWO OPTIONS FOR DERIVATIVE OF u
+        u_1 = (path[int(math.floor(t+1))] - path[int(math.floor(t))]) / 1.0
+        eta_1 = u_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
+        d_eta_1 = u_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
+        return  array([u_1, eta_1, d_eta_1])
+
+
+    ode = scipy.integrate.ode(deriv)
+    ode.set_integrator("zvode")
+    dt = 1
+    t1 = len(path) - 2
+
+    ### Now first we PF-evolve the period of (1,0)
+    y_0 = [u_0, eta_0, eta_prime_0]
+    ode.set_initial_value(y_0)    
+    while ode.successful() and ode.t < t1:
+        # print "time: %s" % ode.t
+        ode.integrate(ode.t + dt)
+
+    u_f, eta_f, d_eta_f = ode.y 
+    print "u_f = %s" % u_f
+    print "eta_f = %s\n" % eta_f
+    
+
+    ### Second we PF-evolve the period of (0,1)
+    y_0 = [u_0, beta_0, beta_prime_0]
+    ode.set_initial_value(y_0)
+
+    while ode.successful() and ode.t < t1:
+        # print "time: %s" % ode.t
+        ode.integrate(ode.t + dt)
+
+    u_f, beta_f, d_beta_f = ode.y 
+    print "u_f = %s" % u_f
+    print "beta_f = %s\n" % beta_f
+
+    positive_period_final = charge[0] * eta_f + charge[1] * beta_f
+
+    # print "\neta_f = %s\nbeta_f = %s\n" % (eta_final, beta_final)
+
+    return positive_period_final
+
+
+# def positive_period(n, charge, w_model, fibration): 
+    
+#     return 1.0

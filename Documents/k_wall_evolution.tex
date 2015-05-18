@@ -45,12 +45,13 @@ As we move away, the period integral
 \be
 	\eta_{\gamma}(u) = \int_{\gamma} {dx\over y(x,u)} = 2 \int_{e_{1}(u)}^{e_{2}(u)}{dx\over y(x,u)}
 \ee
-can be evaluated by means of elliptic functions (see Gradshteyn-Rhyzhik formula ******).
+can be evaluated by means of elliptic functions (see Gradshteyn-Rhyzhik formula 3.1313 with $a=e_{3}, b=e_{2}, c=e_{1}$).
 \be
 	\eta(u) = \frac{4}{\sqrt{e_{3}-e_{1}}} \, K\left( \frac{e_{2}-e_{1}}{e_{3}-e_{1}} \right)
 \ee
 note that in their conventions the argument of the K-function is the square-root of ours!
-The above expression clearly has branch-cuts, due both to the square-root and to the K-function.
+
+The above expression for $\eta(u)$ clearly has branch-cuts, due both to the square-root and to the K-function.
 But near $u=u_{0}$ both pieces are well-behaved since (see Gradshteyn formula ***)
 \be
 	K(z) \sim {\pi\over 2}(1+ {1\over 4}z + {9\over 64} z^{2} +O(z^{3}))
@@ -92,5 +93,34 @@ which should become accessible as we compute more and more points.
 
 \section{Picard Fuchs}
 For now, see old notes with Dima.
+
+
+
+
+
+\section{Computing periods at generic points on ${\cal B}$}
+Let $e_{1},e_{2},e_{3}$ be the roots at some point $u$, such that $Re(e_{1})<Re(e_{2})<Re(e_{3})$.
+
+Assuming that we can pick the branch-cuts for the $e_{i}$ to emanate vertically from the $e_{i}(u)$ (not obvious that it will be the case numerically...), then the period integral
+\be
+	\eta_{\gamma}(u) = \int_{\gamma} {dx\over y(x,u)} = 2 \int_{e_{1}(u)}^{e_{2}(u)}{dx\over y(x,u)}
+\ee
+can be evaluated by means of elliptic functions (see Gradshteyn-Rhyzhik formula 3.1313 with $a=e_{3}, b=e_{2}, c=e_{1}$).
+\be
+	\eta(u) = \frac{4}{\sqrt{e_{3}-e_{1}}} \, K\left( \frac{e_{2}-e_{1}}{e_{3}-e_{1}} \right)
+\ee
+note that in their conventions the argument of the K-function is the square-root of ours!
+
+Similarly, we have the other period integral (see Gradshteyn-Rhyzhik formula 3.1315 with $a=e_{3}, b=e_{2}, c=e_{1}$)
+\be
+\begin{split}
+	\eta_{\gamma'}(u) &= \int_{\gamma'} {dx\over y(x,u)} = 2 \int_{e_{2}(u)}^{e_{3}(u)}{dx\over y(x,u)} \\
+	&= \frac{4}{\sqrt{e_{3}-e_{1}}} \, K\left( \frac{e_{3}-e_{2}}{e_{3}-e_{1}} \right)
+\end{split}
+\ee
+where $\langle\gamma,\gamma'\rangle = -1$.
+
+
+
 
 \end{document}  
