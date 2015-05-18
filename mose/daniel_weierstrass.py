@@ -403,8 +403,7 @@ def invert_monodromy(MM):
         
       
 def monodromy_at_point_via_path(init_root,d,f,g,path_data,\
-                                 ts_ipath=1000,ts_mon=1000,option=None,\
-                            rotation_recursion_level=0, rotation_n=10):
+                                 ts_ipath=1000,ts_mon=1000,option=None):
     """
     monodromy_at_point_via_path(init_root,d,f,g,path_data,ts_ipath,ts_mon)
     
@@ -434,86 +433,34 @@ def monodromy_at_point_via_path(init_root,d,f,g,path_data,\
     The monodromy matrix around the point "d" via
     the path constructed using path_data
     """
-
-    def real_part(x,y):
-            if x.real>y.real:
-                return 1
-            else: return -1
-
     total_path = construct_path(d,path_data)
     initial_path = total_path[:3]
     circ_path = total_path[2:]
     MM = np.matrix([[1,0],[0,1]])
-
-    original_init_root = init_root
-
-    rot_rec_lvl = rotation_recursion_level
-    if rot_rec_lvl>0 and rot_rec_lvl<rotation_n:
-        print "I have rotated the x-plane %s times so far." % rot_rec_lvl
-        print "f = \n%s\n\ng = \n%s\n" % (f, g)
-    elif rot_rec_lvl>=rotation_n:
-        raise ValueError('Rotated a full 2pi angle, and couldnt '+\
-            'compute the braiding.')
-
-    control_var = 'fine'
     
     segments=len(initial_path)-1
     for s in range(segments):
         ev_result=evolve_to_get_braiding(init_root,f,g,\
                                         [initial_path[s],initial_path[s+1]],\
                                         ts_ipath)
-        if ev_result == 'rotate':
-            control_var = 'rotate'
-            break
-        
-        else:
-            if option == 'p':
-                print("Initialization path "+str(s)+": "+str(ev_result[0]))
-            MM = np.dot(MM,monodromy(ev_result[0]))
-            init_root = ev_result[1]
-        
+        if option == 'p':
+            print("Initialization path "+str(s)+": "+str(ev_result[0]))
+        MM = np.dot(MM,monodromy(ev_result[0]))
+        init_root = ev_result[1]
+    
     init_MM = MM
     
-    if control_var == 'fine':   #proceed with circular part of the path
-        segments=len(circ_path)-1
-        for s in range(segments):
-            ev_result=evolve_to_get_braiding(init_root,f,g,\
-                                            [circ_path[s],circ_path[s+1]],\
-                                            ts_mon)
-            if ev_result == 'rotate':
-                control_var = 'rotate'
-                break
-
-            else:
-                if option == 'p':
-                    print("Encircling path "+str(s)+":"+str(ev_result[0]))
-                MM = np.dot(MM,monodromy(ev_result[0]))
-                init_root = ev_result[1]
-        
-    if control_var == 'fine':
-        return np.dot(MM,invert_monodromy(init_MM))
-
-    elif control_var == 'rotate':
-        print "\n\
-            *************************************\n\
-            Having trouble tracking root braiding\n\
-                    Will rotate the x-plane      \n\
-            *************************************\n"
-        zeta = np.exp(2*np.pi*1j/rotation_n)
-        r_f = f / (zeta**2) #[x / (zeta**2) for x in f]
-        r_g = g / (zeta**3) #[x / (zeta**3) for x in f]
-        # print f
-        # print r_f
-        # print init_root
-        # print type(init_root)
-        r_init_root = sorted([(x / zeta) for x in original_init_root], cmp=real_part)
-        # print r_init_root
-        # print type(r_init_root)
-        
-        return monodromy_at_point_via_path(r_init_root, d, r_f, r_g, path_data, \
-                            ts_ipath=ts_ipath,ts_mon=ts_mon,option=option,\
-                            rotation_recursion_level=rot_rec_lvl+1)
-
+    segments=len(circ_path)-1
+    for s in range(segments):
+        ev_result=evolve_to_get_braiding(init_root,f,g,\
+                                        [circ_path[s],circ_path[s+1]],\
+                                        ts_mon)
+        if option == 'p':
+            print("Encircling path "+str(s)+":"+str(ev_result[0]))
+        MM = np.dot(MM,monodromy(ev_result[0]))
+        init_root = ev_result[1]
+    
+    return np.dot(MM,invert_monodromy(init_MM))
 
             
 def monodromy_at_point_wmodel(n,wmodel,ts_ipath=1000,ts_mon=1000,option=None):
@@ -730,12 +677,8 @@ def evolve_to_get_braiding(init_data,f,g,start_end,timesteps=1000):
                     min_diff = np.absolute(a-b)
             max_diff_cons = max(max_diff_cons,min_diff)
         if is_degenerate(sorted_rts):
-            # raise ValueError('Roots not being properly distinguished: '+\
-            #                    'timesteps too sparse.')
-            print '\nsort_roots:: Roots not being properly distinguished: '+\
-                               'timesteps too sparse. '+ \
-                               '\n\nrts:\n%s\n\nlast_rts:\n%s\n\nsorted_rts\n%s' % (rts,last_rts,sorted_rts)
-            return ['rotate', 'rotate']
+            raise ValueError('Roots not being properly distinguished: '+\
+                               'timesteps too sparse.')
         else:            
             return [sorted_rts,max_diff_cons]    
 #        return [sorted_rts, max_diff_cons]
@@ -792,9 +735,7 @@ def evolve_to_get_braiding(init_data,f,g,start_end,timesteps=1000):
                     raise ValueError('Cannot distinguish y and Y.')
                 return 'y'
         else:
-            # raise ValueError('Timesteps too small to extract braiding.')
-            print '\nbraiding_action:: Timesteps too small to extract braiding.'
-            return 'rotate'
+            raise ValueError('Timesteps too small to extract braiding.')
                 
     def minimum_diff_rts(rts):
         diffs = []
@@ -818,9 +759,7 @@ def evolve_to_get_braiding(init_data,f,g,start_end,timesteps=1000):
     last_roots = init_data
     time = np.linspace(0,1.,timesteps)
     G = []
-    
-    control_var = 'fine'
-
+        
     #solve differential equation
     for t in time[1:]:
         poly = np.poly1d([1,0,f(start+t*vector),g(start+t*vector)])
@@ -828,42 +767,25 @@ def evolve_to_get_braiding(init_data,f,g,start_end,timesteps=1000):
         #print 'Time : '+str(t)
         #print 'Roots : '+str(roots)
         roots, cons = sort_roots(roots,last_roots)
-        # if is_degenerate(roots):
-        #     print 'Last roots: '+str(last_roots)
-        #     print 'Current roots:'+str(roots)
-        #     print 'Path data:'+str(start)+' to '+str(end)
-        #     print 'Location'+str(start+t*vector)
-        #     raise ValueError('Roots not being properly distinguished: '+\
-        #                        'timesteps too sparse.')
-
-        if roots == 'rotate':
-            point = start+t*vector
-            print '\nTrouble sorting roots:\nu = %s\n' % point
-            control_var = 'rotate'
-            break
-
-        else:
-            b = braiding_action(last_roots,roots)
-            
-            if b != 'I' and b != 'rotate':
-                G.append(b)
-            elif b == 'rotate':
-                control_var = 'rotate'
-                break
-
-            min_diff_rts = min(min_diff_rts,minimum_diff_rts(roots))
-            max_diff_cons = max(max_diff_cons,cons)
-            last_roots = roots
+        if is_degenerate(roots):
+            print 'Last roots: '+str(last_roots)
+            print 'Current roots:'+str(roots)
+            print 'Path data:'+str(start)+' to '+str(end)
+            print 'Location'+str(start+t*vector)
+            raise ValueError('Roots not being properly distinguished: '+\
+                               'timesteps too sparse.')
+        b = braiding_action(last_roots,roots)
+        if b!='I':
+            G.append(b)
+        min_diff_rts = min(min_diff_rts,minimum_diff_rts(roots))
+        max_diff_cons = max(max_diff_cons,cons)
+        last_roots = roots
         
     #if difference between roots smaller than timesteps, alert
     if min_diff_rts < max_diff_cons:
         print 'Timesteps too large to be reliable'
                     
-    if control_var == 'fine':
-        return [G,last_roots]
-
-    elif control_var == 'rotate':
-        return 'rotate'
+    return [G,last_roots]
 
 
 
@@ -1013,7 +935,7 @@ if __name__=="__main__":
     
     #Seiberg-Witten
     rot=np.exp(np.pi*1j/3.0 * 0.0)
-    xr=np.exp(np.pi*1j/3.0 * 0.0)
+    xr=np.exp(np.pi*1j/3.0)
     wmodel=WeierstrassProto(np.array([-1.0/3*rot**2,0,1.0/4.0])/xr**2,
                             np.array([-2.0/27*rot**3,0,1.0/12*rot,0])/xr**3)
                             
@@ -1029,7 +951,7 @@ if __name__=="__main__":
     #wmodel=WeierstrassProto([-1.0],[rot**2*1.0,0,0])
     dnum=0
     
-    # animate_roots_and_angles_path(wmodel,dnum,2,3,\
+    #animate_roots_and_angles_path(wmodel,dnum,2,3,\
     #                              timesteps=5000,steps=120,\
     #                              path=None,breaks=None)
 
@@ -1044,5 +966,9 @@ if __name__=="__main__":
     print(str(mon2))
 
     from elliptic_fibration import monodromy_eigencharge as ME
+
+    print wmodel.get_f()
+    print wmodel.get_g()
+
     print ME(mon1)
     print ME(mon2)

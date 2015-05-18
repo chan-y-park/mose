@@ -220,6 +220,8 @@ trajectory!" % (sp[0], sp[-1])
 
         singularity_check= False
 
+        theta = self.phase
+
         def deriv(t, y):
             u, eta, d_eta = y 
 

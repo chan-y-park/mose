@@ -11,6 +11,7 @@ import weierstrass as wss
 
 from cmath import pi, exp, phase, sqrt
 from scipy.integrate import quad as n_int
+from numpy import linalg as LA
 
 #from sympy import Poly
 from branch import BranchPoint
@@ -93,7 +94,7 @@ class EllipticFibration:
                 """.format(
                     i,
                     branch_point_loci[i],
-                    branch_point_monodromies[i],
+                    numpy.array(branch_point_monodromies[i]).tolist(),
                     branch_point_charges[i],
                     bp_identifiers[i],
                 )
@@ -154,9 +155,53 @@ class EllipticFibration:
             + (g2_p(z) * g3_p(z) + 3 * g3(z) * g2_p_p(z) \
             - 2 * g2(z) * g3_p_p(z)) \
             / (3 * g3(z) * g2_p(z) - 2 * g2(z) * g3_p(z))
-
-
+        
         return [[0, 1], [M10(z), M11(z)]]
+
+
+        ### Attempt to use polyval, to make evaluation faster, 
+        ### needs some extra work.
+        ###
+        # print "TYPE: %s" % type((\
+        #         -18 * (g2 ** 2) * (g2_p ** 2) * g3_p \
+        #         + 3 * g2 * (7 * g3 * (g2_p ** 3) \
+        #         + 40 * (g3_p ** 3)) \
+        #         + (g2 ** 3) * (-8 * g3_p * g2_p_p \
+        #         + 8 * g2_p * g3_p_p) \
+        #         -108 * g3 \
+        #         * (-2 * g3 * g3_p * g2_p_p \
+        #         + g2_p \
+        #         * ((g3_p ** 2) + 2 * g3 * g3_p_p)) \
+        #         ) \
+        #         / (16 * ((g2 ** 3) -27 * (g3 ** 2)) \
+        #         * (-3 * g3 * g2_p + 2 * g2 * g3_p)\
+        #         ))
+
+        # M10 = numpy.polyval(\
+        #         (\
+        #         -18 * (g2 ** 2) * (g2_p ** 2) * g3_p \
+        #         + 3 * g2 * (7 * g3 * (g2_p ** 3) \
+        #         + 40 * (g3_p ** 3)) \
+        #         + (g2 ** 3) * (-8 * g3_p * g2_p_p \
+        #         + 8 * g2_p * g3_p_p) \
+        #         -108 * g3 \
+        #         * (-2 * g3 * g3_p * g2_p_p \
+        #         + g2_p \
+        #         * ((g3_p ** 2) + 2 * g3 * g3_p_p)) \
+        #         ) \
+        #         / (16 * ((g2 ** 3) -27 * (g3 ** 2)) \
+        #         * (-3 * g3 * g2_p + 2 * g2 * g3_p)\
+        #         ), z)
+
+        # M11 = numpy.polyval(\
+        #     (-3 * (g2 ** 2) * g2_p + 54 * g3 * g3_p) \
+        #     / ((g2 ** 3) - (27 * g3 ** 2)) \
+        #     + (g2_p * g3_p + 3 * g3 * g2_p_p \
+        #     - 2 * g2 * g3_p_p) \
+        #     / (3 * g3 * g2_p - 2 * g2 * g3_p), z)
+
+        # print "PF matrix : %s" % [[0, 1], [M10, M11]]
+        # return [[0, 1], [M10, M11]]
 
 
 #### NOW SUPERSEDED BY WEIERSTRASS CLASS ITSELF
@@ -194,28 +239,46 @@ class EllipticFibration:
 
 
 def monodromy_eigencharge(monodromy):
-    # m = magnetic charge
-    # n = electric charge
-    # we work in conventions of Seiberg-Witten 2, with monodromy matrices
-    # acting from the LEFT (hence our matrices are TRANSPOSE os those in SW!), 
-    # and given by:
-    #       1 + 2 n m    &    - m^2       \\
-    #       4 n^2        &    1 - 2 n m
+    # # m = magnetic charge
+    # # n = electric charge
+    # # we work in conventions of Seiberg-Witten 2, with monodromy matrices
+    # # acting from the LEFT (hence our matrices are TRANSPOSE os those in SW!), 
+    # # and given by:
+    # #       1 + 2 n m    &    - m^2       \\
+    # #       4 n^2        &    1 - 2 n m
 
-    nm = (monodromy[0][0] - monodromy[1][1]) / 4.0
-    m_temp = math.sqrt(-1.0 * monodromy[0][1])
-    n_temp = 2 * math.sqrt(monodromy[1][0] / 4.0)
-    if nm != 0:
-        if nm > 0:
-            n = n_temp
-            m = m_temp
-        else:
-            n = -n_temp
-            m = m_temp
+    # # print "this is the monodromy matrix: \n%s" % monodromy
+    # # print "this is the monodromy matrix type: %s" % type(monodromy)
+
+    # nm = (monodromy[0,0] - monodromy[1,1]) / 4.0
+    # m_temp = math.sqrt(-1.0 * monodromy[0,1])
+    # n_temp = 2 * math.sqrt(monodromy[1,0] / 4.0)
+    # if nm != 0:
+    #     if nm > 0:
+    #         n = n_temp
+    #         m = m_temp
+    #     else:
+    #         n = -n_temp
+    #         m = m_temp
+    # else:
+    #     m = m_temp
+    #     n = n_temp
+    # return (int(m), int(n))
+
+    eigen_sys = LA.eig(monodromy)
+    eigen_val_0 = int(numpy.rint(eigen_sys[0][0]))
+    eigen_val_1 = int(numpy.rint(eigen_sys[0][1]))
+    min_0 = min(abs(numpy.array(eigen_sys[1][0])[0]))
+    eigen_vec_0 = (numpy.array(eigen_sys[1][0])[0] / min_0).astype(int).tolist()
+    min_1 = min(abs(numpy.array(eigen_sys[1][1])[0]))
+    eigen_vec_1 = (numpy.array(eigen_sys[1][1])[0] / min_1).astype(int).tolist()
+    n_eigen_vec_1 = (-1 * numpy.array(eigen_sys[1][1])[0] / min_1).astype(int).tolist()
+
+    if eigen_vec_0 == eigen_vec_1 or eigen_vec_0 == n_eigen_vec_1:
+        return eigen_vec_0
     else:
-        m = m_temp
-        n = n_temp
-    return (int(m), int(n))
+        raise ValueError('Cannot compute monodromy eigenvector for the matrix\
+            \n'+str(monodromy))
 
 
 # def positive_period(n, charge, w_model, fibration): 
