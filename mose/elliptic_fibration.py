@@ -53,23 +53,40 @@ class EllipticFibration:
        
         branch_point_loci = list(self.w_model.get_D().r)
 
-        if branch_point_charges is None:
-            # Calculate branch point charges using weierstrss.py
-            branch_point_monodromies = [
-                wss.monodromy_at_point_wmodel(i, self.w_model) 
-                for i in range(len(branch_point_loci))
-            ]
+        
+        ### Calculate branch point charges using weierstrss.py
+        ### If trouble is encountered, can resort to the patch commented below.
+        ###
+        branch_point_monodromies = [
+            wss.monodromy_at_point_wmodel(i, self.w_model) 
+            for i in range(len(branch_point_loci))
+        ]
+        
+        branch_point_charges = [
+            monodromy_eigencharge(m) for m in branch_point_monodromies
+        ]
+
+        ### The following might be useful if some trouble is encountered
+        ### with automatic computation of discriminant charges from weierstrass 
+        ### module.
+        ###
+        # if branch_point_charges is None:
+        #     # Calculate branch point charges using weierstrss.py
+        #     branch_point_monodromies = [
+        #         wss.monodromy_at_point_wmodel(i, self.w_model) 
+        #         for i in range(len(branch_point_loci))
+        #     ]
             
-            branch_point_charges = [
-                monodromy_eigencharge(m) for m in branch_point_monodromies
-            ]
-        ### ONCE THE WEIERSTRASS MODULE WORKS RELIABLY, NEED TO REMOVE THE 
-        ### 'IF' STRUCTURE, THE FOLLOWING PART WON'T BE NEEDED.
-        else:
-            # THIS IS A TEMPORARY DUMMY ASSIGNMENT
-            branch_point_monodromies = [
-                [[1, -2],[0, 1]] for i in range(len(branch_point_loci))
-            ]
+        #     branch_point_charges = [
+        #         monodromy_eigencharge(m) for m in branch_point_monodromies
+        #     ]
+        # ### ONCE THE WEIERSTRASS MODULE WORKS RELIABLY, NEED TO REMOVE THE 
+        # ### 'IF' STRUCTURE, THE FOLLOWING PART WON'T BE NEEDED.
+        # else:
+        #     # THIS IS A TEMPORARY DUMMY ASSIGNMENT
+        #     branch_point_monodromies = [
+        #         [[1, -2],[0, 1]] for i in range(len(branch_point_loci))
+        #     ]
 
         ### Introduce string identifiers to label branch-points.
         ### These will be used when building genealogies of intersection 
