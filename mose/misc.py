@@ -3,6 +3,7 @@ import numpy
 import datetime
 import cmath
 from scipy.optimize import fsolve
+from scipy.integrate import quad as n_int
 from sympy.abc import u
 from sympy import mpmath as mp
 from operator import itemgetter
