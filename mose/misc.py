@@ -108,7 +108,7 @@ def order_roots(roots, segment, sign, theta):
     if abs(twins[0] - twins[1]) / abs(twins[0] - e3) < 0.3:
         ### First possibility ###
         f1, f2 = twins
-        eta_u1 = (sign) * 4 * ((e3 - f1) ** (-0.5)) * \
+        eta_u1 = (sign) * 4.0 * ((e3 - f1) ** (-0.5)) * \
                                     mp.ellipk( ((f2 - f1) / (e3 - f1)) )
         phase_1 = cmath.phase( \
                     cmath.exp(1j * (theta + cmath.pi - cmath.phase(eta_u1))) / \
@@ -117,7 +117,7 @@ def order_roots(roots, segment, sign, theta):
 
         ### Second possibility ###
         f1, f2 = twins[::-1]
-        eta_u1 = (sign) * 4 * ((e3 - f1) ** (-0.5)) * \
+        eta_u1 = (sign) * 4.0 * ((e3 - f1) ** (-0.5)) * \
                                     mp.ellipk( ((f2 - f1) / (e3 - f1)) )
         phase_2 = cmath.phase( \
                     cmath.exp(1j * (theta + cmath.pi - cmath.phase(eta_u1))) / \
@@ -129,9 +129,10 @@ def order_roots(roots, segment, sign, theta):
         else:
             e1, e2 = twins[::-1]
         
-        eta_u1 = (sign) * 4 * ((e3 - e1) ** (-0.5)) * \
+        eta_u1 = (sign) * 4.0 * ((e3 - e1) ** (-0.5)) * \
                                     mp.ellipk( ((e2 - e1) / (e3 - e1)) )
 
+        # print "ETA_1 = %s " % eta_u1
         return [[e1, e2, e3], complex(eta_u1)]
     else:
         return 0
@@ -229,43 +230,44 @@ def check_marginal_stabiliy_condition(parents, indices):
     ### Enable the code below, once the computation of 
     ### central charges is implemented.
 
-    # kwall_1 = parents[0]
-    # kwall_2 = parents[1]
-    # index_1 = indices[0]
-    # index_2 = indices[1]
+    kwall_1 = parents[0]
+    kwall_2 = parents[1]
+    index_1 = indices[0]
+    index_2 = indices[1]
 
-    # Z_1 = kwall_1.central_charge[index_1]
-    # Z_2 = kwall_2.central_charge[index_2]
+    Z_1 = kwall_1.central_charge[index_1]
+    Z_2 = kwall_2.central_charge[index_2]
 
-    # if -1.0 * pi / 10 < phase(Z_1 / Z_2) < pi / 10 :
-    #     pass
-    # else:
-    #     ### the phase discrepancy is too large to be on a MS wall
-    #     print "\nWARNING: the central charges of kwalls %s do not align\
-    #            \nat their intersection." % parents
+    if -1.0 * pi / 10 < phase(Z_1 / Z_2) < pi / 10 :
+        pass
+    else:
+        ### the phase discrepancy is too large to be on a MS wall
+        print "\nWARNING: the central charges of kwalls %s do not align\
+               \nat their intersection. In fact, they are:\
+               \nZ_1 = %s\nZ_2 = %s\n" % (parents, Z_1, Z_2)
 
-    pass
+    # pass
 
 
 def sort_parent_kwalls(parents, indices):
     ### Enable the code below, once the computation of 
     ### central charges is implemented.
 
-    # kwall_1 = parents[0]
-    # kwall_2 = parents[1]
-    # ### will check central charges slightly before the walls intersect
-    # index_1 = max(indices[0] - 10, 0)
-    # index_2 = max(indices[1] - 10, 0)
+    kwall_1 = parents[0]
+    kwall_2 = parents[1]
+    ### will check central charges slightly before the walls intersect
+    index_1 = max(indices[0] - 10, 0)
+    index_2 = max(indices[1] - 10, 0)
 
-    # Z_1 = kwall_1.central_charge[index_1]
-    # Z_2 = kwall_2.central_charge[index_2]
+    Z_1 = kwall_1.central_charge[index_1]
+    Z_2 = kwall_2.central_charge[index_2]
 
-    # if phase(Z_1 / Z_2) > 0:
-    #     ### the phase of Z_1 is greater than the phase of Z_2
-    #     return [kwall_1, kwall_2]
-    # else:
-    #     ### the phase of Z_1 is smaller than the phase of Z_2
-    #     return [kwall_2, kwall_1]
+    if phase(Z_1 / Z_2) > 0:
+        ### the phase of Z_1 is greater than the phase of Z_2
+        return [kwall_1, kwall_2]
+    else:
+        ### the phase of Z_1 is smaller than the phase of Z_2
+        return [kwall_2, kwall_1]
 
-    return parents
+    # return parents
 

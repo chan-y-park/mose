@@ -44,7 +44,7 @@ class KWallNetwork:
         ##############################
         primary_k_walls = []
 
-        for sign in [+1.0, -1.0]:
+        for sign in [1.0, -1.0]:
             ### Here the sign list distinguishes between \gamma and -\gamma
             ### both of whose K-walls are generated from the same discriminant
             ### locus. The distinction between these is determined ultimately 
