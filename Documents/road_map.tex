@@ -213,6 +213,21 @@ Replace numerical data points with anapproximate interpolating function to have 
 
 
 
+\section{Computation of central charges}
+Write an algorithm that computes the central charges along K-walls.
+At every point of a kwall, it should compute $Z_{\gamma}$, then it should provide a new attribute {\tt kwall.central\_{charge}} consisting of a corresponding list of complex numbers.
+
+
+
+
+\section{Checks at MS walls}
+In file misc.py, fill in the function. Given two intersecting kwalls, if the phases of their central charges at the intersection aren't reasonably similar, raise some sort of warning.
+
+
+
+\section{Automatic sorting of the K-factors in the spectrum generator}
+In file misc.py, fill in the function {\tt sort\_{parent\_{kwalls}}}. It should check the phase-ordering of central charges of the kwalls just before they intersect, then it should return an array {\tt [kwall1, kwall2]} where the phase of {\tt kwall2} is the \emph{smaller} one. This would correspond to having spectrum generator $\mathbb{S} = K_{\gamma_{1}}K_{\gamma_{2}}$.
+
 
 \section{Fibration-handling module}
 \subsection{Storing and calling fibrations - {\color{red} \bf done}}

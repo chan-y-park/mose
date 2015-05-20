@@ -298,14 +298,46 @@ class WeierstrassModelWithPaths(WeierstrassModel):
                             complex(rts_0[2])
                             ]
 
+        # # XXX: is this step size(=0.01) enough to calculate 
+        # # the derivatives? And what about the phase of the step?
+        # u_1 = self.path_data[1] + 0.01
+        # init_poly_1 = np.poly1d([1,0,self.f(u_1),self.g(u_1)])
+        # rts_1 = sorted(init_poly_1.r,cmp=real_part)
+        # e1_1, e2_1, e3_1 = [complex(rts_1[0]),\
+        #                     complex(rts_1[1]),\
+        #                     complex(rts_1[2])
+        #                     ]
+
+        # ### NOTE: eta is related to period B, while beta 
+        # ### is related to period A. That's because
+        # ### with current conventions <B, A> = +1
+
+        # eta_0 = period_B(e1_0, e2_0, e3_0)[0]
+        # beta_0 = period_A(e1_0, e2_0, e3_0)[0]
+
+        # eta_1 = period_B(e1_1, e2_1, e3_1)[0]
+        # beta_1 = period_A(e1_1, e2_1, e3_1)[0]
+
+        # eta_prime_0 = (eta_1 - eta_0) / (u_1 - u_0)
+        # beta_prime_0 = (beta_1 - beta_0) / (u_1 - u_0)
+
+
         # XXX: is this step size(=0.01) enough to calculate 
         # the derivatives? And what about the phase of the step?
-        u_1 = self.path_data[1] + 0.01
-        init_poly_1 = np.poly1d([1,0,self.f(u_1),self.g(u_1)])
-        rts_1 = sorted(init_poly_1.r,cmp=real_part)
-        e1_1, e2_1, e3_1 = [complex(rts_1[0]),\
-                            complex(rts_1[1]),\
-                            complex(rts_1[2])
+        u_1_x = self.path_data[1] + 0.0001
+        init_poly_1_x = np.poly1d([1,0,self.f(u_1_x),self.g(u_1_x)])
+        rts_1_x = sorted(init_poly_1_x.r,cmp=real_part)
+        e1_1_x, e2_1_x, e3_1_x = [complex(rts_1_x[0]),\
+                            complex(rts_1_x[1]),\
+                            complex(rts_1_x[2])
+                            ]
+
+        u_1_y = self.path_data[1] + 0.0001*1j
+        init_poly_1_y = np.poly1d([1,0,self.f(u_1_y),self.g(u_1_y)])
+        rts_1_y = sorted(init_poly_1_y.r,cmp=real_part)
+        e1_1_y, e2_1_y, e3_1_y = [complex(rts_1_y[0]),\
+                            complex(rts_1_y[1]),\
+                            complex(rts_1_y[2])
                             ]
 
         ### NOTE: eta is related to period B, while beta 
@@ -315,11 +347,18 @@ class WeierstrassModelWithPaths(WeierstrassModel):
         eta_0 = period_B(e1_0, e2_0, e3_0)[0]
         beta_0 = period_A(e1_0, e2_0, e3_0)[0]
 
-        eta_1 = period_B(e1_1, e2_1, e3_1)[0]
-        beta_1 = period_A(e1_1, e2_1, e3_1)[0]
+        eta_1_x = period_B(e1_1_x, e2_1_x, e3_1_x)[0]
+        beta_1_x = period_A(e1_1_x, e2_1_x, e3_1_x)[0]
+        eta_1_y = period_B(e1_1_y, e2_1_y, e3_1_y)[0]
+        beta_1_y = period_A(e1_1_y, e2_1_y, e3_1_y)[0]
 
-        eta_prime_0 = (eta_1 - eta_0) / (u_1 - u_0)
-        beta_prime_0 = (beta_1 - beta_0) / (u_1 - u_0)
+        eta_prime_x = (eta_1_x - eta_0) / (u_1_x - u_0)
+        beta_prime_x = (beta_1_x - beta_0) / (u_1_x - u_0)
+        eta_prime_y = (eta_1_y - eta_0) / (u_1_y - u_0)
+        beta_prime_y = (beta_1_y - beta_0) / (u_1_y - u_0)
+
+        eta_prime_0 = 0.5 * (eta_prime_x - 1j * eta_prime_y)
+        beta_prime_0 = 0.5 * (beta_prime_x - 1j * beta_prime_y)
 
         return [eta_0, eta_prime_0, beta_0, beta_prime_0]
       

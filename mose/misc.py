@@ -209,7 +209,52 @@ def periods_relative_sign(p_1, p_2):
         trouble += ' modulus discrepancy too large '
 
     if trouble != ' ':
-        print "WARNING: could not reliably determine the positive period, \
+        print "\nWARNING: could not reliably determine the positive period, \
                 \n due to: " + trouble
 
     return sign
+
+def check_marginal_stabiliy_condition(parents, indices):
+    ### Enable the code below, once the computation of 
+    ### central charges is implemented.
+
+    # kwall_1 = parents[0]
+    # kwall_2 = parents[1]
+    # index_1 = indices[0]
+    # index_2 = indices[1]
+
+    # Z_1 = kwall_1.central_charge[index_1]
+    # Z_2 = kwall_2.central_charge[index_2]
+
+    # if -1.0 * pi / 10 < phase(Z_1 / Z_2) < pi / 10 :
+    #     pass
+    # else:
+    #     ### the phase discrepancy is too large to be on a MS wall
+    #     print "\nWARNING: the central charges of kwalls %s do not align\
+    #            \nat their intersection." % parents
+
+    pass
+
+
+def sort_parent_kwalls(parents, indices):
+    ### Enable the code below, once the computation of 
+    ### central charges is implemented.
+
+    # kwall_1 = parents[0]
+    # kwall_2 = parents[1]
+    # ### will check central charges slightly before the walls intersect
+    # index_1 = max(indices[0] - 10, 0)
+    # index_2 = max(indices[1] - 10, 0)
+
+    # Z_1 = kwall_1.central_charge[index_1]
+    # Z_2 = kwall_2.central_charge[index_2]
+
+    # if phase(Z_1 / Z_2) > 0:
+    #     ### the phase of Z_1 is greater than the phase of Z_2
+    #     return [kwall_1, kwall_2]
+    # else:
+    #     ### the phase of Z_1 is smaller than the phase of Z_2
+    #     return [kwall_2, kwall_1]
+
+    return parents
+

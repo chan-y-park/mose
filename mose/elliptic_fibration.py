@@ -372,7 +372,7 @@ def positive_period(n, charge, w_model, fibration):
     dt = 1
     ### How many steps before reaching the discriminant locus it should stop
     ### integrating via PF
-    cutoff = 200 
+    cutoff = 0
     t1 = len(path) - 2 - cutoff
 
     ### the pinching-cycle period at the starting point, 

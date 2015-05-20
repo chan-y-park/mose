@@ -331,14 +331,15 @@ class PrimaryKWall(KWall):
         ### by comparing with the PF-evolution of the cycle as computed at
         ### the basepoint for monodromy computations.
         
-        period_sign = sign * \
-                    periods_relative_sign(ellipk_period, \
+        rel_sign = periods_relative_sign(ellipk_period, \
                                           self.reference_initial_period)
+        period_sign = sign * rel_sign
+
         eta_0 = (period_sign) * ellipk_period
 
         print "\nThe initial value of eta_\gamma for this Kwall is : %s" % eta_0
         print "\nThe reference value of eta_\gamma for this Kwall is : %s\n" \
-                                            % self.reference_initial_period
+                                    % (rel_sign * self.reference_initial_period)
 
         # The initial evolution of primary kwalls is handled with an
         # automatic tuning.
