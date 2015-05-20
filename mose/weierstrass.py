@@ -48,7 +48,10 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import numpy as np
 from scipy.integrate import odeint
+# from scipy.special import ellipk
+from sympy.mpmath import ellipk
 from itertools import combinations
+from misc import period_A, period_B
 
 
 
@@ -118,6 +121,10 @@ class WeierstrassModel:
         
     def get_number_discriminant_points(self):
         return self.num
+
+    
+
+
     
 
 
@@ -185,8 +192,13 @@ class WeierstrassModelWithPaths(WeierstrassModel):
         init_poly = np.poly1d([1,0,self.f(init_p),self.g(init_p)])
         self.init_rts = sorted(init_poly.r,cmp=real_part)        
         self.paths=[]
+        self.paths_for_periods = []
         for loc in self.disc_locus:
             self.paths.append(construct_path(loc,self.path_data))
+            self.paths_for_periods.append(construct_path_for_periods(\
+                                                        loc, self.path_data))
+        
+
     
     def get_path_data(self):
         return self.path_data
@@ -195,8 +207,161 @@ class WeierstrassModelWithPaths(WeierstrassModel):
         return self.paths        
                         
     def get_init_rts(self):
-        return self.init_rts        
-        
+        return self.init_rts      
+
+    ### The following function has been replaced by a more careful
+    ### method for computing initial periods
+    ###
+    # def compute_initial_periods(self):
+    #     ### Potential numerical trouble with uncontrollable branch cuts here
+    #     ### Better switch to numerical integration instead?
+    #     """
+    #     Computing periods and their derivatives at the 
+    #     base point (called init_p in the __init__ method above).
+
+    #     Let the three roots e_1, e_2, e_3 be ordered with
+    #     Re(e_1) < Re(e_2) < Re(e_3), then we call gamma_1
+    #     the cycle stretching from e_2 to e_3, and 
+    #     gamma_2 the cycle stretching from e_1 to e_2.
+    #     We have <gamma_1, gamma_2> = 1 in this way.
+
+    #     Using elliptic functions we compute the period of dx/y 
+    #     along gama_1 and call that eta_0, similarly we denote the
+    #     period along gamma_2 by beta_0.
+    #     We also compute their derivatives.
+    #     """
+
+    #     def real_part(x,y):
+    #         if x.real>y.real:
+    #             return 1
+    #         else: return -1
+
+    #     u_0 = self.path_data[1]
+    #     init_poly_0 = np.poly1d([1,0,self.f(u_0),self.g(u_0)])
+    #     rts_0 = sorted(init_poly_0.r,cmp=real_part)
+    #     e1_0, e2_0, e3_0 = [complex(rts_0[0]),\
+    #                         complex(rts_0[1]),\
+    #                         complex(rts_0[2])
+    #                         ]
+
+    #     u_1 = self.path_data[1] + 0.01
+    #     init_poly_1 = np.poly1d([1,0,self.f(u_1),self.g(u_1)])
+    #     rts_1 = sorted(init_poly_1.r,cmp=real_part)
+    #     e1_1, e2_1, e3_1 = [complex(rts_1[0]),\
+    #                         complex(rts_1[1]),\
+    #                         complex(rts_1[2])
+    #                         ]
+
+    #     eta_0 = complex((4.0 / cmath.sqrt(e3_0 - e1_0)) * \
+    #                             ellipk((e3_0 - e2_0) / (e3_0 - e1_0)))
+    #     beta_0 = complex((4.0 / cmath.sqrt(e3_0 - e1_0)) * \
+    #                             ellipk((e2_0 - e1_0) / (e3_0 - e1_0)))
+
+    #     eta_1 = complex((4.0 / cmath.sqrt(e3_1 - e1_1)) * \
+    #                             ellipk((e3_1 - e2_1) / (e3_1 - e1_1)))
+    #     beta_1 = complex((4.0 / cmath.sqrt(e3_0 - e1_0)) * \
+    #                             ellipk((e2_1 - e1_1) / (e3_1 - e1_1)))
+
+    #     eta_prime_0 = (eta_1 - eta_0) / (u_1 - u_0)
+    #     beta_prime_0 = (beta_1 - beta_0) / (u_1 - u_0)
+
+    #     return [eta_0, eta_prime_0, beta_0, beta_prime_0]
+  
+    def compute_initial_periods(self):
+        """
+        Computing periods and their derivatives at the 
+        base point (called init_p in the __init__ method above).
+
+        Let the three roots e_1, e_2, e_3 be ordered with
+        Re(e_1) < Re(e_2) < Re(e_3), then we call gamma_1
+        the cycle stretching from e_2 to e_3, and 
+        gamma_2 the cycle stretching from e_1 to e_2.
+        We have <gamma_1, gamma_2> = 1 in this way.
+
+        Using some carefully engineered functions, keeping track of 
+        branch cuts in the x-plane, we compute the period of dx/y 
+        along gama_1 and call that eta_0, similarly we denote the
+        period along gamma_2 by beta_0.
+        We also compute their derivatives.
+        """
+
+        def real_part(x,y):
+            if x.real>y.real:
+                return 1
+            else: return -1
+
+        u_0 = self.path_data[1]
+        init_poly_0 = np.poly1d([1,0,self.f(u_0),self.g(u_0)])
+        rts_0 = sorted(init_poly_0.r,cmp=real_part)
+        e1_0, e2_0, e3_0 = [complex(rts_0[0]),\
+                            complex(rts_0[1]),\
+                            complex(rts_0[2])
+                            ]
+
+        # # XXX: is this step size(=0.01) enough to calculate 
+        # # the derivatives? And what about the phase of the step?
+        # u_1 = self.path_data[1] + 0.01
+        # init_poly_1 = np.poly1d([1,0,self.f(u_1),self.g(u_1)])
+        # rts_1 = sorted(init_poly_1.r,cmp=real_part)
+        # e1_1, e2_1, e3_1 = [complex(rts_1[0]),\
+        #                     complex(rts_1[1]),\
+        #                     complex(rts_1[2])
+        #                     ]
+
+        # ### NOTE: eta is related to period B, while beta 
+        # ### is related to period A. That's because
+        # ### with current conventions <B, A> = +1
+
+        # eta_0 = period_B(e1_0, e2_0, e3_0)[0]
+        # beta_0 = period_A(e1_0, e2_0, e3_0)[0]
+
+        # eta_1 = period_B(e1_1, e2_1, e3_1)[0]
+        # beta_1 = period_A(e1_1, e2_1, e3_1)[0]
+
+        # eta_prime_0 = (eta_1 - eta_0) / (u_1 - u_0)
+        # beta_prime_0 = (beta_1 - beta_0) / (u_1 - u_0)
+
+
+        # XXX: is this step size(=0.01) enough to calculate 
+        # the derivatives? And what about the phase of the step?
+        u_1_x = self.path_data[1] + 0.0001
+        init_poly_1_x = np.poly1d([1,0,self.f(u_1_x),self.g(u_1_x)])
+        rts_1_x = sorted(init_poly_1_x.r,cmp=real_part)
+        e1_1_x, e2_1_x, e3_1_x = [complex(rts_1_x[0]),\
+                            complex(rts_1_x[1]),\
+                            complex(rts_1_x[2])
+                            ]
+
+        u_1_y = self.path_data[1] + 0.0001*1j
+        init_poly_1_y = np.poly1d([1,0,self.f(u_1_y),self.g(u_1_y)])
+        rts_1_y = sorted(init_poly_1_y.r,cmp=real_part)
+        e1_1_y, e2_1_y, e3_1_y = [complex(rts_1_y[0]),\
+                            complex(rts_1_y[1]),\
+                            complex(rts_1_y[2])
+                            ]
+
+        ### NOTE: eta is related to period B, while beta 
+        ### is related to period A. That's because
+        ### with current conventions <B, A> = +1
+
+        eta_0 = period_B(e1_0, e2_0, e3_0)[0]
+        beta_0 = period_A(e1_0, e2_0, e3_0)[0]
+
+        eta_1_x = period_B(e1_1_x, e2_1_x, e3_1_x)[0]
+        beta_1_x = period_A(e1_1_x, e2_1_x, e3_1_x)[0]
+        eta_1_y = period_B(e1_1_y, e2_1_y, e3_1_y)[0]
+        beta_1_y = period_A(e1_1_y, e2_1_y, e3_1_y)[0]
+
+        eta_prime_x = (eta_1_x - eta_0) / (u_1_x - u_0)
+        beta_prime_x = (beta_1_x - beta_0) / (u_1_x - u_0)
+        eta_prime_y = (eta_1_y - eta_0) / (u_1_y - u_0)
+        beta_prime_y = (beta_1_y - beta_0) / (u_1_y - u_0)
+
+        eta_prime_0 = 0.5 * (eta_prime_x - 1j * eta_prime_y)
+        beta_prime_0 = 0.5 * (beta_prime_x - 1j * beta_prime_y)
+
+        return [eta_0, eta_prime_0, beta_0, beta_prime_0]
+      
         
 class WeierstrassProto(WeierstrassModelWithPaths):
     """
@@ -333,6 +498,49 @@ def construct_path(d,path_data):
     path.append(d-edge+(1j)*edge)
     path.append(d-edge-(1j)*edge)
     path.append(d-delta-(1j)*edge)  
+
+    return path        
+
+
+
+def construct_path_for_periods(d, path_data):
+    """
+    construct_path(d,path_data)
+    
+    constructs the path for tracking the evolution
+    of the periods from the basepoint to a locus "d" 
+    of a Weierstrass model.
+    The paths are pickd in such a way to avoid branch 
+    cuts, which are assumed to extend vertically above 
+    each discriminan locus.
+    
+    Parameters
+    ----------
+    d: discriminant locus (complex number)
+    path_data: a list of path data. path_data[0]
+    is the "spacing." path_data[1] is the starting
+    point of the path. path_data[2] is the minimum
+    distance between roots.
+    
+    Returns
+    -------
+    path
+    
+    path is a list of three points whose
+    entries are complex numbers denoting a point
+    of the segment. 
+    The path has an 'L'-shape, starting with path[0],
+    evolving horizontally to path[1], then turning 
+    vertical and evolving upwards to path[2].
+    """
+    
+    delta, start, edge = path_data
+    edge *= 0.8*np.sqrt(0.5)
+    path = []
+    
+    path.append(start)
+    path.append(1j*start.imag + d.real)
+    path.append(d)  
 
     return path        
 

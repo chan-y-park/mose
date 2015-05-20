@@ -7,7 +7,8 @@ Uses general-purpose module, intersection.py
 import logging
 import cmath
 from itertools import combinations
-from misc import dsz_pairing, complexify
+from misc import dsz_pairing, complexify, sort_parent_kwalls, \
+    check_marginal_stabiliy_condition
 from intersection import NoIntersection, find_intersection_of_segments
 #from genealogy import build_genealogy_tree
 
@@ -30,17 +31,23 @@ class IntersectionPoint:
 
     def __init__(self, data, parents):
 
-        self.parents = parents
         self.locus = data[0]
         self.index_1 = data[1]
         self.index_2 = data[2]
-        self.charges = {str(parents[0].charge(self.index_1)),
-                        str(parents[1].charge(self.index_2))}
+
+
+        self.parents = sort_parent_kwalls(parents, [self.index_1, self.index_2])
+
+        check_marginal_stabiliy_condition(parents, [self.index_1, self.index_2])
+
+        self.charges = {str(self.parents[0].charge(self.index_1)),
+                        str(self.parents[1].charge(self.index_2))}
+
         ### note the { } and conversion to strings, 
         ### since the charges are useful for classification purposes, mostly
-        self.degeneracies = [parents[0].degeneracy, parents[1].degeneracy]
+        self.degeneracies = [self.parents[0].degeneracy, self.parents[1].degeneracy]
         self.genealogy = build_genealogy_tree(self)
-        self.phase = parents[0].phase
+        self.phase = self.parents[0].phase
 
     def __eq__(self, other):
         if (self.parents == other.parents and

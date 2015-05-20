@@ -52,6 +52,12 @@ def analysis(config, phase=None,):
     start_time = time.time()
     logging.info('start cpu time: %s', start_time)
 
+    trajectory_singularity_threshold = (
+            config['ODE']['trajectory_singularity_threshold']
+        )
+    ode_size_of_step = config['ODE']['size_of_step']
+    ode_num_steps = config['ODE']['num_steps']
+
     fibration = EllipticFibration(
         config['fibration']['g2'],
         config['fibration']['g3'],
@@ -59,7 +65,7 @@ def analysis(config, phase=None,):
         ### Enable the following line to switch-off automatic monodromy
         ### determination via weierstrass.py, and use instead the 
         ### parameters given by hand in the config file
-        # branch_point_charges=config['charge']['fixed_charges']
+        # branch_point_charges=config['charge']['fixed_charges'],
     )
 
     #KWall.count = 0

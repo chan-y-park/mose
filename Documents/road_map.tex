@@ -213,6 +213,28 @@ Replace numerical data points with anapproximate interpolating function to have 
 
 
 
+\section{Computation of central charges   - {\color{red} \bf done}}
+Write an algorithm that computes the central charges along K-walls.
+At every point of a kwall, it should compute $Z_{\gamma}$, then it should provide a new attribute {\tt kwall.central\_{charge}} consisting of a corresponding list of complex numbers.
+
+{\color{blue}
+This has been implemented in the following way. For primary kwalls, the central charge is computed ``manually'', i.e. adding up the values of $\eta_{\gamma}(u_{i})\cdot (u_{i+1} - u_{i})$ along the first piece of evolution. The boundary condition of course is that $Z_{\gamma}(u_{0}) = 0$.
+
+After that, the trajectory and $\eta_{\gamma}$ are evolved via picard fuchs. Then, the central charge as well is being evolved within the same differential equation $dZ/dt = \dot u \cdot \eta(u)$.
+
+For descendant kwalls, the PF evolution is immediately employed, the boundary condition is determined by central charges of parent kwalls at the intersection point.
+}
+
+
+
+\section{Checks at MS walls   - {\color{red} \bf done}}
+In file misc.py, fill in the function. Given two intersecting kwalls, if the phases of their central charges at the intersection aren't reasonably similar, raise some sort of warning.
+
+
+
+\section{Automatic sorting of the K-factors in the spectrum generator   - {\color{red} \bf done}}
+In file misc.py, fill in the function {\tt sort\_{parent\_{kwalls}}}. It should check the phase-ordering of central charges of the kwalls just before they intersect, then it should return an array {\tt [kwall1, kwall2]} where the phase of {\tt kwall2} is the \emph{smaller} one. This would correspond to having spectrum generator $\mathbb{S} = K_{\gamma_{1}}K_{\gamma_{2}}$.
+
 
 \section{Fibration-handling module}
 \subsection{Storing and calling fibrations - {\color{red} \bf done}}

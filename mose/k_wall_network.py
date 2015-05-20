@@ -44,7 +44,7 @@ class KWallNetwork:
         ##############################
         primary_k_walls = []
 
-        for sign in [+1.0, -1.0]:
+        for sign in [1.0, -1.0]:
             ### Here the sign list distinguishes between \gamma and -\gamma
             ### both of whose K-walls are generated from the same discriminant
             ### locus. The distinction between these is determined ultimately 
@@ -104,6 +104,9 @@ class KWallNetwork:
             # Build K-walls from new intersections.
 
             for intersection in new_intersections:
+                ### The parents are sorted by the IntersectionPoint class
+                ### in such a way that the KSWCF is K_2 K_1 = K_1 ... K_2
+                ### i.e. Arg(Z_1) < Arg(Z_2)
                 parents = intersection.parents
                 gamma_1 = parents[0].charge(intersection.index_1)
                 gamma_2 = parents[1].charge(intersection.index_2)

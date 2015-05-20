@@ -15,11 +15,15 @@ stored_results = []
 def KS2(m, omega_1, omega_2, ks_filtration_degree):    
     """
     Solves the basic KS identity: 
-    K_(0,1)^{omega_2} K_(1,0)^{omega_2} = (???)
+    K_(0,1)^{omega_2} K_(1,0)^{omega_1} = (???)
     with 
     < (1,0) , (0,1) > = m
     We use the procedure suggested in eq. (5.2) of WWC 
     (wild wall crossing paper)
+
+    The data should be given in such a way that omega_1
+    is the degeneracy of the state with smaller phase
+    Arg(Z_1) < Arg(Z_2)
     """
 
     ### Start by checking if we already computed this
@@ -132,8 +136,11 @@ def KS2(m, omega_1, omega_2, ks_filtration_degree):
 
 def progeny_2(data, dsz, ks_filtration_degree):
     #### The formatting of "data" should be as follows:
-    #### [ [gamma_1 , omega_1]  ,  [gamma_2 , omega_2] ] 
-    #### phase ordered from right to left
+    #### [ [gamma_2 , omega_2]  ,  [gamma_1 , omega_1] ] 
+    #### phase ordered from right to left, meaning that the
+    #### spectrum generator should be K_2 K_1 on one side
+    #### and K_1 ... K_2 on the other side.
+    #### In other words, Arg(Z_1) < Arg(Z_2)
 
     ### turning the list into a numpy array to perform operations on it
     gamma_1 = array(data[0][0]) 
@@ -162,6 +169,14 @@ def progeny_2(data, dsz, ks_filtration_degree):
         #           state[0][1] * gamma_2).tolist(), state[1]] 
         #           for state in spectrum[1:-1]] 
     elif m < 0:
+        logging.info(
+                """
+                \n*******************************
+                \nNegative intersection pairing !
+                \n*******************************
+                \n\n(will use the absolute value and keep going)\n
+                """
+            )
         spectrum = KS2(-m,omega_2,omega_1, ks_filtration_degree)
         return list(reversed(spectrum[1:-1]))
         # the following command would return the new states in the global 
@@ -264,9 +279,13 @@ def K(m, gamma, omega, expr, ks_filtration_degree):
 def S(m, data, expr, ks_filtration_degree):
     """
     This implements a sequence of KS operations.
-    The formatting of "data" should be as follows:
-    [ [gamma_1 , omega_1]  ,  [gamma_2 , omega_2] ] 
-    phase ordered from right to left.
+    The formatting of "data" should be as follows.
+    If 
+    Arg(Z_2) < Arg(Z_1)
+    then give
+    [[gamma_1, omega_1], [gamma_2, omega_2]] 
+    and this will compute 
+    K_1 K_2
     """
     temp = expr
     for i in range(len(data)):

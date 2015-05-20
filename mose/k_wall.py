@@ -16,7 +16,8 @@ from sympy import mpmath as mp
 from scipy import interpolate
 
 from branch import BranchPoint, minimum_distance
-from misc import complexify, sort_by_abs, left_right, clock, order_roots
+from misc import complexify, sort_by_abs, left_right, clock, order_roots, \
+                periods_relative_sign
 from monodromy import charge_monodromy
 
 class KWall(object):
@@ -181,49 +182,13 @@ trajectory!" % (sp[0], sp[-1])
         if(ode_num_steps is None or ode_num_steps == 0):
             # Don't grow this K-wall, exit immediately.
             return None
-        
-        ### The following part has been moved to elliptic_fibration.py ###
-        #
-        # g2 = numpy.poly1d(self.fibration.g2_coeffs)
-        # g3 = numpy.poly1d(self.fibration.g3_coeffs)
-        # g2_p = g2.deriv()
-        # g3_p = g3.deriv()
-        # g2_p_p = g2_p.deriv()
-        # g3_p_p = g3_p.deriv()
-
-        # theta = self.phase
-
-        # def M10(z): 
-        #     return (\
-        #         -18 * (g2(z) ** 2) * (g2_p(z) ** 2) * g3_p(z) \
-        #         + 3 * g2(z) * (7 * g3(z) * (g2_p(z) ** 3) \
-        #         + 40 * (g3_p(z) ** 3)) \
-        #         + (g2(z) ** 3) * (-8 * g3_p(z) * g2_p_p(z) \
-        #         + 8 * g2_p(z) * g3_p_p(z)) \
-        #         -108 * g3(z) \
-        #         * (-2 * g3(z) * g3_p(z) * g2_p_p(z) \
-        #         + g2_p(z) \
-        #         * ((g3_p(z) ** 2) + 2 * g3(z) * g3_p_p(z))) \
-        #         ) \
-        #         / (16 * ((g2(z) ** 3) -27 * (g3(z) ** 2)) \
-        #         * (-3 * g3(z) * g2_p(z) + 2 * g2(z) * g3_p(z))) 
-        # def M11(z):
-        #     return \
-        #     (-3 * (g2(z) ** 2) * g2_p(z) + 54 * g3(z) * g3_p(z)) \
-        #     / ((g2(z) ** 3) - (27 * g3(z) ** 2)) \
-        #     + (g2_p(z) * g3_p(z) + 3 * g3(z) * g2_p_p(z) \
-        #     - 2 * g2(z) * g3_p_p(z)) \
-        #     / (3 * g3(z) * g2_p(z) - 2 * g2(z) * g3_p(z))
-        #
-        # def pf_matrix(z): 
-        #     return [[0, 1], [M10(z), M11(z)]]
 
         singularity_check= False
 
         theta = self.phase
 
         def deriv(t, y):
-            u, eta, d_eta = y 
+            u, eta, d_eta, c_c = y 
 
             matrix = self.fibration.pf_matrix(u)
             det_pf = abs(det(matrix))
@@ -239,9 +204,12 @@ trajectory!" % (sp[0], sp[-1])
             # u_1 = exp( 1j * ( theta + pi - cmath.phase( eta ) ) )
             eta_1 = u_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
             d_eta_1 = u_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
-            return  array([u_1, eta_1, d_eta_1])
+            d_c_c = u_1 * eta_1
+            return  array([u_1, eta_1, d_eta_1, d_c_c])
 
         y_0 = self.pf_boundary_conditions
+        ### y_0 contains the following:
+        ### [u_0, eta_0, d_eta_0, central_charge_0]
         ode = scipy.integrate.ode(deriv)
         ode.set_integrator("zvode", **ode_kwargs)
         ode.set_initial_value(y_0)
@@ -255,9 +223,10 @@ trajectory!" % (sp[0], sp[-1])
             self.coordinates.resize((i_0 + ode_num_steps, 2))
             self.periods.resize(i_0 + ode_num_steps)
         while ode.successful() and step < ode_num_steps:
-            u, eta, d_eta = ode.y
+            u, eta, d_eta, c_c = ode.y
             self.coordinates[i_0 + step] = [u.real, u.imag]
             self.periods[i_0 + step] = eta
+            self.central_charge.append(c_c)
             ode.integrate(ode.t + ode_size_of_step)
             step += 1
         if step < ode_num_steps:
@@ -286,6 +255,11 @@ class PrimaryKWall(KWall):
             #network,
         )
         self.initial_point = self.parents[0]
+
+        ### This is the period corresponding to the 'positive charge'
+        ### which is passed as 'initial_charge'
+        self.reference_initial_period = self.parents[0].positive_period
+        
         #self.network = network
 
         """ 
@@ -300,7 +274,8 @@ class PrimaryKWall(KWall):
         x = sym.Symbol('x')
 
         eq = 4 * x ** 3 - g2 * x - g3
-        e1, e2, e3 = sym.simplify(sym.solve(eq, x))
+        sym_roots = sym.simplify(sym.solve(eq, x))
+        e1, e2, e3 = sym_roots
         distances = map(abs, [e1-e2, e2-e3, e3-e1])
         pair = min(enumerate(map(lambda x: x.subs(u, u0), distances)), 
                     key=itemgetter(1))[0]
@@ -318,7 +293,22 @@ class PrimaryKWall(KWall):
         f2_0 = complex(f2.subs(u, u0))
         f3_0 = complex(f3.subs(u, u0))
 
-        eta_0 = (sign) * ((f3_0 - f1_0) ** (-0.5)) * pi / 2.0
+        ellipk_period = ((f3_0 - f1_0) ** (-0.5)) * pi / 2.0
+
+        ### The 'sign' variable only fixes the charge of the K-wall.
+        ### In contrast, the actual sign of the period should be determined 
+        ### by comparing with the PF-evolution of the cycle as computed at
+        ### the basepoint for monodromy computations.
+        
+        rel_sign = periods_relative_sign(ellipk_period, \
+                                          self.reference_initial_period)
+        period_sign = sign * rel_sign
+
+        eta_0 = (period_sign) * ellipk_period
+
+        print "\nThe initial value of eta_\gamma for this Kwall is : %s" % eta_0
+        print "\nThe reference value of eta_\gamma for this Kwall is : %s\n" \
+                                    % (rel_sign * self.reference_initial_period)
 
         # The initial evolution of primary kwalls is handled with an
         # automatic tuning.
@@ -340,14 +330,18 @@ class PrimaryKWall(KWall):
             if i == max_num_steps -1:
                 break
             u1 = u0 + size_of_step * exp(1j*(theta + pi - cmath.phase(eta_0)))
-            roots = [f1_0, f2_0, f3_0]
+
+            f1, f2, f3 = map(lambda x: x.subs(u, u1), sym_roots)
+            roots = [complex(f1), complex(f2), complex(f3)]
+            # print "ROOTS %s" % roots
+
             segment = [u0, u1]
-            try_step = order_roots(roots, segment, sign, theta)
+            try_step = order_roots(roots, segment, period_sign, theta)
             # check if root tracking is no longer valid
             if try_step == 0: 
                 break
             else:
-                [[f1_1, f2_1, f3_1], eta_1] = try_step
+                [roots, eta_1] = try_step
                 eta_prime_1 = (eta_1 - eta_0) / (u1 - u0)
                 u0 = u1
                 eta_0 = eta_1
@@ -357,7 +351,24 @@ class PrimaryKWall(KWall):
             self.coordinates.resize((last_step, 2))
             self.periods.resize(last_step)
             
-        self.pf_boundary_conditions = [u1, eta_1, eta_prime_1]
+        ### Computing the central charge: for primary kwalls
+        ### we simply integrate by hand the values of eta(u) du
+        ### Later, we use Picard-Fuchs.
+
+        self.central_charge = [0.0]
+
+        # print "PERIODS\n%s" % self.periods
+
+        for i in range(len(self.coordinates[:-1])):
+            du = complexify(self.coordinates[i+1]) \
+                 - complexify(self.coordinates[i])
+            eta_avg = 0.5 * (self.periods[i+1] - self.periods[i])
+            c_c = complex(self.central_charge[-1] + eta_avg * du)
+            # print "integration data: \ndu = %s\neta_avg = %s\nc_c = %s" % (du, eta_avg, c_c)
+            self.central_charge.append(c_c) 
+
+        self.pf_boundary_conditions = [u1, eta_1, eta_prime_1, c_c]
+        
 
         ### Now we need to find the correct initial charge for the K-wall.
         ### The parent branch point gives such data, but with ambiguity on the 
@@ -402,6 +413,7 @@ class DescendantKWall(KWall):
         self.pf_boundary_conditions = self.get_pf_boundary_conditions()
         self.coordinates = []
         self.periods = []
+        self.central_charge = []
 
     def get_pf_boundary_conditions(self):
         """ 
@@ -433,6 +445,9 @@ class DescendantKWall(KWall):
         periods_2 = parents[1].periods
         eta_1 = periods_1[index_1]
         eta_2 = periods_2[index_2]
+        
+        central_charge_1 = parents[0].central_charge[index_1]
+        central_charge_2 = parents[1].central_charge[index_2]
         
         for i in range(n_trials):
             i += 1      # start from i = 1
@@ -470,4 +485,9 @@ class DescendantKWall(KWall):
         ### The use of complex() is necessary here, because sometimes 
         # the charge vector wil be deriving from an algorithm using sympy, 
         # and will turn j's into I's...
-        return [u_0, eta_0, d_eta_0]
+
+        ### Now we determine the initial central charge for the new kwall
+        c_c_0 = central_charge_1 * complex(charge[0]) \
+              + central_charge_2 * complex(charge[1])  
+
+        return [u_0, eta_0, d_eta_0, c_c_0]
