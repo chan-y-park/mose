@@ -16,7 +16,8 @@ from sympy import mpmath as mp
 from scipy import interpolate
 
 from branch import BranchPoint, minimum_distance
-from misc import complexify, sort_by_abs, left_right, clock, order_roots
+from misc import complexify, sort_by_abs, left_right, clock, order_roots, \
+                periods_relative_sign
 from monodromy import charge_monodromy
 
 class KWall(object):
@@ -286,6 +287,11 @@ class PrimaryKWall(KWall):
             #network,
         )
         self.initial_point = self.parents[0]
+
+        ### This is the period corresponding to the 'positive charge'
+        ### which is passed as 'initial_charge'
+        self.reference_initial_period = self.parents[0].positive_period
+        
         #self.network = network
 
         """ 
@@ -318,7 +324,21 @@ class PrimaryKWall(KWall):
         f2_0 = complex(f2.subs(u, u0))
         f3_0 = complex(f3.subs(u, u0))
 
-        eta_0 = (sign) * ((f3_0 - f1_0) ** (-0.5)) * pi / 2.0
+        ellipk_period = ((f3_0 - f1_0) ** (-0.5)) * pi / 2.0
+
+        ### The 'sign' variable only fixes the charge of the K-wall.
+        ### In contrast, the actual sign of the period should be determined 
+        ### by comparing with the PF-evolution of the cycle as computed at
+        ### the basepoint for monodromy computations.
+        
+        period_sign = sign * \
+                    periods_relative_sign(ellipk_period, \
+                                          self.reference_initial_period)
+        eta_0 = (period_sign) * ellipk_period
+
+        print "\nThe initial value of eta_\gamma for this Kwall is : %s" % eta_0
+        print "\nThe reference value of eta_\gamma for this Kwall is : %s\n" \
+                                            % self.reference_initial_period
 
         # The initial evolution of primary kwalls is handled with an
         # automatic tuning.

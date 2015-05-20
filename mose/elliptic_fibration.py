@@ -322,7 +322,9 @@ def positive_period(n, charge, w_model, fibration):
            \nEvolving periods for discriminant locus %s\
            \n******************************************\n" % n
 
-    ### NEED TO EXTRACT THIS DATA FROM W-MODEL
+    ### Setting up the path of integration. Since PF blows up
+    ### at the discriminant locus (although the period does not)
+    ### we will not get exactly to the locus.
     u_0, u_1, u_2 = w_model.paths_for_periods[n]
     path = [u_0 + (u_1 - u_0) * x for x in numpy.linspace(0.0,1.0,1000)] + \
            [u_1 + (u_2 - u_1) * x for x in numpy.linspace(0.0,1.0,1000)]
@@ -342,67 +344,6 @@ def positive_period(n, charge, w_model, fibration):
 
     print "\nu_0, eta_0, beta_0:\n%s\n" % [u_0, eta_0, beta_0]
 
-###### IMPROVE THE FOLLOWING PART ACCORDING TO NEW STANDARDS OF PF EVOLUTION!
-
-    # # Setting up generic data for PF evolution
-    # g2 = fibration.num_g2
-    # g3 = fibration.num_g3
-    # u = sympy.Symbol('u')
-    # x = sympy.Symbol('x')
-    # Delta = sympy.simplify(g2 ** 3 - 27 * g3 ** 2)
-    # delta = sympy.simplify(3 * (g3) * diff(g2, u) - 2 * (g2) * diff(g3, u))
-
-    # pf_matrix = lambdify(u, 
-    #     [
-    #         [0, 1], 
-    #         [
-    #             sympy.simplify(
-    #                 (-(3*g2*(delta**2) / (16*(Delta**2))) + 
-    #                 ((diff(delta,u) * diff(Delta,u)) / (12*delta*Delta)) - 
-    #                 ((diff(Delta, u, 2)) / (12*Delta)) + 
-    #                 (((diff(Delta, u))**2) / (144 * (Delta**2) ) ) ) 
-    #             ), 
-    #             sympy.simplify( 
-    #                 ( (diff(delta,u) / delta) - (diff(Delta,u) / Delta) ) 
-    #             ) 
-    #         ]
-    #     ] 
-    # )
-    
-    # def deriv(y,t):
-    #     z = y[0] + 1j * y[1]
-    #     eta = y[2] + 1j * y[3]
-    #     d_eta = y[4] + 1j * y[5]
-    #     matrix = pf_matrix(z)
-    #     det_pf = abs(det(matrix))
-    #     # print "PF matrix = %s" % matrix
-    #     # print "PF determinant = %s" % det_pf
-    #     trajectory_singularity_threshold = 10**4
-    #     if det_pf > trajectory_singularity_threshold:
-    #         self.singular = True
-    #         self.singular_point = z
-
-    #     # A confusing point to bear in mind: here we are solving the 
-    #     # ode with respect to time t, but d_eta is understood to be 
-    #     # (d eta / d u), with its own  appropriate b.c. and so on!
-
-    #     # Note here I am adapting the derivative of z to be precisely the
-    #     # one determined by the path on the Coulomb branch.
-    #     z_1 = (path[int(math.floor(t))] - path[int(math.floor(t+1))]) / 1.0
-    #     eta_1 = z_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
-    #     d_eta_1 = z_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
-    #     return  array(
-    #             [
-    #                 z_1.real, z_1.imag, 
-    #                 eta_1.real, eta_1.imag, 
-    #                 d_eta_1.real, d_eta_1.imag
-    #             ]
-    #     )
-    #     # the following rescaled matrix will not blow up at singularities, 
-    #     # but it will not reach the singularities either..
-    #     # return abs(det(matrix)) * array([z_1.real, z_1.imag, 
-    #     #              eta_1.real, eta_1.imag, d_eta_1.real, d_eta_1.imag])
-
     def deriv(t, y):
         u, eta, d_eta = y 
 
@@ -411,56 +352,46 @@ def positive_period(n, charge, w_model, fibration):
         ###
         ### MOVE THIS PARAMETER ELSEWHERE !!!
         ###
-        trajectory_singularity_threshold = 10**4
+        trajectory_singularity_threshold = 10**3
         ###
         if det_pf > trajectory_singularity_threshold:
-            self.singular = True
-            self.singular_point = u
+            singularity_check = True
 
         # A confusing point to bear in mind: here we are solving the 
         # ode with respect to time t, but d_eta is understood to be 
         # (d eta / d u), with its own  appropriate b.c. and so on!
-        ### NOTE THE FOLLOWING TWO OPTIONS FOR DERIVATIVE OF u
         u_1 = (path[int(math.floor(t+1))] - path[int(math.floor(t))]) / 1.0
         eta_1 = u_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
         d_eta_1 = u_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
         return  array([u_1, eta_1, d_eta_1])
 
 
+    singularity_check = False
     ode = scipy.integrate.ode(deriv)
     ode.set_integrator("zvode")
     dt = 1
-    t1 = len(path) - 2
+    ### How many steps before reaching the discriminant locus it should stop
+    ### integrating via PF
+    cutoff = 200 
+    t1 = len(path) - 2 - cutoff
 
-    ### Now first we PF-evolve the period of (1,0)
-    y_0 = [u_0, eta_0, eta_prime_0]
+    ### the pinching-cycle period at the starting point, 
+    ### and its derivative
+    eta_gamma_0 = charge[0] * eta_0 + charge[1] * beta_0
+    eta_prime_gamma_0 = charge[0] * eta_prime_0 + charge[1] * beta_prime_0
+
+    ### Now we PF-evolve the period
+    y_0 = [u_0, eta_gamma_0, eta_prime_gamma_0]
     ode.set_initial_value(y_0)    
-    while ode.successful() and ode.t < t1:
+    while ode.successful() and ode.t < t1 and singularity_check == False:
         # print "time: %s" % ode.t
         ode.integrate(ode.t + dt)
 
-    u_f, eta_f, d_eta_f = ode.y 
+    u_f, eta_gamma_f, d_eta_gamma_f = ode.y 
     print "u_f = %s" % u_f
-    print "eta_f = %s\n" % eta_f
-    
+    print "eta_f = %s\n" % eta_gamma_f
 
-    ### Second we PF-evolve the period of (0,1)
-    y_0 = [u_0, beta_0, beta_prime_0]
-    ode.set_initial_value(y_0)
-
-    while ode.successful() and ode.t < t1:
-        # print "time: %s" % ode.t
-        ode.integrate(ode.t + dt)
-
-    u_f, beta_f, d_beta_f = ode.y 
-    print "u_f = %s" % u_f
-    print "beta_f = %s\n" % beta_f
-
-    positive_period_final = charge[0] * eta_f + charge[1] * beta_f
-
-    # print "\neta_f = %s\nbeta_f = %s\n" % (eta_final, beta_final)
-
-    return positive_period_final
+    return eta_gamma_f
 
 
 # def positive_period(n, charge, w_model, fibration): 

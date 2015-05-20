@@ -183,3 +183,33 @@ def period_B(a, b, c):
     r_part, r_error = n_int(fr, 0, 1)
     i_part, i_error = n_int(fi, 0, 1)
     return (r_part + 1j*i_part, r_error, i_error)
+
+def periods_relative_sign(p_1, p_2):
+    """
+    This function determines the relative sign between 
+    two numerically computed periods. 
+    It also checks that they are reasonably similar, 
+    it will print a message to warn if they aren't, 
+    but it will let the code go on nevertheless.
+    """
+    trouble = ' '
+    sign = 1.0
+
+    if -1.0 * pi / 4.0 < phase(p_1 / p_2) < 1.0 * pi / 4.0:
+        sign = 1.0
+    elif 3.0 * pi / 4.0 < phase(p_1 / p_2) <= pi or \
+       -1.0 * pi <= phase(p_1 / p_2) < -3.0 * pi / 4.0:
+       sign = -1.0
+    else:
+        trouble += ' phase discrepancy too large, '
+
+    if 0.5 < abs(p_1) / abs(p_2) < 2.0:
+        pass
+    else:
+        trouble += ' modulus discrepancy too large '
+
+    if trouble != ' ':
+        print "WARNING: could not reliably determine the positive period, \
+                \n due to: " + trouble
+
+    return sign
