@@ -298,6 +298,8 @@ class WeierstrassModelWithPaths(WeierstrassModel):
                             complex(rts_0[2])
                             ]
 
+        # XXX: is this step size(=0.01) enough to calculate 
+        # the derivatives? And what about the phase of the step?
         u_1 = self.path_data[1] + 0.01
         init_poly_1 = np.poly1d([1,0,self.f(u_1),self.g(u_1)])
         rts_1 = sorted(init_poly_1.r,cmp=real_part)
@@ -314,7 +316,7 @@ class WeierstrassModelWithPaths(WeierstrassModel):
         beta_0 = period_A(e1_0, e2_0, e3_0)[0]
 
         eta_1 = period_B(e1_1, e2_1, e3_1)[0]
-        beta_1 = period_B(e1_1, e2_1, e3_1)[0]
+        beta_1 = period_A(e1_1, e2_1, e3_1)[0]
 
         eta_prime_0 = (eta_1 - eta_0) / (u_1 - u_0)
         beta_prime_0 = (beta_1 - beta_0) / (u_1 - u_0)
