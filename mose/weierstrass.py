@@ -51,6 +51,7 @@ from scipy.integrate import odeint
 # from scipy.special import ellipk
 from sympy.mpmath import ellipk
 from itertools import combinations
+from misc import period_A, period_B
 
 
 
@@ -208,9 +209,65 @@ class WeierstrassModelWithPaths(WeierstrassModel):
     def get_init_rts(self):
         return self.init_rts      
 
+    ### The following function has been replaced by a more careful
+    ### method for computing initial periods
+    ###
+    # def compute_initial_periods(self):
+    #     ### Potential numerical trouble with uncontrollable branch cuts here
+    #     ### Better switch to numerical integration instead?
+    #     """
+    #     Computing periods and their derivatives at the 
+    #     base point (called init_p in the __init__ method above).
+
+    #     Let the three roots e_1, e_2, e_3 be ordered with
+    #     Re(e_1) < Re(e_2) < Re(e_3), then we call gamma_1
+    #     the cycle stretching from e_2 to e_3, and 
+    #     gamma_2 the cycle stretching from e_1 to e_2.
+    #     We have <gamma_1, gamma_2> = 1 in this way.
+
+    #     Using elliptic functions we compute the period of dx/y 
+    #     along gama_1 and call that eta_0, similarly we denote the
+    #     period along gamma_2 by beta_0.
+    #     We also compute their derivatives.
+    #     """
+
+    #     def real_part(x,y):
+    #         if x.real>y.real:
+    #             return 1
+    #         else: return -1
+
+    #     u_0 = self.path_data[1]
+    #     init_poly_0 = np.poly1d([1,0,self.f(u_0),self.g(u_0)])
+    #     rts_0 = sorted(init_poly_0.r,cmp=real_part)
+    #     e1_0, e2_0, e3_0 = [complex(rts_0[0]),\
+    #                         complex(rts_0[1]),\
+    #                         complex(rts_0[2])
+    #                         ]
+
+    #     u_1 = self.path_data[1] + 0.01
+    #     init_poly_1 = np.poly1d([1,0,self.f(u_1),self.g(u_1)])
+    #     rts_1 = sorted(init_poly_1.r,cmp=real_part)
+    #     e1_1, e2_1, e3_1 = [complex(rts_1[0]),\
+    #                         complex(rts_1[1]),\
+    #                         complex(rts_1[2])
+    #                         ]
+
+    #     eta_0 = complex((4.0 / cmath.sqrt(e3_0 - e1_0)) * \
+    #                             ellipk((e3_0 - e2_0) / (e3_0 - e1_0)))
+    #     beta_0 = complex((4.0 / cmath.sqrt(e3_0 - e1_0)) * \
+    #                             ellipk((e2_0 - e1_0) / (e3_0 - e1_0)))
+
+    #     eta_1 = complex((4.0 / cmath.sqrt(e3_1 - e1_1)) * \
+    #                             ellipk((e3_1 - e2_1) / (e3_1 - e1_1)))
+    #     beta_1 = complex((4.0 / cmath.sqrt(e3_0 - e1_0)) * \
+    #                             ellipk((e2_1 - e1_1) / (e3_1 - e1_1)))
+
+    #     eta_prime_0 = (eta_1 - eta_0) / (u_1 - u_0)
+    #     beta_prime_0 = (beta_1 - beta_0) / (u_1 - u_0)
+
+    #     return [eta_0, eta_prime_0, beta_0, beta_prime_0]
+  
     def compute_initial_periods(self):
-        ### Potential numerical trouble with uncontrollable branch cuts here
-        ### Better switch to numerical integration instead?
         """
         Computing periods and their derivatives at the 
         base point (called init_p in the __init__ method above).
@@ -221,7 +278,8 @@ class WeierstrassModelWithPaths(WeierstrassModel):
         gamma_2 the cycle stretching from e_1 to e_2.
         We have <gamma_1, gamma_2> = 1 in this way.
 
-        Using elliptic functions we compute the period of dx/y 
+        Using some carefully engineered functions, keeping track of 
+        branch cuts in the x-plane, we compute the period of dx/y 
         along gama_1 and call that eta_0, similarly we denote the
         period along gamma_2 by beta_0.
         We also compute their derivatives.
@@ -248,22 +306,21 @@ class WeierstrassModelWithPaths(WeierstrassModel):
                             complex(rts_1[2])
                             ]
 
-        eta_0 = complex((4.0 / cmath.sqrt(e3_0 - e1_0)) * \
-                                ellipk((e3_0 - e2_0) / (e3_0 - e1_0)))
-        beta_0 = complex((4.0 / cmath.sqrt(e3_0 - e1_0)) * \
-                                ellipk((e2_0 - e1_0) / (e3_0 - e1_0)))
+        ### NOTE: eta is related to period B, while beta 
+        ### is related to period A. That's because
+        ### with current conventions <B, A> = +1
 
-        eta_1 = complex((4.0 / cmath.sqrt(e3_1 - e1_1)) * \
-                                ellipk((e3_1 - e2_1) / (e3_1 - e1_1)))
-        beta_1 = complex((4.0 / cmath.sqrt(e3_0 - e1_0)) * \
-                                ellipk((e2_1 - e1_1) / (e3_1 - e1_1)))
+        eta_0 = period_B(e1_0, e2_0, e3_0)[0]
+        beta_0 = period_A(e1_0, e2_0, e3_0)[0]
+
+        eta_1 = period_B(e1_1, e2_1, e3_1)[0]
+        beta_1 = period_B(e1_1, e2_1, e3_1)[0]
 
         eta_prime_0 = (eta_1 - eta_0) / (u_1 - u_0)
         beta_prime_0 = (beta_1 - beta_0) / (u_1 - u_0)
 
         return [eta_0, eta_prime_0, beta_0, beta_prime_0]
-  
-        
+      
         
 class WeierstrassProto(WeierstrassModelWithPaths):
     """

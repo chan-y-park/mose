@@ -11,7 +11,6 @@ import scipy
 import weierstrass as wss
 
 from cmath import pi, exp, phase, sqrt
-from scipy.integrate import quad as n_int
 from numpy import linalg as LA
 
 from branch import BranchPoint
