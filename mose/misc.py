@@ -154,32 +154,43 @@ def cut_singular_k_wall(k_wall):
     k_wall.periods = periods[0:i_0]
 
 
-def integrand_A(*args):
+def integrand(*args):
+    """
+    1/sqrt{(x-a)(x-b)(x-c)} for x along the line connecting a and b, 
+    with a choice of branch cuts.
+    """
     x, a, b, c = [complex(v) for v in args]
-    arg_c = (phase(x-c)+pi)/2.0
-    return -1/(sqrt(abs(x-a)*abs(x-b)*abs(x-c))*(1j)*exp(1j*arg_c))
+    theta_a = phase(x-a)
+    theta_b = phase(x-b)
+    # Move the branch cut
+    phase_x_c = phase(x-c)
+    if phase_x_c < 0:
+        theta_c = phase_x_c + 2*pi
+    else:
+        theta_c = phase_x_c
+    return 1/(sqrt(abs(x-a)*abs(x-b)*abs(x-c)) *
+              exp(1.0j*(theta_a + theta_b + theta_c)/2.0))
 
-
-def integrand_B(*args):
-    x, a, b, c = [complex(v) for v in args]
-    arg_a = phase((x-a)/(a-b))/2
-    arg_b = phase((x-b)/(a-b))/2
-    arg_c = (phase(x-c)+pi)/2.0
-    return 1/(sqrt(abs(x-a)*abs(x-b)*abs(x-c)) * 
-              exp(1.0j*(arg_a + arg_b + arg_c)))
-
-
+# XXX: Consider a factor of 2 from (y^2 = 4x^3 + ...) vs (y^2 = x^3 + ...)
 def period_A(a, b, c):
-    fr = lambda t: ((a-b) * integrand_A(b+(a-b)*t, a, b, c)).real
-    fi = lambda t: ((a-b) * integrand_A(b+(a-b)*t, a, b, c)).imag
+    """
+    Calculate \int_b^a 1/sqrt{(x-a)(x-b)(x-c)} dx
+    """
+    # x = b + (a-b)*t, t \in [0, 1].
+    fr = lambda t: ((a-b) * integrand(b+(a-b)*t, a, b, c)).real
+    fi = lambda t: ((a-b) * integrand(b+(a-b)*t, a, b, c)).imag
     r_part, r_error = n_int(fr, 0, 1)
     i_part, i_error = n_int(fi, 0, 1)
     return (r_part + 1j*i_part, r_error, i_error)
 
 
 def period_B(a, b, c):
-    fr = lambda t: ((c-b) * integrand_B(b+(c-b)*t, a, b, c)).real
-    fi = lambda t: ((c-b) * integrand_B(b+(c-b)*t, a, b, c)).imag
+    """
+    Calculate \int_b^c 1/sqrt{(x-a)(x-b)(x-c)} dx
+    """
+    # x = b + (c-b)*t, t \in [0, 1].
+    fr = lambda t: ((c-b) * integrand(b+(c-b)*t, a, b, c)).real
+    fi = lambda t: ((c-b) * integrand(b+(c-b)*t, a, b, c)).imag
     r_part, r_error = n_int(fr, 0, 1)
     i_part, i_error = n_int(fi, 0, 1)
     return (r_part + 1j*i_part, r_error, i_error)
