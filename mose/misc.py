@@ -238,6 +238,9 @@ def check_marginal_stabiliy_condition(parents, indices):
     Z_1 = kwall_1.central_charge[index_1]
     Z_2 = kwall_2.central_charge[index_2]
 
+    Z_1_alt = kwall_1.central_charge_alt[index_1]
+    Z_2_alt = kwall_2.central_charge_alt[index_2]
+
     if -1.0 * pi / 10 < phase(Z_1 / Z_2) < pi / 10 :
         pass
     else:
@@ -245,6 +248,8 @@ def check_marginal_stabiliy_condition(parents, indices):
         print "\nWARNING: the central charges of kwalls %s do not align\
                \nat their intersection. In fact, they are:\
                \nZ_1 = %s\nZ_2 = %s\n" % (parents, Z_1, Z_2)
+        print "The alternative central charges read: \nZ_1 = %s\nZ_2 = %s\n" \
+                % (Z_1_alt, Z_2_alt)
 
     # pass
 

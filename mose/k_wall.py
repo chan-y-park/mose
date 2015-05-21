@@ -235,6 +235,21 @@ trajectory!" % (sp[0], sp[-1])
 
         self.check_cuts()
 
+        #### An alternative method of computing the central charge
+        self.central_charge_alt =  [0.0]
+
+        # print "PERIODS\n%s" % self.periods
+
+        for i in range(len(self.coordinates[:-1])):
+            du = complexify(self.coordinates[i+1]) \
+                 - complexify(self.coordinates[i])
+            eta_avg = 0.5 * (self.periods[i+1] - self.periods[i])
+            c_c = complex(self.central_charge_alt[-1] + eta_avg * du)
+            # print "integration data: \ndu = %s\neta_avg = %s\nc_c = %s" % (du, eta_avg, c_c)
+            self.central_charge_alt.append(c_c) 
+
+
+
 
 class PrimaryKWall(KWall):
     """
