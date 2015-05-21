@@ -293,7 +293,7 @@ class PrimaryKWall(KWall):
         f2_0 = complex(f2.subs(u, u0))
         f3_0 = complex(f3.subs(u, u0))
 
-        ellipk_period = ((f3_0 - f1_0) ** (-0.5)) * pi / 2.0
+        ellipk_period = 4.0 * ((f3_0 - f1_0) ** (-0.5)) * pi / 2.0
 
         ### The 'sign' variable only fixes the charge of the K-wall.
         ### In contrast, the actual sign of the period should be determined 
