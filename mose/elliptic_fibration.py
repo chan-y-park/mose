@@ -34,29 +34,30 @@ def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
     return ''.join(random.choice(chars) for _ in range(size))
 
 class EllipticFibration:
-    def __init__(self, g2, g3, params, branch_point_charges=None):
+    def __init__(self, w_f, w_g, params, branch_point_charges=None):
 
-        self.g2 = g2
-        self.g3 = g3
+        self.f = w_f
+        self.g = w_g
         self.params = params
 
-        self.sym_g2 = sympy.sympify(self.g2)
-        self.num_g2 = self.sym_g2.subs(self.params)
-        self.sym_g3 = sympy.sympify(self.g3)
-        self.num_g3 = self.sym_g3.subs(self.params)
+        self.sym_f = sympy.sympify(self.f)
+        self.num_f = self.sym_f.subs(self.params)
+        self.sym_g = sympy.sympify(self.g)
+        self.num_g = self.sym_g.subs(self.params)
 
         u = sympy.Symbol('u')
-        self.g2_coeffs = map(complex, sympy.Poly(self.num_g2, u).all_coeffs())
-        self.g3_coeffs = map(complex, sympy.Poly(self.num_g3, u).all_coeffs())
+        self.f_coeffs = map(complex, sympy.Poly(self.num_f, u).all_coeffs())
+        self.g_coeffs = map(complex, sympy.Poly(self.num_g, u).all_coeffs())
         
         # Converting from
         #   y^2 = 4 x^3 - g_2 x - g_3
         # to 
         #   y^2 = x^3 + f x + g
-        f_coeffs = numpy.poly1d(self.g2_coeffs, variable='u') * (-1 / 4.0)
-        g_coeffs = numpy.poly1d(self.g3_coeffs, variable='u') * (-1 / 4.0)
+        # f_coeffs = numpy.poly1d(self.g2_coeffs, variable='u') * (-1 / 4.0)
+        # g_coeffs = numpy.poly1d(self.g3_coeffs, variable='u') * (-1 / 4.0)
 
-        self.w_model = wss.WeierstrassModelWithPaths(f_coeffs, g_coeffs)
+        self.w_model = wss.WeierstrassModelWithPaths(self.f_coeffs, \
+                                                     self.g_coeffs)
 
         # We will work with the convention that the DSZ matrix is fixed to be
         # the following. Must keep this attribute of the class, as it will be 
@@ -156,34 +157,37 @@ class EllipticFibration:
     
     def pf_matrix(self, z):
         
-        g2 = numpy.poly1d(self.g2_coeffs)
-        g3 = numpy.poly1d(self.g3_coeffs)
-        g2_p = g2.deriv()
-        g3_p = g3.deriv()
-        g2_p_p = g2_p.deriv()
-        g3_p_p = g3_p.deriv()
+        f = numpy.poly1d(self.f_coeffs)
+        g = numpy.poly1d(self.g_coeffs)
+        f_p = f.deriv()
+        g_p = g.deriv()
+        f_p_p = f_p.deriv()
+        g_p_p = g_p.deriv()
+
+        ### Once done with replacing conventions successfully, 
+        ### should simply the following expression.
 
         def M10(z): 
             return (\
-                -18 * (g2(z) ** 2) * (g2_p(z) ** 2) * g3_p(z) \
-                + 3 * g2(z) * (7 * g3(z) * (g2_p(z) ** 3) \
-                + 40 * (g3_p(z) ** 3)) \
-                + (g2(z) ** 3) * (-8 * g3_p(z) * g2_p_p(z) \
-                + 8 * g2_p(z) * g3_p_p(z)) \
-                -108 * g3(z) \
-                * (-2 * g3(z) * g3_p(z) * g2_p_p(z) \
-                + g2_p(z) \
-                * ((g3_p(z) ** 2) + 2 * g3(z) * g3_p_p(z))) \
+                -18 * ((-4.0 * f(z)) ** 2) * ((-4.0 * f_p(z)) ** 2) * (-4.0 * g_p(z)) \
+                + 3 * (-4.0 * f(z)) * (7 * (-4.0 * g(z)) * ((-4.0 * f_p(z)) ** 3) \
+                + 40 * ((-4.0 * g_p(z)) ** 3)) \
+                + ((-4.0 * f(z)) ** 3) * (-8 * (-4.0 * g_p(z)) * (-4.0 * f_p_p(z)) \
+                + 8 * (-4.0 * f_p(z)) * (-4.0 * g_p_p(z))) \
+                -108 * (-4.0 * g(z)) \
+                * (-2 * (-4.0 * g(z)) * (-4.0 * g_p(z)) * (-4.0 * f_p_p(z)) \
+                + (-4.0 * f_p(z)) \
+                * (((-4.0 * g_p(z)) ** 2) + 2 * (-4.0 * g(z)) * (-4.0 * g_p_p(z)))) \
                 ) \
-                / (16 * ((g2(z) ** 3) -27 * (g3(z) ** 2)) \
-                * (-3 * g3(z) * g2_p(z) + 2 * g2(z) * g3_p(z))) 
+                / (16 * (((-4.0 * f(z)) ** 3) -27 * ((-4.0 * g(z)) ** 2)) \
+                * (-3 * (-4.0 * g(z)) * (-4.0 * f_p(z)) + 2 * (-4.0 * f(z)) * (-4.0 * g_p(z)))) 
         def M11(z):
             return \
-            (-3 * (g2(z) ** 2) * g2_p(z) + 54 * g3(z) * g3_p(z)) \
-            / ((g2(z) ** 3) - (27 * g3(z) ** 2)) \
-            + (g2_p(z) * g3_p(z) + 3 * g3(z) * g2_p_p(z) \
-            - 2 * g2(z) * g3_p_p(z)) \
-            / (3 * g3(z) * g2_p(z) - 2 * g2(z) * g3_p(z))
+            (-3 * ((-4.0 * f(z)) ** 2) * (-4.0 * f_p(z)) + 54 * (-4.0 * g(z)) * (-4.0 * g_p(z))) \
+            / (((-4.0 * f(z)) ** 3) - (27 * (-4.0 * g(z)) ** 2)) \
+            + ((-4.0 * f_p(z)) * (-4.0 * g_p(z)) + 3 * (-4.0 * g(z)) * (-4.0 * f_p_p(z)) \
+            - 2 * (-4.0 * f(z)) * (-4.0 * g_p_p(z))) \
+            / (3 * (-4.0 * g(z)) * (-4.0 * f_p(z)) - 2 * (-4.0 * f(z)) * (-4.0 * g_p(z)))
         
         return [[0, 1], [M10(z), M11(z)]]
 

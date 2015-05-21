@@ -266,14 +266,14 @@ class PrimaryKWall(KWall):
         Implementation of the ODE for evolving primary walls, 
         valid in neighborhood of an A_1 singularity. 
         """
-        g2 = self.fibration.num_g2
-        g3 = self.fibration.num_g3
+        w_f = self.fibration.num_f
+        w_g = self.fibration.num_g
         theta = self.phase
         u0, sign = initial_condition
         u = sym.Symbol('u')
         x = sym.Symbol('x')
 
-        eq = 4 * x ** 3 - g2 * x - g3
+        eq = x ** 3 + w_f * x + w_g
         sym_roots = sym.simplify(sym.solve(eq, x))
         e1, e2, e3 = sym_roots
         distances = map(abs, [e1-e2, e2-e3, e3-e1])
