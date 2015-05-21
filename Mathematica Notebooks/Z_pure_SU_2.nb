@@ -1,0 +1,263 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 10.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[      7216,        254]
+NotebookOptionsPosition[      6306,        220]
+NotebookOutlinePosition[      6662,        236]
+CellTagsIndexPosition[      6619,        233]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[TextData[{
+ "Central charges of pure ",
+ Cell[BoxData[
+  FormBox[
+   RowBox[{"SU", "(", "2", ")"}], TraditionalForm]],
+  FormatType->"TraditionalForm"],
+ " Seiberg-Witten theory"
+}], "Title",
+ CellChangeTimes->{{3.641218473024755*^9, 3.641218509610704*^9}}],
+
+Cell[CellGroupData[{
+
+Cell["Analytic expressions", "Chapter",
+ CellChangeTimes->{{3.641218560634473*^9, 3.641218583436165*^9}}],
+
+Cell["\<\
+Here we use the result of [Alvarez-Gaume, Hassan (1997)], arxiv:hep-th/9701069.
+When the curve is\
+\>", "Text",
+ CellChangeTimes->{{3.641218589382243*^9, 3.641218633562619*^9}, {
+  3.641218678018353*^9, 3.641218760298347*^9}, {3.641218832532889*^9, 
+  3.6412189921117496`*^9}}],
+
+Cell[BoxData[
+ FormBox[
+  RowBox[{
+   RowBox[{
+    SuperscriptBox["y", "2"], "=", 
+    RowBox[{
+     RowBox[{"(", 
+      RowBox[{"x", "-", "1"}], ")"}], 
+     RowBox[{"(", 
+      RowBox[{"x", "+", "1"}], ")"}], 
+     RowBox[{"(", 
+      RowBox[{"x", "-", "u"}], ")"}]}]}], ","}], 
+  TraditionalForm]], "DisplayFormulaNumbered",
+ CellChangeTimes->{{3.641218943399135*^9, 3.641218943406637*^9}}],
+
+Cell["and the Seiberg-Witten differential is", "Text",
+ CellChangeTimes->{3.641218966839274*^9}],
+
+Cell[BoxData[
+ FormBox[
+  RowBox[{
+   RowBox[{
+    SubscriptBox["\[Lambda]", "SW"], "=", " ", 
+    RowBox[{
+     FractionBox[
+      SqrtBox["2"], 
+      RowBox[{"2", "\[Pi]"}]], 
+     FractionBox["dx", "y"], 
+     RowBox[{"(", 
+      RowBox[{"x", "-", "u"}], ")"}]}]}], ","}], 
+  TraditionalForm]], "DisplayFormulaNumbered"],
+
+Cell[BoxData[
+ FormBox[
+  RowBox[{
+   RowBox[{
+    RowBox[{"a", "(", "u", ")"}], "=", " ", 
+    RowBox[{
+     RowBox[{
+      FractionBox[
+       SqrtBox["2"], "\[Pi]"], " ", 
+      RowBox[{
+       SubsuperscriptBox["\[Integral]", 
+        RowBox[{"-", "1"}], "1"], 
+       FractionBox[
+        RowBox[{"dx", " ", 
+         SqrtBox[
+          RowBox[{"x", "-", "u"}]], " "}], 
+        SqrtBox[
+         RowBox[{
+          SuperscriptBox["x", "2"], "-", "1"}]]]}]}], "=", 
+     RowBox[{
+      RowBox[{"(", 
+       SqrtBox[
+        RowBox[{"2", 
+         RowBox[{"(", 
+          RowBox[{"1", "+", "u"}], ")"}]}]], ")"}], 
+      RowBox[{
+       SubscriptBox["\[InvisiblePrefixScriptBase]", "2"], 
+       SubscriptBox["F", "1"]}], 
+      RowBox[{"(", 
+       RowBox[{
+        RowBox[{"-", 
+         FractionBox["1", "2"]}], ",", 
+        FractionBox["1", "2"], ",", 
+        RowBox[{"1", ";", 
+         FractionBox["2", 
+          RowBox[{"1", "+", "u"}]]}]}], ")"}]}]}]}], ","}], 
+  TraditionalForm]], "DisplayFormulaNumbered",
+ CellChangeTimes->{{3.641219001736521*^9, 3.641219168087495*^9}, {
+  3.641219380270842*^9, 3.641219413238999*^9}}],
+
+Cell[BoxData[
+ FormBox[
+  RowBox[{
+   RowBox[{
+    SubscriptBox["a", "D"], "(", "u", ")"}], "=", " ", 
+   RowBox[{
+    RowBox[{
+     FractionBox[
+      SqrtBox["2"], "\[Pi]"], " ", 
+     RowBox[{
+      SubsuperscriptBox["\[Integral]", "1", "u"], 
+      FractionBox[
+       RowBox[{"dx", " ", 
+        SqrtBox[
+         RowBox[{"x", "-", "u"}]], " "}], 
+       SqrtBox[
+        RowBox[{
+         SuperscriptBox["x", "2"], "-", "1"}]]]}]}], "=", 
+    RowBox[{
+     FractionBox["\[ImaginaryI]", "2"], 
+     SqrtBox[
+      RowBox[{"u", "-", "1"}]], 
+     RowBox[{
+      SubscriptBox["\[InvisiblePrefixScriptBase]", "2"], 
+      SubscriptBox["F", "1"]}], 
+     RowBox[{
+      RowBox[{"(", 
+       RowBox[{
+        FractionBox["1", "2"], ",", 
+        FractionBox["1", "2"], ",", 
+        RowBox[{"2", ";", 
+         FractionBox[
+          RowBox[{"1", "-", "u"}], "2"]}]}], ")"}], "."}]}]}]}], 
+  TraditionalForm]], "DisplayFormulaNumbered",
+ CellChangeTimes->{{3.641219157743587*^9, 3.641219230719528*^9}, 
+   3.641219420137616*^9}]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Numerical functions", "Chapter",
+ CellChangeTimes->{{3.641218570732031*^9, 3.6412185785715714`*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"a", "[", "u_", "]"}], ":=", 
+  RowBox[{
+   SqrtBox[
+    RowBox[{"2", 
+     RowBox[{"(", 
+      RowBox[{"1", "+", "u"}], ")"}]}]], 
+   RowBox[{"Hypergeometric2F1", "[", 
+    RowBox[{
+     RowBox[{"-", 
+      FractionBox["1", "2"]}], ",", 
+     FractionBox["1", "2"], ",", "1", ",", 
+     FractionBox["2", 
+      RowBox[{"1", "+", "u"}]]}], "]"}]}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"aD", "[", "u_", "]"}], ":=", 
+  RowBox[{
+   FractionBox["\[ImaginaryI]", "2"], 
+   SqrtBox[
+    RowBox[{"u", "-", "1"}]], 
+   RowBox[{"Hypergeometric2F1", "[", 
+    RowBox[{
+     FractionBox["1", "2"], ",", 
+     FractionBox["1", "2"], ",", "2", ",", 
+     FractionBox[
+      RowBox[{"1", "-", "u"}], "2"]}], "]"}]}]}]}], "Input",
+ CellChangeTimes->{{3.641219237110044*^9, 3.641219246369246*^9}, {
+  3.641219430394367*^9, 3.6412195035705347`*^9}, {3.6412195704210863`*^9, 
+  3.6412195748109493`*^9}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"u0", "=", 
+   RowBox[{"2", "+", "\[ImaginaryI]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{"N", "[", 
+  RowBox[{"a", "[", "u0", "]"}], "]"}], "\[IndentingNewLine]", 
+ RowBox[{"N", "[", 
+  RowBox[{"aD", "[", "u0", "]"}], "]"}]}], "Input",
+ CellChangeTimes->{{3.6412195084506407`*^9, 3.641219541550976*^9}, {
+  3.641219585537417*^9, 3.64121961624854*^9}}],
+
+Cell[BoxData[
+ RowBox[{"2.038042175212404`", "\[VeryThinSpace]", "+", 
+  RowBox[{"0.5040982302181617`", " ", "\[ImaginaryI]"}]}]], "Output",
+ CellChangeTimes->{{3.641219521963573*^9, 3.641219542175994*^9}, {
+  3.6412195781042967`*^9, 3.64121961663085*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"-", "0.189654014106444`"}], "+", 
+  RowBox[{"0.5270398919441268`", " ", "\[ImaginaryI]"}]}]], "Output",
+ CellChangeTimes->{{3.641219521963573*^9, 3.641219542175994*^9}, {
+  3.6412195781042967`*^9, 3.641219616633713*^9}}]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+},
+WindowSize->{808, 911},
+WindowMargins->{{Automatic, 664}, {231, Automatic}},
+FrontEndVersion->"10.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (June 27, \
+2014)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[580, 22, 262, 8, 148, "Title"],
+Cell[CellGroupData[{
+Cell[867, 34, 105, 1, 65, "Chapter"],
+Cell[975, 37, 287, 6, 49, "Text"],
+Cell[1265, 45, 393, 13, 27, "DisplayFormulaNumbered"],
+Cell[1661, 60, 96, 1, 30, "Text"],
+Cell[1760, 63, 324, 12, 52, "DisplayFormulaNumbered"],
+Cell[2087, 77, 1138, 38, 61, "DisplayFormulaNumbered"],
+Cell[3228, 117, 1028, 35, 61, "DisplayFormulaNumbered"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[4293, 157, 106, 1, 65, "Chapter"],
+Cell[4402, 160, 931, 29, 86, "Input"],
+Cell[CellGroupData[{
+Cell[5358, 193, 391, 9, 63, "Input"],
+Cell[5752, 204, 256, 4, 28, "Output"],
+Cell[6011, 210, 255, 5, 28, "Output"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)
