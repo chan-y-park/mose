@@ -187,32 +187,16 @@ trajectory!" % (sp[0], sp[-1])
 
         theta = self.phase
 
-        def deriv(t, y):
-            u, eta, d_eta, c_c = y 
-
-            matrix = self.fibration.pf_matrix(u)
-            det_pf = abs(det(matrix))
-            if det_pf > trajectory_singularity_threshold:
-                self.singular = True
-                self.singular_point = u
-
-            # A confusing point to bear in mind: here we are solving the 
-            # ode with respect to time t, but d_eta is understood to be 
-            # (d eta / d u), with its own  appropriate b.c. and so on!
-            ### NOTE THE FOLLOWING TWO OPTIONS FOR DERIVATIVE OF u
-            u_1 = exp( 1j * ( theta + pi ) ) / eta
-            # u_1 = exp( 1j * ( theta + pi - cmath.phase( eta ) ) )
-            eta_1 = u_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
-            d_eta_1 = u_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
-            d_c_c = u_1 * eta_1
-            return  array([u_1, eta_1, d_eta_1, d_c_c])
+        ode = scipy.integrate.ode(k_wall_pf_ode_f)
+        ode.set_integrator("zvode", **ode_kwargs)
 
         y_0 = self.pf_boundary_conditions
         ### y_0 contains the following:
         ### [u_0, eta_0, d_eta_0, central_charge_0]
-        ode = scipy.integrate.ode(deriv)
-        ode.set_integrator("zvode", **ode_kwargs)
         ode.set_initial_value(y_0)
+
+        matrix = self.fibration.pf_matrix
+        ode.set_f_params(matrix, trajectory_singularity_threshold, theta)
 
         step = 0
         i_0 = len(self.coordinates)
@@ -506,3 +490,26 @@ class DescendantKWall(KWall):
               + central_charge_2 * complex(charge[1])  
 
         return [u_0, eta_0, d_eta_0, c_c_0]
+
+
+def k_wall_pf_ode_f(t, y, pf_matrix, trajectory_singularity_threshold, theta):
+    u, eta, d_eta, c_c = y 
+    matrix = pf_matrix(u)
+
+    det_pf = abs(det(matrix))
+    if det_pf > trajectory_singularity_threshold:
+        self.singular = True
+        self.singular_point = u
+
+    # A confusing point to bear in mind: here we are solving the 
+    # ode with respect to time t, but d_eta is understood to be 
+    # (d eta / d u), with its own  appropriate b.c. and so on!
+    ### NOTE THE FOLLOWING TWO OPTIONS FOR DERIVATIVE OF u
+    u_1 = exp( 1j * ( theta + pi ) ) / eta
+    # u_1 = exp( 1j * ( theta + pi - cmath.phase( eta ) ) )
+    eta_1 = u_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
+    d_eta_1 = u_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
+    d_c_c = u_1 * eta_1
+    return  array([u_1, eta_1, d_eta_1, d_c_c])
+
+
