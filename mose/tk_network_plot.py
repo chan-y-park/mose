@@ -6,39 +6,33 @@ import mpldatacursor
 
 import matplotlib
 # use() directive must be called before importing matplotlib.pyplot
-matplotlib.use('TkAgg')     
+#matplotlib.use('TkAgg')     
 
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg as FigureCanvas,
     NavigationToolbar2TkAgg as NavigationToolbar,
 )
-from matplotlib import pyplot
 from math import pi
 
 class TkNetworkPlot(object):
     def __init__(self, 
         master=None,
-        #plot_on_cylinder=False,
-        #plot_bins=False, 
+        title='Network Plot',
         plot_joints=False,
         plot_data_points=False,
-        #plot_segments=False,
     ):
         if master is None:
             master = tk.Tk()
             master.withdraw()
 
         self.master = master
-        #self.plot_on_cylinder = plot_on_cylinder
-        #self.plot_bins = plot_bins
         self.plot_joints = plot_joints
         self.plot_data_points = plot_data_points
-        #self.plot_segments = plot_segments
 
         # Create a Toplevel widget, which is a child of GUILoom 
         # and contains plots,
         self.toplevel = tk.Toplevel(master)
-        #self.toplevel.wm_title('Spectral Network Plot')
+        self.toplevel.wm_title(title)
 
         self.plots = []
         self.data_cursor = None
@@ -50,7 +44,7 @@ class TkNetworkPlot(object):
         self.plot_idx_entry_var = tk.StringVar() 
         self.plot_idx_entry_var.trace('w', self.plot_idx_entry_change)
 
-        self.figure = matplotlib.figure.Figure()
+        self.figure = matplotlib.figure.Figure() 
         self.canvas = FigureCanvas(
             self.figure,
             master=self.toplevel,
@@ -162,7 +156,7 @@ class TkNetworkPlot(object):
 
     def update_current_plot(self, new_plot_idx):
         if self.data_cursor is not None:
-            self.data_cursor.hide()
+            self.data_cursor.hide().disable()
 
         self.plots[self.current_plot_idx].set_visible(False)
         self.plots[new_plot_idx].set_visible(True)

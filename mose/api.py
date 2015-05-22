@@ -9,15 +9,17 @@ import tkFileDialog
 import pdb
 
 import k_wall_network
+import plotting
 
-from matplotlib import pyplot
+#from matplotlib import pyplot
 
 from config import MoseConfig
 from elliptic_fibration import EllipticFibration
 from k_wall_network import KWallNetwork, construct_k_wall_networks
 from k_wall import KWall
 from marginal_stability_wall import build_ms_walls
-from plotting import KWallNetworkPlot, MSWallPlot
+from plotting import KWallNetworkPlot
+#from plotting import MSWallPlot
 from misc import formatted_date_time
 
 def set_logging(level):
@@ -194,9 +196,18 @@ def save(config, data, k_wall_network_plot=None, ms_wall_plot=None,
         ms_wall_plot.save(data_dir)
 
 
-def make_plots(config, data, show_plot=True):
-    k_wall_network_figure = pyplot.figure("K-wall network")
-    k_wall_network_plot = KWallNetworkPlot(k_wall_network_figure)
+def make_plots(config, data, show_plot=True, master=None, use_tk=True):
+    import matplotlib
+    if use_tk is True:
+        matplotlib.use('TkAgg')
+    else:
+        matplotlib.use('Agg')
+    plotting.use_tk = use_tk
+
+    k_wall_network_plot = KWallNetworkPlot(
+        #matplotlib_figure=k_wall_network_figure,
+        master=master,
+    )
 
     # Draw the plots of K-wall networks.
     for k_wall_network in data['k_wall_networks']:
@@ -205,21 +216,27 @@ def make_plots(config, data, show_plot=True):
             plot_range=config['plotting']['range'], 
         )
 
-    if data['multiple_networks'] is True:
-        ms_wall_figure = pyplot.figure("Walls of marginal stability")
-        ms_wall_plot = MSWallPlot(ms_wall_figure)
-        # Draw MS walls and save the plot.
-        ms_wall_plot.draw(
-            data['ms_walls'],
-            plot_range=config['plotting']['range'], 
-        )
-    else:
-        ms_wall_plot = None
+#    if data['multiple_networks'] is True:
+#        ms_wall_figure = pyplot.figure("Walls of marginal stability")
+#        ms_wall_plot = MSWallPlot(ms_wall_figure)
+#        # Draw MS walls and save the plot.
+#        ms_wall_plot.draw(
+#            data['ms_walls'],
+#            plot_range=config['plotting']['range'], 
+#        )
+#    else:
+#        ms_wall_plot = None
 
     if show_plot is True:
         k_wall_network_plot.show()
-        if ms_wall_plot is not None:
-            ms_wall_plot.show()
-        pyplot.show()
+#        if ms_wall_plot is not None:
+#            ms_wall_plot.show()
+#        pyplot.show()
 
-    return (k_wall_network_plot, ms_wall_plot)
+#    return (k_wall_network_plot, ms_wall_plot)
+    if master is None:
+        try:
+            raw_input('Press any key to continue...')
+        except NameError:
+            pass
+    return (k_wall_network_plot, None)
