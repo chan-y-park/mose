@@ -105,7 +105,7 @@ def order_roots(roots, segment, sign, theta):
         twins = [e3_0, e1_0]
         e3 = e2_0
 
-    if abs(twins[0] - twins[1]) / abs(twins[0] - e3) < 0.3:
+    if abs(twins[0] - twins[1]) / abs(twins[0] - e3) < 0.7:
         ### First possibility ###
         f1, f2 = twins
         eta_u1 = (sign) * 4.0 * ((e3 - f1) ** (-0.5)) * \
@@ -222,18 +222,19 @@ def periods_relative_sign(p_1, p_2):
 
     if trouble != ' ':
         print "\nWARNING: could not reliably determine the positive period, \
-                \n due to: " + trouble
+                \ndue to: " + trouble
 
     return sign
 
-def check_marginal_stabiliy_condition(parents, indices):
+def check_marginal_stabiliy_condition(intersection):
     ### Enable the code below, once the computation of 
     ### central charges is implemented.
 
-    kwall_1 = parents[0]
-    kwall_2 = parents[1]
-    index_1 = indices[0]
-    index_2 = indices[1]
+    kwall_1 = intersection.parents[0]
+    kwall_2 = intersection.parents[1]
+    index_1 = intersection.index_1
+    index_2 = intersection.index_2
+    locus = intersection.locus
 
     Z_1 = kwall_1.central_charge[index_1]
     Z_2 = kwall_2.central_charge[index_2]
@@ -246,8 +247,9 @@ def check_marginal_stabiliy_condition(parents, indices):
     else:
         ### the phase discrepancy is too large to be on a MS wall
         print "\nWARNING: the central charges of kwalls %s do not align\
-               \nat their intersection. In fact, they are:\
-               \nZ_1 = %s\nZ_2 = %s\n" % (parents, Z_1, Z_2)
+               \nat their intersection u = %s. \
+               \nIn fact, they are:\
+               \nZ_1 = %s\nZ_2 = %s\n" % ([kwall_1, kwall_2], locus, Z_1, Z_2)
         print "The alternative central charges read: \nZ_1 = %s\nZ_2 = %s\n" \
                 % (Z_1_alt, Z_2_alt)
 
