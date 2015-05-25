@@ -17,7 +17,7 @@ from scipy import interpolate
 
 from branch import BranchPoint, minimum_distance
 from misc import complexify, sort_by_abs, left_right, clock, order_roots, \
-                periods_relative_sign
+                periods_relative_sign, data_plot
 from monodromy import charge_monodromy
 
 class KWall(object):
@@ -191,6 +191,7 @@ trajectory!" % (sp[0], sp[-1])
         ode.set_integrator("zvode", **ode_kwargs)
 
         y_0 = self.pf_boundary_conditions
+        # print "Boundary conditions for PF evolution: \n%s" % y_0
         ### y_0 contains the following:
         ### [u_0, eta_0, d_eta_0, central_charge_0]
         ode.set_initial_value(y_0)
@@ -227,11 +228,16 @@ trajectory!" % (sp[0], sp[-1])
         for i in range(len(self.coordinates[:-1])):
             du = complexify(self.coordinates[i+1]) \
                  - complexify(self.coordinates[i])
-            eta_avg = 0.5 * (self.periods[i+1] - self.periods[i])
+            eta_avg = 0.5 * (self.periods[i+1] + self.periods[i])
             c_c = complex(self.central_charge_alt[-1] + eta_avg * du)
             # print "integration data: \ndu = %s\neta_avg = %s\nc_c = %s" % (du, eta_avg, c_c)
             self.central_charge_alt.append(c_c) 
 
+    def plot_periods(self):
+        data_plot(self.periods, "periods of dx/y")
+
+    def plot_central_charge(self):
+        data_plot(self.central_charge, "central charges")
 
 
 
@@ -341,7 +347,9 @@ class PrimaryKWall(KWall):
                 break
             else:
                 [roots, eta_1] = try_step
-                eta_prime_1 = (eta_1 - eta_0) / (u1 - u0)
+                # eta_prime_1 = (eta_1 - eta_0) / (u1 - u0)
+                eta_prime_1 = 0.5 * (eta_1 - eta_0) / (u1 - u0).real + \
+                            - 0.5 * 1j * (eta_1 - eta_0) / (u1 - u0).imag
                 u0 = u1
                 eta_0 = eta_1
 
@@ -361,10 +369,13 @@ class PrimaryKWall(KWall):
         for i in range(len(self.coordinates[:-1])):
             du = complexify(self.coordinates[i+1]) \
                  - complexify(self.coordinates[i])
-            eta_avg = 0.5 * (self.periods[i+1] - self.periods[i])
+            eta_avg = 0.5 * (self.periods[i+1] + self.periods[i])
             c_c = complex(self.central_charge[-1] + eta_avg * du)
-            # print "integration data: \ndu = %s\neta_avg = %s\nc_c = %s" % (du, eta_avg, c_c)
+            # print "\nu = %s\ndu = %s\neta_avg = %s\nZ = %s" % (self.coordinates[i], du, eta_avg, c_c)
             self.central_charge.append(c_c) 
+
+        # print "\nThe last pedestrian central charge is\
+        # \nZ = %s\nu = %s" % (self.central_charge[-1], self.coordinates[-1])
 
         self.pf_boundary_conditions = [u1, eta_1, eta_prime_1, c_c]
         
@@ -509,7 +520,7 @@ def k_wall_pf_ode_f(t, y, pf_matrix, trajectory_singularity_threshold, theta):
     # u_1 = exp( 1j * ( theta + pi - cmath.phase( eta ) ) )
     eta_1 = u_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
     d_eta_1 = u_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
-    d_c_c = u_1 * eta_1
-    return  array([u_1, eta_1, d_eta_1, d_c_c])
+    c_c_1 = u_1 * eta
+    return  array([u_1, eta_1, d_eta_1, c_c_1])
 
 

@@ -8,7 +8,7 @@ from sympy import mpmath as mp
 from operator import itemgetter
 from scipy.integrate import quad as n_int
 from cmath import pi, exp, phase, sqrt
-
+import matplotlib.pyplot as plt
 
 def complexify(y):
     """ complexifies an array of two reals """
@@ -105,7 +105,7 @@ def order_roots(roots, segment, sign, theta):
         twins = [e3_0, e1_0]
         e3 = e2_0
 
-    if abs(twins[0] - twins[1]) / abs(twins[0] - e3) < 0.7:
+    if abs(twins[0] - twins[1]) / abs(twins[0] - e3) < 0.3:
         ### First possibility ###
         f1, f2 = twins
         eta_u1 = (sign) * 4.0 * ((e3 - f1) ** (-0.5)) * \
@@ -243,6 +243,12 @@ def check_marginal_stabiliy_condition(intersection):
     Z_2_alt = kwall_2.central_charge_alt[index_2]
 
     if -1.0 * pi / 10 < phase(Z_1 / Z_2) < pi / 10 :
+        print "\nOK: the central charges of kwalls %s do align\
+               \nat their intersection u = %s. \
+               \nIn fact, they are:\
+               \nZ_1 = %s\nZ_2 = %s\n" % ([kwall_1, kwall_2], locus, Z_1, Z_2)
+        print "The alternative central charges read: \nZ_1 = %s\nZ_2 = %s\n" \
+                % (Z_1_alt, Z_2_alt)
         pass
     else:
         ### the phase discrepancy is too large to be on a MS wall
@@ -277,4 +283,30 @@ def sort_parent_kwalls(parents, indices):
         return [kwall_2, kwall_1]
 
     # return parents
+
+
+def data_plot(cmplx_list, title):
+    l = len(cmplx_list)
+    r_list = [x.real for x in cmplx_list]
+    i_list = [x.imag for x in cmplx_list]
+
+    plt.figure(1)
+
+    plt.subplot(211)
+    plt.plot(r_list, "r.")
+    r_delta = abs(max(r_list)-min(r_list))
+    plt.axis([0.0, float(l), min(r_list) - 0.15 * r_delta, \
+                             max(r_list) + 0.15 * r_delta])
+    plt.ylabel("real part")
+    plt.title(title)
+
+    plt.subplot(212)
+    plt.plot(i_list, "r.")
+    i_delta = abs(max(i_list)-min(i_list))
+    plt.axis([0.0, float(l), min(i_list) - 0.15 * i_delta, \
+                             max(i_list) + 0.15 * i_delta])
+    plt.ylabel("imaginary part")
+    plt.title(title)
+    
+    plt.show()
 
