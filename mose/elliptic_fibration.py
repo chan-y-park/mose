@@ -336,10 +336,10 @@ def positive_period(n, charge, w_model, fibration):
     
     # Notation: using "eta" for the period of (1,0), using "beta" for (0,1)
     period_data = w_model.compute_initial_periods()
-    eta_0 = period_data[0]
-    eta_prime_0 = period_data[1]
-    beta_0 = period_data[2]
-    beta_prime_0 = period_data[3]
+    eta_0 = 2 * period_data[0]
+    eta_prime_0 = 2 * period_data[1]
+    beta_0 = 2 * period_data[2]
+    beta_prime_0 = 2 * period_data[3]
 
     # print "\nThe integration path\
     #        \n--------------------\
@@ -377,7 +377,7 @@ def positive_period(n, charge, w_model, fibration):
         # d_eta_1 = u_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
         # return  array([u_1, eta_1, d_eta_1])
 
-    singularity_check = False
+    # singularity_check = False
     ode = scipy.integrate.ode(deriv)
     ode.set_integrator("zvode")
     ###
@@ -391,6 +391,8 @@ def positive_period(n, charge, w_model, fibration):
 
     
     recorded_periods = []
+    recorded_loci = []
+    recorded_d_eta = []
 
     ### the pinching-cycle period at the starting point, 
     ### and its derivative
@@ -401,13 +403,16 @@ def positive_period(n, charge, w_model, fibration):
     y_0 = [u0, eta_gamma_0, eta_prime_gamma_0]
     ode.set_initial_value(y_0)    
     # while ode.successful() and ode.t < t1 and singularity_check == False:
-    while ode.successful() and singularity_check == False:
+    while ode.successful():
         u, eta, d_eta = ode.y
         recorded_periods.append(eta)
+        recorded_loci.append(u)
+        recorded_d_eta.append(d_eta)
         ###
-        ### DEFINE THIS PARAMETER ELSEWHERE !!!
+        ### DEFINE THESE PARAMETER ELSEWHERE !!!
         ###
-        if abs(u - u2) < 0.01:
+        if abs(u - u2) < 0.01 or abs(d_eta) > 10:
+            print "\nInterrupting PF transport of period!\n"
             break
         else:
             # print "time: %s" % ode.t
@@ -417,7 +422,9 @@ def positive_period(n, charge, w_model, fibration):
     print "u_f = %s" % u_f
     print "eta_f = %s\n" % eta_gamma_f
 
-    data_plot(recorded_periods,"periods along PF path")
+    data_plot(recorded_loci,"u along PF path")
+    data_plot(recorded_periods,"eta along PF path")
+    data_plot(recorded_d_eta,"d_eta along PF path")
 
     return eta_gamma_f
 
