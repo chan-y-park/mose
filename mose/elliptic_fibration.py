@@ -26,6 +26,7 @@ from cmath import exp, pi
 from numpy import array, linspace
 from numpy.linalg import det
 from operator import itemgetter
+from misc import path_derivative, data_plot
 
 
 NEGLIGIBLE_BOUND = 0.1**12
@@ -327,10 +328,10 @@ def positive_period(n, charge, w_model, fibration):
     ### Setting up the path of integration. Since PF blows up
     ### at the discriminant locus (although the period does not)
     ### we will not get exactly to the locus.
-    u_0, u_1, u_2 = w_model.paths_for_periods[n]
-    path = [u_0 + (u_1 - u_0) * x for x in numpy.linspace(0.0,1.0,1000)] + \
-           [u_1 + (u_2 - u_1) * x for x in numpy.linspace(0.0,1.0,1000)]
-    nint_range = len(path)
+    u0, u1, u2 = w_model.paths_for_periods[n]
+    # path = [u0 + (u1 - u0) * x for x in numpy.linspace(0.0,1.0,1000)] + \
+    #        [u1 + (u2 - u1) * x for x in numpy.linspace(0.0,1.0,1000)]
+    # nint_range = len(path)
 
     
     # Notation: using "eta" for the period of (1,0), using "beta" for (0,1)
@@ -344,13 +345,17 @@ def positive_period(n, charge, w_model, fibration):
     #        \n--------------------\
     #        \n%s" % path
 
-    print "\nu_0, eta_0, beta_0:\n%s\n" % [u_0, eta_0, beta_0]
+    print "\nu_0, eta_0, beta_0:\n%s\n" % [u0, eta_0, beta_0]
 
     def deriv(t, y):
         u, eta, d_eta = y 
 
         matrix = fibration.pf_matrix(u)
         det_pf = abs(det(matrix))
+        # print "u = %s" % u
+        # print "eta = %s" % eta
+        # print "d_eta = %s" % d_eta
+        # print "Jacobian determinant : %s" % det_pf
         ###
         ### MOVE THIS PARAMETER ELSEWHERE !!!
         ###
@@ -358,24 +363,34 @@ def positive_period(n, charge, w_model, fibration):
         ###
         if det_pf > trajectory_singularity_threshold:
             singularity_check = True
+            print "\n**************\nhit the singularity threshold!\n**************\n"
 
-        # A confusing point to bear in mind: here we are solving the 
-        # ode with respect to time t, but d_eta is understood to be 
-        # (d eta / d u), with its own  appropriate b.c. and so on!
-        u_1 = (path[int(math.floor(t+1))] - path[int(math.floor(t))]) / 1.0
+        ### A confusing point to bear in mind: here we are solving the 
+        ### ode with respect to time t, but d_eta is understood to be 
+        ### (d eta / d u), with its own  appropriate b.c. and so on!
+        u_1 = path_derivative(u, u0, u2)
         eta_1 = u_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
         d_eta_1 = u_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
         return  array([u_1, eta_1, d_eta_1])
-
+        # u_1 = (path[int(math.floor(t+1))] - path[int(math.floor(t))]) / 1.0
+        # eta_1 = u_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
+        # d_eta_1 = u_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
+        # return  array([u_1, eta_1, d_eta_1])
 
     singularity_check = False
     ode = scipy.integrate.ode(deriv)
     ode.set_integrator("zvode")
-    dt = 1
+    ###
+    ### DEFINE THIS PARAMETER ELSEWHERE !!!
+    ###
+    dt = 0.01
     ### How many steps before reaching the discriminant locus it should stop
     ### integrating via PF
-    cutoff = 0
-    t1 = len(path) - 2 - cutoff
+    # cutoff = 0
+    # t1 = len(path) - 2 - cutoff
+
+    
+    recorded_periods = []
 
     ### the pinching-cycle period at the starting point, 
     ### and its derivative
@@ -383,15 +398,26 @@ def positive_period(n, charge, w_model, fibration):
     eta_prime_gamma_0 = charge[0] * eta_prime_0 + charge[1] * beta_prime_0
 
     ### Now we PF-evolve the period
-    y_0 = [u_0, eta_gamma_0, eta_prime_gamma_0]
+    y_0 = [u0, eta_gamma_0, eta_prime_gamma_0]
     ode.set_initial_value(y_0)    
-    while ode.successful() and ode.t < t1 and singularity_check == False:
-        # print "time: %s" % ode.t
-        ode.integrate(ode.t + dt)
+    # while ode.successful() and ode.t < t1 and singularity_check == False:
+    while ode.successful() and singularity_check == False:
+        u, eta, d_eta = ode.y
+        recorded_periods.append(eta)
+        ###
+        ### DEFINE THIS PARAMETER ELSEWHERE !!!
+        ###
+        if abs(u - u2) < 0.01:
+            break
+        else:
+            # print "time: %s" % ode.t
+            ode.integrate(ode.t + dt)
 
     u_f, eta_gamma_f, d_eta_gamma_f = ode.y 
     print "u_f = %s" % u_f
     print "eta_f = %s\n" % eta_gamma_f
+
+    data_plot(recorded_periods,"periods along PF path")
 
     return eta_gamma_f
 

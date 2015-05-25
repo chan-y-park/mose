@@ -286,6 +286,11 @@ def sort_parent_kwalls(parents, indices):
 
 
 def data_plot(cmplx_list, title):
+    """
+    Plot the real and imaginary parts of 
+    a list of complex numers
+    """
+
     l = len(cmplx_list)
     r_list = [x.real for x in cmplx_list]
     i_list = [x.imag for x in cmplx_list]
@@ -309,4 +314,64 @@ def data_plot(cmplx_list, title):
     plt.title(title)
     
     plt.show()
+
+
+def path_derivative(u, u_i, u_f):
+    """
+    This function returns the derivative du/dt 
+    for the path u(t) that is to be used for 
+    computing the positive period via PF transport
+    from the basepoint.
+
+    parameters:
+    -----------
+
+    u = point of evaluation
+    u_i = the initial basepoint
+    u_f = the final point (the disc. locus)
+
+    the output:
+    -----------
+
+    it will give a potivive real derivative 
+    until Re(u) reaches Re(u_f).
+    Then it will give a positive imaginary
+    derivative, until Im(u) reaches Im(u_f).
+    In this way, an L-shaped path is produced
+    """
+
+    epsilon = 0.1
+
+    if u_i.real < u_f.real and u_i.imag < u_f.imag:
+        if u.real < u_f.real:
+            return epsilon
+        elif u.imag < u_f.imag:
+            return epsilon * 1j
+        else: 
+            return 0
+
+    elif u_i.real < u_f.real and u_i.imag > u_f.imag:
+        if u.real < u_f.real:
+            return epsilon
+        elif u.imag > u_f.imag:
+            return -1 * epsilon * 1j
+        else: 
+            return 0
+
+    if u_i.real > u_f.real and u_i.imag < u_f.imag:
+        if u.real > u_f.real:
+            return -1 * epsilon
+        elif u.imag < u_f.imag:
+            return epsilon * 1j
+        else: 
+            return 0
+
+    if u_i.real > u_f.real and u_i.imag > u_f.imag:
+        if u.real > u_f.real:
+            return -1 * epsilon
+        elif u.imag > u_f.imag:
+            return -1 * epsilon * 1j
+        else: 
+            return 0    
+
 
