@@ -297,20 +297,61 @@ def monodromy_eigencharge(monodromy):
     #     n = n_temp
     # return (int(m), int(n))
 
-    eigen_sys = LA.eig(monodromy)
-    eigen_val_0 = int(numpy.rint(eigen_sys[0][0]))
-    eigen_val_1 = int(numpy.rint(eigen_sys[0][1]))
-    min_0 = min(abs(numpy.array(eigen_sys[1][0])[0]))
-    eigen_vec_0 = (numpy.array(eigen_sys[1][0])[0] / min_0).astype(int).tolist()
-    min_1 = min(abs(numpy.array(eigen_sys[1][1])[0]))
-    eigen_vec_1 = (numpy.array(eigen_sys[1][1])[0] / min_1).astype(int).tolist()
-    n_eigen_vec_1 = (-1 * numpy.array(eigen_sys[1][1])[0] / min_1).astype(int).tolist()
+    eigen_syst = LA.eig(monodromy)
+    eigen_vals = eigen_syst[0]
+    eigen_vects = eigen_syst[1].transpose()
 
-    if eigen_vec_0 == eigen_vec_1 or eigen_vec_0 == n_eigen_vec_1:
-        return eigen_vec_0
+    eigen_val_0 = int(numpy.rint(eigen_vals[0]))
+    eigen_val_1 = int(numpy.rint(eigen_vals[1]))
+    eigen_vec_0 = numpy.array(eigen_vects[0])[0]
+    eigen_vec_1 = numpy.array(eigen_vects[1])[0]
+
+    min_0 = min(abs(eigen_vec_0))
+    max_0 = max(abs(eigen_vec_0))
+    min_1 = min(abs(eigen_vec_1))
+    max_1 = max(abs(eigen_vec_1))
+    
+    ### A number may be numerically close to zero
+    if min_0 < 10**-8:
+        min_0 = 0.0
+    if max_0 < 10**-8:
+        max_0 = 0.0
+    if min_1 < 10**-8:
+        min_1 = 0.0
+    if max_1 < 10**-8:
+        max_1 = 0.0
+
+    ### A vector may be of the type (1,0) or (0,1)
+    if min_0 == 0.0:
+        min_0 = max_0
+    if min_1 == 0.0:
+        min_1 = max_1
+
+    ### One or both vectors may be (0,0)
+    if max_0 == 0.0 and max_1 == 0.0:
+        ### both eigenvectors are (0,0)
+        print "\nCannot determine eigencharges, they seem to be (0,0).\n"
+    elif max_0 == 0.0 and max_1 != 0.0:
+        ### the first eigenvector is (0,0), but the second one is not
+        norm_eigen_vec_1 = [int(round(x)) for x in list(eigen_vec_1 / min_1)]
+        return norm_eigen_vec_1
+    elif max_0 != 0.0 and max_1 == 0.0:
+        ### the second eigenvector is (0,0), but the first one is not
+        norm_eigen_vec_0 = [int(round(x)) for x in list(eigen_vec_0 / min_0)]
+        return norm_eigen_vec_0
     else:
-        raise ValueError('Cannot compute monodromy eigenvector for the matrix\
-            \n'+str(monodromy))
+        norm_eigen_vec_0 = [int(round(x)) for x in list(eigen_vec_0 / min_0)]
+        norm_eigen_vec_1 = [int(round(x)) for x in list(eigen_vec_1 / min_1)]
+        n_norm_eigen_vec_1 = [-1 * int(round(x)) \
+                                        for x in list(eigen_vec_1 / min_1)]
+        if norm_eigen_vec_0 == norm_eigen_vec_1 \
+                                    or norm_eigen_vec_0 == n_norm_eigen_vec_1:
+            return norm_eigen_vec_0
+        else:
+            raise ValueError('Cannot compute monodromy eigenvector for:\
+                \n'+str(monodromy)+'\ntwo independent eigenvectors!\n')
+
+    
 
 
 def positive_period(n, charge, w_model, fibration): 
@@ -336,10 +377,10 @@ def positive_period(n, charge, w_model, fibration):
     
     # Notation: using "eta" for the period of (1,0), using "beta" for (0,1)
     period_data = w_model.compute_initial_periods()
-    eta_0 = 2 * period_data[0]
-    eta_prime_0 = 2 * period_data[1]
-    beta_0 = 2 * period_data[2]
-    beta_prime_0 = 2 * period_data[3]
+    eta_0 = period_data[0]
+    eta_prime_0 = period_data[1]
+    beta_0 = period_data[2]
+    beta_prime_0 = period_data[3]
 
     # print "\nThe integration path\
     #        \n--------------------\
@@ -409,7 +450,7 @@ def positive_period(n, charge, w_model, fibration):
         recorded_loci.append(u)
         recorded_d_eta.append(d_eta)
         ###
-        ### DEFINE THESE PARAMETER ELSEWHERE !!!
+        ### DEFINE THESE PARAMETERS ELSEWHERE !!!
         ###
         if abs(u - u2) < 0.01 or abs(d_eta) > 10:
             print "\nInterrupting PF transport of period!\n"

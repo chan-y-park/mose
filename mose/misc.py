@@ -157,7 +157,7 @@ def cut_singular_k_wall(k_wall):
 
 def integrand(*args):
     """
-    1/sqrt{(x-a)(x-b)(x-c)} for x along the line connecting a and b, 
+    2/sqrt{(x-a)(x-b)(x-c)} for x along the line connecting a and b, 
     with a choice of branch cuts.
     """
     x, a, b, c = [complex(v) for v in args]
@@ -169,13 +169,13 @@ def integrand(*args):
         theta_c = phase_x_c + 2*pi
     else:
         theta_c = phase_x_c
-    return 1/(sqrt(abs(x-a)*abs(x-b)*abs(x-c)) *
+    return 2/(sqrt(abs(x-a)*abs(x-b)*abs(x-c)) *
               exp(1.0j*(theta_a + theta_b + theta_c)/2.0))
 
 # XXX: Consider a factor of 2 from (y^2 = 4x^3 + ...) vs (y^2 = x^3 + ...)
 def period_A(a, b, c):
     """
-    Calculate \int_b^a 1/sqrt{(x-a)(x-b)(x-c)} dx
+    Calculate \int_b^a 2/sqrt{(x-a)(x-b)(x-c)} dx
     """
     # x = b + (a-b)*t, t \in [0, 1].
     fr = lambda t: ((a-b) * integrand(b+(a-b)*t, a, b, c)).real
@@ -187,7 +187,7 @@ def period_A(a, b, c):
 
 def period_B(a, b, c):
     """
-    Calculate \int_b^c 1/sqrt{(x-a)(x-b)(x-c)} dx
+    Calculate \int_b^c 2/sqrt{(x-a)(x-b)(x-c)} dx
     """
     # x = b + (c-b)*t, t \in [0, 1].
     fr = lambda t: ((c-b) * integrand(b+(c-b)*t, a, b, c)).real

@@ -235,6 +235,10 @@ trajectory!" % (sp[0], sp[-1])
 
     def plot_periods(self):
         data_plot(self.periods, "periods of dx/y")
+        # rescaled_list = [((self.periods[i+1] - self.periods[i]) \
+        #               * (complexify(self.coordinates[i+1]) - complexify(self.coordinates[i]))) \
+        #               for i in range(len(self.periods)-1)]
+        # data_plot(rescaled_list, "periods of dx/y")
 
     def plot_central_charge(self):
         data_plot(self.central_charge, "central charges")
