@@ -197,7 +197,7 @@ trajectory!" % (sp[0], sp[-1])
         ode.set_initial_value(y_0)
 
         matrix = self.fibration.pf_matrix
-        ode.set_f_params(matrix, trajectory_singularity_threshold, theta)
+        ode.set_f_params(matrix, trajectory_singularity_threshold, theta, self)
 
         step = 0
         i_0 = len(self.coordinates)
@@ -315,9 +315,10 @@ class PrimaryKWall(KWall):
 
         eta_0 = (period_sign) * ellipk_period
 
-        print "\nThe initial value of eta_\gamma for this Kwall is : %s" % eta_0
+        print "\nThe initial value of eta_\gamma for this Kwall is : %s" \
+                                                                    % eta_0
         print "\nThe reference value of eta_\gamma for this Kwall is : %s\n" \
-                                    % (rel_sign * self.reference_initial_period)
+                                % (rel_sign * self.reference_initial_period)
 
         # The initial evolution of primary kwalls is handled with an
         # automatic tuning.
@@ -339,6 +340,7 @@ class PrimaryKWall(KWall):
             if i == max_num_steps -1:
                 break
             u1 = u0 + size_of_step * exp(1j*(theta + pi - cmath.phase(eta_0)))
+            # u1 = u0 + size_of_step * exp(1j*(theta + pi)) /  (10 * eta_0)
 
             f1, f2, f3 = map(lambda x: x.subs(u, u1), sym_roots)
             roots = [complex(f1), complex(f2), complex(f3)]
@@ -351,9 +353,7 @@ class PrimaryKWall(KWall):
                 break
             else:
                 [roots, eta_1] = try_step
-                # eta_prime_1 = (eta_1 - eta_0) / (u1 - u0)
-                eta_prime_1 = 0.5 * (eta_1 - eta_0) / (u1 - u0).real + \
-                            - 0.5 * 1j * (eta_1 - eta_0) / (u1 - u0).imag
+                eta_prime_1 = (eta_1 - eta_0) / (u1 - u0)
                 u0 = u1
                 eta_0 = eta_1
 
@@ -507,14 +507,15 @@ class DescendantKWall(KWall):
         return [u_0, eta_0, d_eta_0, c_c_0]
 
 
-def k_wall_pf_ode_f(t, y, pf_matrix, trajectory_singularity_threshold, theta):
+def k_wall_pf_ode_f(t, y, pf_matrix, trajectory_singularity_threshold, theta, \
+                    kwall):
     u, eta, d_eta, c_c = y 
     matrix = pf_matrix(u)
 
     det_pf = abs(det(matrix))
     if det_pf > trajectory_singularity_threshold:
-        self.singular = True
-        self.singular_point = u
+        kwall.singular = True
+        kwall.singular_point = u
 
     # A confusing point to bear in mind: here we are solving the 
     # ode with respect to time t, but d_eta is understood to be 
