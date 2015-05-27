@@ -1242,11 +1242,11 @@ if __name__=="__main__":
     #wmodel=WeierstrassProto([-1.0],[rot**2*1.0,0,0])
     dnum=1
     
-    animate_roots_and_angles_path(wmodel,dnum,2,3,\
+    animate_roots_and_angles_path(wmodel,dnum,4,3,\
                                  timesteps=5000,steps=120,\
                                  path=None,breaks=None)
 
-    mon1 = monodromy_at_point_wmodel(0,wmodel,5000,5000,option='p')
+    # mon1 = monodromy_at_point_wmodel(0,wmodel,5000,5000,option='p')
 
     mon2 = monodromy_at_point_wmodel(1,wmodel,5000,5000,option='p')
 
