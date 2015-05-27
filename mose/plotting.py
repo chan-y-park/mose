@@ -39,7 +39,11 @@ class KWallNetworkPlot(TkNetworkPlot if use_tk is True else AggNetworkPlot):
             joints.append([ip.locus.real, ip.locus.imag])
             labels['joints'].append("intersection point #{}".format(i))
         for i, wall in enumerate(k_wall_network.k_walls):
-            labels['walls'].append("K-wall #{}".format(i))
+            kwall_label = "K-wall #" + str(i) \
+                        + "\nInitial charge: " + str(wall.charge(0)) \
+                        + "\nDegeneracy: " + str(wall.degeneracy)
+            labels['walls'].append(kwall_label)
+            # labels['walls'].append("K-wall #{}".format(i))
 
         super(KWallNetworkPlot, self).draw(
             phase=k_wall_network.phase,

@@ -17,7 +17,7 @@ from scipy import interpolate
 
 from branch import BranchPoint, minimum_distance
 from misc import complexify, sort_by_abs, left_right, clock, order_roots, \
-                periods_relative_sign
+                periods_relative_sign, data_plot
 from monodromy import charge_monodromy
 
 class KWall(object):
@@ -187,32 +187,17 @@ trajectory!" % (sp[0], sp[-1])
 
         theta = self.phase
 
-        def deriv(t, y):
-            u, eta, d_eta, c_c = y 
-
-            matrix = self.fibration.pf_matrix(u)
-            det_pf = abs(det(matrix))
-            if det_pf > trajectory_singularity_threshold:
-                self.singular = True
-                self.singular_point = u
-
-            # A confusing point to bear in mind: here we are solving the 
-            # ode with respect to time t, but d_eta is understood to be 
-            # (d eta / d u), with its own  appropriate b.c. and so on!
-            ### NOTE THE FOLLOWING TWO OPTIONS FOR DERIVATIVE OF u
-            u_1 = exp( 1j * ( theta + pi ) ) / eta
-            # u_1 = exp( 1j * ( theta + pi - cmath.phase( eta ) ) )
-            eta_1 = u_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
-            d_eta_1 = u_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
-            d_c_c = u_1 * eta_1
-            return  array([u_1, eta_1, d_eta_1, d_c_c])
+        ode = scipy.integrate.ode(k_wall_pf_ode_f)
+        ode.set_integrator("zvode", **ode_kwargs)
 
         y_0 = self.pf_boundary_conditions
+        # print "Boundary conditions for PF evolution: \n%s" % y_0
         ### y_0 contains the following:
         ### [u_0, eta_0, d_eta_0, central_charge_0]
-        ode = scipy.integrate.ode(deriv)
-        ode.set_integrator("zvode", **ode_kwargs)
         ode.set_initial_value(y_0)
+
+        matrix = self.fibration.pf_matrix
+        ode.set_f_params(matrix, trajectory_singularity_threshold, theta, self)
 
         step = 0
         i_0 = len(self.coordinates)
@@ -234,6 +219,30 @@ trajectory!" % (sp[0], sp[-1])
             self.periods.resize(i_0 + step)
 
         self.check_cuts()
+
+        #### An alternative method of computing the central charge
+        self.central_charge_alt =  [0.0]
+
+        # print "PERIODS\n%s" % self.periods
+
+        for i in range(len(self.coordinates[:-1])):
+            du = complexify(self.coordinates[i+1]) \
+                 - complexify(self.coordinates[i])
+            eta_avg = 0.5 * (self.periods[i+1] + self.periods[i])
+            c_c = complex(self.central_charge_alt[-1] + eta_avg * du)
+            # print "integration data: \ndu = %s\neta_avg = %s\nc_c = %s" % (du, eta_avg, c_c)
+            self.central_charge_alt.append(c_c) 
+
+    def plot_periods(self):
+        data_plot(self.periods, "periods of dx/y")
+        # rescaled_list = [((self.periods[i+1] - self.periods[i]) \
+        #               * (complexify(self.coordinates[i+1]) - complexify(self.coordinates[i]))) \
+        #               for i in range(len(self.periods)-1)]
+        # data_plot(rescaled_list, "periods of dx/y")
+
+    def plot_central_charge(self):
+        data_plot(self.central_charge, "central charges")
+
 
 
 class PrimaryKWall(KWall):
@@ -266,14 +275,14 @@ class PrimaryKWall(KWall):
         Implementation of the ODE for evolving primary walls, 
         valid in neighborhood of an A_1 singularity. 
         """
-        g2 = self.fibration.num_g2
-        g3 = self.fibration.num_g3
+        w_f = self.fibration.num_f
+        w_g = self.fibration.num_g
         theta = self.phase
         u0, sign = initial_condition
         u = sym.Symbol('u')
         x = sym.Symbol('x')
 
-        eq = 4 * x ** 3 - g2 * x - g3
+        eq = x ** 3 + w_f * x + w_g
         sym_roots = sym.simplify(sym.solve(eq, x))
         e1, e2, e3 = sym_roots
         distances = map(abs, [e1-e2, e2-e3, e3-e1])
@@ -293,7 +302,7 @@ class PrimaryKWall(KWall):
         f2_0 = complex(f2.subs(u, u0))
         f3_0 = complex(f3.subs(u, u0))
 
-        ellipk_period = ((f3_0 - f1_0) ** (-0.5)) * pi / 2.0
+        ellipk_period = 4.0 * ((f3_0 - f1_0) ** (-0.5)) * pi / 2.0
 
         ### The 'sign' variable only fixes the charge of the K-wall.
         ### In contrast, the actual sign of the period should be determined 
@@ -306,9 +315,10 @@ class PrimaryKWall(KWall):
 
         eta_0 = (period_sign) * ellipk_period
 
-        print "\nThe initial value of eta_\gamma for this Kwall is : %s" % eta_0
+        print "\nThe initial value of eta_\gamma for this Kwall is : %s" \
+                                                                    % eta_0
         print "\nThe reference value of eta_\gamma for this Kwall is : %s\n" \
-                                    % (rel_sign * self.reference_initial_period)
+                                % (rel_sign * self.reference_initial_period)
 
         # The initial evolution of primary kwalls is handled with an
         # automatic tuning.
@@ -330,6 +340,7 @@ class PrimaryKWall(KWall):
             if i == max_num_steps -1:
                 break
             u1 = u0 + size_of_step * exp(1j*(theta + pi - cmath.phase(eta_0)))
+            # u1 = u0 + size_of_step * exp(1j*(theta + pi)) /  (10 * eta_0)
 
             f1, f2, f3 = map(lambda x: x.subs(u, u1), sym_roots)
             roots = [complex(f1), complex(f2), complex(f3)]
@@ -362,10 +373,13 @@ class PrimaryKWall(KWall):
         for i in range(len(self.coordinates[:-1])):
             du = complexify(self.coordinates[i+1]) \
                  - complexify(self.coordinates[i])
-            eta_avg = 0.5 * (self.periods[i+1] - self.periods[i])
+            eta_avg = 0.5 * (self.periods[i+1] + self.periods[i])
             c_c = complex(self.central_charge[-1] + eta_avg * du)
-            # print "integration data: \ndu = %s\neta_avg = %s\nc_c = %s" % (du, eta_avg, c_c)
+            # print "\nu = %s\ndu = %s\neta_avg = %s\nZ = %s" % (self.coordinates[i], du, eta_avg, c_c)
             self.central_charge.append(c_c) 
+
+        # print "\nThe last pedestrian central charge is\
+        # \nZ = %s\nu = %s" % (self.central_charge[-1], self.coordinates[-1])
 
         self.pf_boundary_conditions = [u1, eta_1, eta_prime_1, c_c]
         
@@ -491,3 +505,27 @@ class DescendantKWall(KWall):
               + central_charge_2 * complex(charge[1])  
 
         return [u_0, eta_0, d_eta_0, c_c_0]
+
+
+def k_wall_pf_ode_f(t, y, pf_matrix, trajectory_singularity_threshold, theta, \
+                    kwall):
+    u, eta, d_eta, c_c = y 
+    matrix = pf_matrix(u)
+
+    det_pf = abs(det(matrix))
+    if det_pf > trajectory_singularity_threshold:
+        kwall.singular = True
+        kwall.singular_point = u
+
+    # A confusing point to bear in mind: here we are solving the 
+    # ode with respect to time t, but d_eta is understood to be 
+    # (d eta / d u), with its own  appropriate b.c. and so on!
+    ### NOTE THE FOLLOWING TWO OPTIONS FOR DERIVATIVE OF u
+    u_1 = exp( 1j * ( theta + pi ) ) / eta
+    # u_1 = exp( 1j * ( theta + pi - cmath.phase( eta ) ) )
+    eta_1 = u_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
+    d_eta_1 = u_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
+    c_c_1 = u_1 * eta
+    return  array([u_1, eta_1, d_eta_1, c_c_1])
+
+

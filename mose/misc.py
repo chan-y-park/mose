@@ -9,7 +9,7 @@ from sympy import mpmath as mp
 from operator import itemgetter
 from scipy.integrate import quad as n_int
 from cmath import pi, exp, phase, sqrt
-
+import matplotlib.pyplot as plt
 
 def complexify(y):
     """ complexifies an array of two reals """
@@ -156,32 +156,43 @@ def cut_singular_k_wall(k_wall):
     k_wall.periods = periods[0:i_0]
 
 
-def integrand_A(*args):
+def integrand(*args):
+    """
+    2/sqrt{(x-a)(x-b)(x-c)} for x along the line connecting a and b, 
+    with a choice of branch cuts.
+    """
     x, a, b, c = [complex(v) for v in args]
-    arg_c = (phase(x-c)+pi)/2.0
-    return -1/(sqrt(abs(x-a)*abs(x-b)*abs(x-c))*(1j)*exp(1j*arg_c))
+    theta_a = phase(x-a)
+    theta_b = phase(x-b)
+    # Move the branch cut
+    phase_x_c = phase(x-c)
+    if phase_x_c < 0:
+        theta_c = phase_x_c + 2*pi
+    else:
+        theta_c = phase_x_c
+    return 2/(sqrt(abs(x-a)*abs(x-b)*abs(x-c)) *
+              exp(1.0j*(theta_a + theta_b + theta_c)/2.0))
 
-
-def integrand_B(*args):
-    x, a, b, c = [complex(v) for v in args]
-    arg_a = phase((x-a)/(a-b))/2
-    arg_b = phase((x-b)/(a-b))/2
-    arg_c = (phase(x-c)+pi)/2.0
-    return 1/(sqrt(abs(x-a)*abs(x-b)*abs(x-c)) * 
-              exp(1.0j*(arg_a + arg_b + arg_c)))
-
-
+# XXX: Consider a factor of 2 from (y^2 = 4x^3 + ...) vs (y^2 = x^3 + ...)
 def period_A(a, b, c):
-    fr = lambda t: ((a-b) * integrand_A(b+(a-b)*t, a, b, c)).real
-    fi = lambda t: ((a-b) * integrand_A(b+(a-b)*t, a, b, c)).imag
+    """
+    Calculate \int_b^a 2/sqrt{(x-a)(x-b)(x-c)} dx
+    """
+    # x = b + (a-b)*t, t \in [0, 1].
+    fr = lambda t: ((a-b) * integrand(b+(a-b)*t, a, b, c)).real
+    fi = lambda t: ((a-b) * integrand(b+(a-b)*t, a, b, c)).imag
     r_part, r_error = n_int(fr, 0, 1)
     i_part, i_error = n_int(fi, 0, 1)
     return (r_part + 1j*i_part, r_error, i_error)
 
 
 def period_B(a, b, c):
-    fr = lambda t: ((c-b) * integrand_B(b+(c-b)*t, a, b, c)).real
-    fi = lambda t: ((c-b) * integrand_B(b+(c-b)*t, a, b, c)).imag
+    """
+    Calculate \int_b^c 2/sqrt{(x-a)(x-b)(x-c)} dx
+    """
+    # x = b + (c-b)*t, t \in [0, 1].
+    fr = lambda t: ((c-b) * integrand(b+(c-b)*t, a, b, c)).real
+    fi = lambda t: ((c-b) * integrand(b+(c-b)*t, a, b, c)).imag
     r_part, r_error = n_int(fr, 0, 1)
     i_part, i_error = n_int(fi, 0, 1)
     return (r_part + 1j*i_part, r_error, i_error)
@@ -212,29 +223,42 @@ def periods_relative_sign(p_1, p_2):
 
     if trouble != ' ':
         print "\nWARNING: could not reliably determine the positive period, \
-                \n due to: " + trouble
+                \ndue to: " + trouble
 
     return sign
 
-def check_marginal_stabiliy_condition(parents, indices):
+def check_marginal_stabiliy_condition(intersection):
     ### Enable the code below, once the computation of 
     ### central charges is implemented.
 
-    kwall_1 = parents[0]
-    kwall_2 = parents[1]
-    index_1 = indices[0]
-    index_2 = indices[1]
+    kwall_1 = intersection.parents[0]
+    kwall_2 = intersection.parents[1]
+    index_1 = intersection.index_1
+    index_2 = intersection.index_2
+    locus = intersection.locus
 
     Z_1 = kwall_1.central_charge[index_1]
     Z_2 = kwall_2.central_charge[index_2]
 
+    Z_1_alt = kwall_1.central_charge_alt[index_1]
+    Z_2_alt = kwall_2.central_charge_alt[index_2]
+
     if -1.0 * pi / 10 < phase(Z_1 / Z_2) < pi / 10 :
+        print "\nOK: the central charges of kwalls %s do align\
+               \nat their intersection u = %s. \
+               \nIn fact, they are:\
+               \nZ_1 = %s\nZ_2 = %s\n" % ([kwall_1, kwall_2], locus, Z_1, Z_2)
+        print "The alternative central charges read: \nZ_1 = %s\nZ_2 = %s\n" \
+                % (Z_1_alt, Z_2_alt)
         pass
     else:
         ### the phase discrepancy is too large to be on a MS wall
         print "\nWARNING: the central charges of kwalls %s do not align\
-               \nat their intersection. In fact, they are:\
-               \nZ_1 = %s\nZ_2 = %s\n" % (parents, Z_1, Z_2)
+               \nat their intersection u = %s. \
+               \nIn fact, they are:\
+               \nZ_1 = %s\nZ_2 = %s\n" % ([kwall_1, kwall_2], locus, Z_1, Z_2)
+        print "The alternative central charges read: \nZ_1 = %s\nZ_2 = %s\n" \
+                % (Z_1_alt, Z_2_alt)
 
     # pass
 
@@ -260,4 +284,95 @@ def sort_parent_kwalls(parents, indices):
         return [kwall_2, kwall_1]
 
     # return parents
+
+
+def data_plot(cmplx_list, title):
+    """
+    Plot the real and imaginary parts of 
+    a list of complex numers
+    """
+
+    l = len(cmplx_list)
+    r_list = [x.real for x in cmplx_list]
+    i_list = [x.imag for x in cmplx_list]
+
+    plt.figure(1)
+
+    plt.subplot(211)
+    plt.plot(r_list, "r.")
+    r_delta = abs(max(r_list)-min(r_list))
+    plt.axis([0.0, float(l), min(r_list) - 0.15 * r_delta, \
+                             max(r_list) + 0.15 * r_delta])
+    plt.ylabel("real part")
+    plt.title(title)
+
+    plt.subplot(212)
+    plt.plot(i_list, "r.")
+    i_delta = abs(max(i_list)-min(i_list))
+    plt.axis([0.0, float(l), min(i_list) - 0.15 * i_delta, \
+                             max(i_list) + 0.15 * i_delta])
+    plt.ylabel("imaginary part")
+    plt.title(title)
+    
+    plt.show()
+
+
+def path_derivative(u, u_i, u_f):
+    """
+    This function returns the derivative du/dt 
+    for the path u(t) that is to be used for 
+    computing the positive period via PF transport
+    from the basepoint.
+
+    parameters:
+    -----------
+
+    u = point of evaluation
+    u_i = the initial basepoint
+    u_f = the final point (the disc. locus)
+
+    the output:
+    -----------
+
+    it will give a potivive real derivative 
+    until Re(u) reaches Re(u_f).
+    Then it will give a positive imaginary
+    derivative, until Im(u) reaches Im(u_f).
+    In this way, an L-shaped path is produced
+    """
+
+    epsilon = 0.1
+
+    if u_i.real < u_f.real and u_i.imag < u_f.imag:
+        if u.real < u_f.real:
+            return epsilon
+        elif u.imag < u_f.imag:
+            return epsilon * 1j
+        else: 
+            return 0
+
+    elif u_i.real < u_f.real and u_i.imag > u_f.imag:
+        if u.real < u_f.real:
+            return epsilon
+        elif u.imag > u_f.imag:
+            return -1 * epsilon * 1j
+        else: 
+            return 0
+
+    if u_i.real > u_f.real and u_i.imag < u_f.imag:
+        if u.real > u_f.real:
+            return -1 * epsilon
+        elif u.imag < u_f.imag:
+            return epsilon * 1j
+        else: 
+            return 0
+
+    if u_i.real > u_f.real and u_i.imag > u_f.imag:
+        if u.real > u_f.real:
+            return -1 * epsilon
+        elif u.imag > u_f.imag:
+            return -1 * epsilon * 1j
+        else: 
+            return 0    
+
 

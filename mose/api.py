@@ -61,8 +61,8 @@ def analysis(config, phase=None,):
     ode_num_steps = config['ODE']['num_steps']
 
     fibration = EllipticFibration(
-        config['fibration']['g2'],
-        config['fibration']['g3'],
+        config['fibration']['f'],
+        config['fibration']['g'],
         config['fibration parameters'],
         ### Enable the following line to switch-off automatic monodromy
         ### determination via weierstrass.py, and use instead the 

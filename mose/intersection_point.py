@@ -38,7 +38,7 @@ class IntersectionPoint:
 
         self.parents = sort_parent_kwalls(parents, [self.index_1, self.index_2])
 
-        check_marginal_stabiliy_condition(parents, [self.index_1, self.index_2])
+        check_marginal_stabiliy_condition(self)
 
         self.charges = {str(self.parents[0].charge(self.index_1)),
                         str(self.parents[1].charge(self.index_2))}
