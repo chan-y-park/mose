@@ -88,7 +88,7 @@ class NetworkPlot(object):
         # for artists of the current axes.
         self.data_cursor = mpldatacursor.datacursor(
             axes=self.plots[self.current_plot_idx],
-            formatter='{label}'.format,
+            formatter='{label}\nx={x:.3e}, y={y:.3e}'.format,
             tolerance=4,
             hover=True,
             #display='single',
