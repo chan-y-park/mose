@@ -52,6 +52,8 @@ class KWall(object):
         #self.label = label
         self.singular = False
         self.cuts_intersections = []
+        self.splittings = None
+        self.local_charge = None
 
     # def __str__(self):
     #     return ('KWall info: initial charge {}, '
