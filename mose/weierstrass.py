@@ -455,12 +455,12 @@ def sample_path_data(dLoc):
     """
     min_y = min([loc.imag for loc in dLoc])
     spacing = 0.45*min([dLoc[i+1].real-dLoc[i].real for i in range(len(dLoc)-1)])
-    # initPoint = 1j*(min_y-5*spacing)+(dLoc[0].real-2*spacing)
+    initPoint = 1j*(min_y-5*spacing)+(dLoc[0].real-2*spacing)
     # ###
     # max_spacing = max([dLoc[i+1].real-dLoc[i].real for i in range(len(dLoc)-1)])
     # initPoint = 1j*(min_y - 1.1 * max_spacing)+(dLoc[0].real-1.1 * max_spacing)
     # ###
-    initPoint = 0.5 - 1.0 * 1j
+    # initPoint = 0.5 - 1.0 * 1j
     min_len=np.absolute(dLoc[0]-dLoc[1])
     for c in combinations(dLoc,2):
         min_len=min(min_len,np.absolute(c[0]-c[1]))
