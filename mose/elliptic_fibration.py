@@ -49,33 +49,77 @@ class EllipticFibration:
         u = sympy.Symbol('u')
         self.f_coeffs = map(complex, sympy.Poly(self.num_f, u).all_coeffs())
         self.g_coeffs = map(complex, sympy.Poly(self.num_g, u).all_coeffs())
-        
-        # Converting from
-        #   y^2 = 4 x^3 - g_2 x - g_3
-        # to 
-        #   y^2 = x^3 + f x + g
-        # f_coeffs = numpy.poly1d(self.g2_coeffs, variable='u') * (-1 / 4.0)
-        # g_coeffs = numpy.poly1d(self.g3_coeffs, variable='u') * (-1 / 4.0)
-
-        self.w_model = wss.WeierstrassModelWithPaths(self.f_coeffs, \
-                                                     self.g_coeffs)
 
         # We will work with the convention that the DSZ matrix is fixed to be
         # the following. Must keep this attribute of the class, as it will be 
         # used when computing the KSWCF for new Kwalls.
         self.dsz_matrix = [[0, 1], [-1, 0]]
-       
-        branch_point_loci = list(self.w_model.get_D().r)
 
+        ### The following variable is true as long as all the
+        ### branch point monodromies are computed using the 
+        ### SAME rotation of the x-plane.
+        ### It's important that the rotation be the same, because
+        ### a rotation may interchange the positions of, say e_1,e_2
+        ### resulting in a change of basis in which we express the 
+        ### monodromies. As long as we have the same basis for all
+        ### monodromies, we are good.
+        x_rotation_consistency_check = True
+
+        rotation_n = 10
+        zeta = numpy.exp(2 * numpy.pi * 1j / rotation_n)
+
+        for i in range(rotation_n):
+            phase = zeta ** (i)
+            
+            r_num_f = self.sym_f.subs(self.params) / (phase ** 2)
+            r_num_g = self.sym_g.subs(self.params) / (phase ** 3)
+
+            r_f_coeffs = map(complex, sympy.Poly(r_num_f, u).all_coeffs())
+            r_g_coeffs = map(complex, sympy.Poly(r_num_g, u).all_coeffs())
+
+            self.w_model = wss.WeierstrassModelWithPaths(r_f_coeffs, \
+                                                                r_g_coeffs)
+
+            print "I have rotated the x-plane %s times so far." % i
+            print "\nf = %s\n\ng = %s\n" % \
+                                                (numpy.poly1d(r_f_coeffs), \
+                                                numpy.poly1d(r_g_coeffs) \
+                                                )
+
+            branch_point_loci = list(self.w_model.get_D().r)
+
+            branch_point_monodromies = [
+                wss.monodromy_at_point_wmodel(i, self.w_model) 
+                for i in range(len(branch_point_loci))
+            ]
+            
+            x_rotation_consistency_check = \
+                                    self.w_model.x_rotation_consistency_check
+
+            ### If, after the i-th rotation, we do have consistency,
+            ### we can eventually exit the cycle.
+            if x_rotation_consistency_check == True:
+                self.x_rotation = phase
+                break
+            else:
+                if i == rotation_n - 1:
+                    raise ValueError('Rotated a full 2pi angle, and couldnt '+\
+                                    'compute the braiding!')
+                else:
+                    print "\n\
+                    *************************************\n\
+                    Having trouble tracking root braiding\n\
+                            Will rotate the x-plane      \n\
+                    *************************************\n"
         
-        ### Calculate branch point charges using weierstrss.py
-        ### If trouble is encountered, can resort to the patch commented below.
-        ###
-        branch_point_monodromies = [
-            wss.monodromy_at_point_wmodel(i, self.w_model) 
-            for i in range(len(branch_point_loci))
-        ]
-        
+        ### Now we update the f,g of the fibration class:
+        self.sym_f = sympy.sympify(self.f) / (phase ** 2)
+        self.num_f = self.sym_f.subs(self.params)
+        self.sym_g = sympy.sympify(self.g) / (phase ** 3)
+        self.num_g = self.sym_g.subs(self.params)
+        self.f_coeffs = map(complex, sympy.Poly(self.num_f, u).all_coeffs())
+        self.g_coeffs = map(complex, sympy.Poly(self.num_g, u).all_coeffs())
+
         branch_point_charges = [
             monodromy_eigencharge(m) for m in branch_point_monodromies
         ]
@@ -297,7 +341,9 @@ def monodromy_eigencharge(monodromy):
     #     n = n_temp
     # return (int(m), int(n))
 
-    eigen_syst = LA.eig(monodromy)
+    transpose_m = monodromy.transpose()
+
+    eigen_syst = LA.eig(transpose_m)
     eigen_vals = eigen_syst[0]
     eigen_vects = eigen_syst[1].transpose()
 
