@@ -183,7 +183,7 @@ trajectory!" % (sp[0], sp[-1])
             # Don't grow this K-wall, exit immediately.
             return None
 
-        singularity_check= False
+        # singularity_check= False
 
         theta = self.phase
 
@@ -304,21 +304,12 @@ class PrimaryKWall(KWall):
 
         ellipk_period = 4.0 * ((f3_0 - f1_0) ** (-0.5)) * pi / 2.0
 
-        ### The 'sign' variable only fixes the charge of the K-wall.
-        ### In contrast, the actual sign of the period should be determined 
-        ### by comparing with the PF-evolution of the cycle as computed at
-        ### the basepoint for monodromy computations.
+        ### The 'sign' variable fixes both the charge and the period 
+        ### of the K-wall, relative to those of the discriminant locus 
+        ### from which it emanates.
+        eta_0 = sign * self.parents[0].hair.periods[0]
+        self.initial_charge = list(round(sign) * array(self.parents[0].charge))
         
-        rel_sign = periods_relative_sign(ellipk_period, \
-                                          self.reference_initial_period)
-        period_sign = sign * rel_sign
-
-        eta_0 = (period_sign) * ellipk_period
-
-        print "\nThe initial value of eta_\gamma for this Kwall is : %s" \
-                                                                    % eta_0
-        print "\nThe reference value of eta_\gamma for this Kwall is : %s\n" \
-                                % (rel_sign * self.reference_initial_period)
 
         # The initial evolution of primary kwalls is handled with an
         # automatic tuning.
@@ -347,7 +338,7 @@ class PrimaryKWall(KWall):
             # print "ROOTS %s" % roots
 
             segment = [u0, u1]
-            try_step = order_roots(roots, segment, period_sign, theta)
+            try_step = order_roots(roots, segment, sign, theta)
             # check if root tracking is no longer valid
             if try_step == 0: 
                 break
@@ -378,27 +369,7 @@ class PrimaryKWall(KWall):
             # print "\nu = %s\ndu = %s\neta_avg = %s\nZ = %s" % (self.coordinates[i], du, eta_avg, c_c)
             self.central_charge.append(c_c) 
 
-        # print "\nThe last pedestrian central charge is\
-        # \nZ = %s\nu = %s" % (self.central_charge[-1], self.coordinates[-1])
-
         self.pf_boundary_conditions = [u1, eta_1, eta_prime_1, c_c]
-        
-
-        ### Now we need to find the correct initial charge for the K-wall.
-        ### The parent branch point gives such data, but with ambiguity on the 
-        ### overall sign. This is fixed by comparing the period of the 
-        ### holomorphic differential along the vanishing cycle with the 
-        ### corresponding period as evolved via PF from the basepoint on the 
-        ### u-plane where we trivialized the charge lattice, which we used to 
-        ### compute monodromies.
-        parent_bp = self.parents[0]
-        positive_period = parent_bp.positive_period
-        positive_charge = parent_bp.charge
-        kwall_period = self.periods[0]      # this period is used for evolution
-        kwall_sign = ((kwall_period / positive_period).real /
-                      abs((kwall_period / positive_period).real))
-        kwall_charge = list(int(kwall_sign) * array(positive_charge))
-        self.initial_charge = kwall_charge
 
 
 class DescendantKWall(KWall):

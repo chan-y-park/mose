@@ -189,14 +189,20 @@ class WeierstrassModelWithPaths(WeierstrassModel):
         else:
             self.path_data=path_data
         init_p = self.path_data[1]
+        
+        ### Will declare once and for all the basepoint that is chosen 
+        ### to compute monodromies and hence trivialize the lattice 
+        ### fibration. All charges are expressed in terms of periods
+        ### of the lattice at this point!
+        self.base_point = init_p
+        
         init_poly = np.poly1d([1,0,self.f(init_p),self.g(init_p)])
         self.init_rts = sorted(init_poly.r,cmp=real_part)        
         self.paths=[]
         self.paths_for_periods = []
         for loc in self.disc_locus:
             self.paths.append(construct_path(loc,self.path_data))
-            self.paths_for_periods.append(construct_path_for_periods(\
-                                                        loc, self.path_data))
+
         self.x_rotation_consistency_check = True
         
 
@@ -508,52 +514,7 @@ def construct_path(d,path_data):
     path.append(d-edge-(1j)*edge)
     path.append(d-delta-(1j)*edge)  
 
-    return path        
-
-
-
-def construct_path_for_periods(d, path_data):
-    """
-    construct_path(d,path_data)
-    
-    constructs the path for tracking the evolution
-    of the periods from the basepoint to a locus "d" 
-    of a Weierstrass model.
-    The paths are pickd in such a way to avoid branch 
-    cuts, which are assumed to extend vertically above 
-    each discriminan locus.
-    
-    Parameters
-    ----------
-    d: discriminant locus (complex number)
-    path_data: a list of path data. path_data[0]
-    is the "spacing." path_data[1] is the starting
-    point of the path. path_data[2] is the minimum
-    distance between roots.
-    
-    Returns
-    -------
-    path
-    
-    path is a list of three points whose
-    entries are complex numbers denoting a point
-    of the segment. 
-    The path has an 'L'-shape, starting with path[0],
-    evolving horizontally to path[1], then turning 
-    vertical and evolving upwards to path[2].
-    """
-    
-    delta, start, edge = path_data
-    edge *= 0.8*np.sqrt(0.5)
-    path = []
-    
-    path.append(start)
-    path.append(1j*start.imag + d.real)
-    path.append(d)  
-
-    return path        
-
-        
+    return path                
 
 #### Functions related to monodromy ####
 

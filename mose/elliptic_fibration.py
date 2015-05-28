@@ -26,7 +26,7 @@ from cmath import exp, pi
 from numpy import array, linspace
 from numpy.linalg import det
 from operator import itemgetter
-from misc import path_derivative, data_plot
+from misc import path_derivative, data_plot, complexify
 
 
 NEGLIGIBLE_BOUND = 0.1**12
@@ -174,26 +174,33 @@ class EllipticFibration:
                     bp_identifiers[i],
                 )
             )
-        ### Now determine the "positive periods" of the holomorphic form
-        ### on the pinching (gauge) cycle for each branch point.
-        ### This will be used to fix the sign ambiguity on the charges of
-        ### primary K walls.    
-        branch_point_positive_periods = [
-            positive_period(i, branch_point_charges[i], self.w_model, self)
-            for i in range(len(branch_point_loci))
-        ]
 
-
+        
         self.branch_points = [
             BranchPoint(
                 locus=branch_point_loci[i],
                 positive_charge=branch_point_charges[i], 
                 monodromy_matrix=branch_point_monodromies[i],
-                positive_period=branch_point_positive_periods[i],
                 identifier=bp_identifiers[i],
+                fibration = self,
             )
             for i in range(len(branch_point_loci))
         ]
+
+        ### Now determine the "positive periods" of the holomorphic form
+        ### on the pinching (gauge) cycle for each branch point.
+        ### This will be used to fix the sign ambiguity on the charges of
+        ### primary K walls.    
+        for bp in self.branch_points:
+            ### It is necessary to grow hair before computing the 
+            ### reference period, because the latter will be determined 
+            ### by comparison with the period at the tip of the hair.
+            ### The hair growth will make use of the pf_matrix of the
+            ### elliptic fibration, hence of f, g; therefore this 
+            ### should be called only after no more rotations of the 
+            ### x-plane are necessary.
+            bp.grow_hair()
+            bp.determine_positive_period(reference_period(bp))
 
 #        self.branch_cuts = [
 #            BranchCut(bp) 
@@ -400,7 +407,129 @@ def monodromy_eigencharge(monodromy):
     
 
 
-def positive_period(n, charge, w_model, fibration): 
+# def positive_period(n, charge, w_model, fibration): 
+#     """ 
+#     Detemine the period of the holomorphic one form dx / y along the
+#     cycle that pinches at a given discriminant locus (the n-th).
+#     Uses Picard-Fuchs evolution and initial values of the periods (1,0) and
+#     (0,1) determined at the basepoint used to compute all the monodromies.
+#     """
+    
+#     print "\n******************************************\
+#            \nEvolving periods for discriminant locus %s\
+#            \n******************************************\n" % n
+
+#     ### Setting up the path of integration. Since PF blows up
+#     ### at the discriminant locus (although the period does not)
+#     ### we will not get exactly to the locus.
+#     u0, u1, u2 = w_model.paths_for_periods[n]
+#     # path = [u0 + (u1 - u0) * x for x in numpy.linspace(0.0,1.0,1000)] + \
+#     #        [u1 + (u2 - u1) * x for x in numpy.linspace(0.0,1.0,1000)]
+#     # nint_range = len(path)
+
+    
+#     # Notation: using "eta" for the period of (1,0), using "beta" for (0,1)
+#     period_data = w_model.compute_initial_periods()
+#     eta_0 = period_data[0]
+#     eta_prime_0 = period_data[1]
+#     beta_0 = period_data[2]
+#     beta_prime_0 = period_data[3]
+
+#     # print "\nThe integration path\
+#     #        \n--------------------\
+#     #        \n%s" % path
+
+#     print "\nu_0, eta_0, beta_0:\n%s\n" % [u0, eta_0, beta_0]
+
+#     def deriv(t, y):
+#         u, eta, d_eta = y 
+
+#         matrix = fibration.pf_matrix(u)
+#         det_pf = abs(det(matrix))
+#         # print "u = %s" % u
+#         # print "eta = %s" % eta
+#         # print "d_eta = %s" % d_eta
+#         # print "Jacobian determinant : %s" % det_pf
+#         ###
+#         ### MOVE THIS PARAMETER ELSEWHERE !!!
+#         ###
+#         trajectory_singularity_threshold = 10**3
+#         ###
+#         if det_pf > trajectory_singularity_threshold:
+#             singularity_check = True
+#             print "\n**************\nhit the singularity threshold!\n**************\n"
+
+#         ### A confusing point to bear in mind: here we are solving the 
+#         ### ode with respect to time t, but d_eta is understood to be 
+#         ### (d eta / d u), with its own  appropriate b.c. and so on!
+#         u_1 = path_derivative(u, u0, u2)
+#         eta_1 = u_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
+#         d_eta_1 = u_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
+#         return  array([u_1, eta_1, d_eta_1])
+#         # u_1 = (path[int(math.floor(t+1))] - path[int(math.floor(t))]) / 1.0
+#         # eta_1 = u_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
+#         # d_eta_1 = u_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
+#         # return  array([u_1, eta_1, d_eta_1])
+
+#     # singularity_check = False
+#     ode = scipy.integrate.ode(deriv)
+#     ode.set_integrator("zvode")
+#     ###
+#     ### DEFINE THIS PARAMETER ELSEWHERE !!!
+#     ###
+#     dt = 0.01
+#     ### How many steps before reaching the discriminant locus it should stop
+#     ### integrating via PF
+#     # cutoff = 0
+#     # t1 = len(path) - 2 - cutoff
+
+    
+#     recorded_periods = []
+#     recorded_loci = []
+#     recorded_d_eta = []
+
+#     ### the pinching-cycle period at the starting point, 
+#     ### and its derivative
+#     eta_gamma_0 = charge[0] * eta_0 + charge[1] * beta_0
+#     eta_prime_gamma_0 = charge[0] * eta_prime_0 + charge[1] * beta_prime_0
+
+#     ### Now we PF-evolve the period
+#     y_0 = [u0, eta_gamma_0, eta_prime_gamma_0]
+#     ode.set_initial_value(y_0)    
+#     # while ode.successful() and ode.t < t1 and singularity_check == False:
+#     while ode.successful():
+#         u, eta, d_eta = ode.y
+#         recorded_periods.append(eta)
+#         recorded_loci.append(u)
+#         recorded_d_eta.append(d_eta)
+#         ###
+#         ### DEFINE THESE PARAMETERS ELSEWHERE !!!
+#         ###
+#         if abs(u - u2) < 0.01 or abs(d_eta) > 10:
+#             print "\nInterrupting PF transport of period!\n"
+#             break
+#         else:
+#             # print "time: %s" % ode.t
+#             ode.integrate(ode.t + dt)
+
+#     u_f, eta_gamma_f, d_eta_gamma_f = ode.y 
+#     print "u_f = %s" % u_f
+#     print "eta_f = %s\n" % eta_gamma_f
+
+#     data_plot(recorded_loci,"u along PF path")
+#     data_plot(recorded_periods,"eta along PF path")
+#     data_plot(recorded_d_eta,"d_eta along PF path")
+
+#     return eta_gamma_f
+
+
+# # def positive_period(n, charge, w_model, fibration): 
+    
+# #     return 1.0
+
+
+#### SHOULD MOVE THE FOLLOWING ROUTINE TO THE BRANCH.PY MODULE
+def reference_period(branch_point): 
     """ 
     Detemine the period of the holomorphic one form dx / y along the
     cycle that pinches at a given discriminant locus (the n-th).
@@ -410,17 +539,20 @@ def positive_period(n, charge, w_model, fibration):
     
     print "\n******************************************\
            \nEvolving periods for discriminant locus %s\
-           \n******************************************\n" % n
+           \n******************************************\n" % branch_point.count
 
+    charge = branch_point.charge
+    fibration = branch_point.fibration
+    w_model = fibration.w_model
+    
     ### Setting up the path of integration. Since PF blows up
     ### at the discriminant locus (although the period does not)
     ### we will not get exactly to the locus.
-    u0, u1, u2 = w_model.paths_for_periods[n]
-    # path = [u0 + (u1 - u0) * x for x in numpy.linspace(0.0,1.0,1000)] + \
-    #        [u1 + (u2 - u1) * x for x in numpy.linspace(0.0,1.0,1000)]
-    # nint_range = len(path)
+    u0 = w_model.base_point
+    u2 = complexify(branch_point.hair.coordinates[-1])
+    u1 = 1j * u0.imag + u2.real
 
-    
+        
     # Notation: using "eta" for the period of (1,0), using "beta" for (0,1)
     period_data = w_model.compute_initial_periods()
     eta_0 = period_data[0]
@@ -519,3 +651,6 @@ def positive_period(n, charge, w_model, fibration):
 # def positive_period(n, charge, w_model, fibration): 
     
 #     return 1.0
+
+
+
