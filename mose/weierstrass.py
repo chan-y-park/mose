@@ -197,6 +197,7 @@ class WeierstrassModelWithPaths(WeierstrassModel):
             self.paths.append(construct_path(loc,self.path_data))
             self.paths_for_periods.append(construct_path_for_periods(\
                                                         loc, self.path_data))
+        self.x_rotation_consistency_check = True
         
 
     
@@ -297,6 +298,9 @@ class WeierstrassModelWithPaths(WeierstrassModel):
                             complex(rts_0[1]),\
                             complex(rts_0[2])
                             ]
+
+        print "\nordered roots:\n%s" % [e1_0, e2_0, e3_0]
+        # print "\nf :%s\ng : %s\n" % (self.f, self.g)
 
         # # XXX: is this step size(=0.01) enough to calculate 
         # # the derivatives? And what about the phase of the step?
@@ -445,12 +449,12 @@ def sample_path_data(dLoc):
     """
     min_y = min([loc.imag for loc in dLoc])
     spacing = 0.45*min([dLoc[i+1].real-dLoc[i].real for i in range(len(dLoc)-1)])
-    initPoint = 1j*(min_y-5*spacing)+(dLoc[0].real-2*spacing)
+    # initPoint = 1j*(min_y-5*spacing)+(dLoc[0].real-2*spacing)
     # ###
     # max_spacing = max([dLoc[i+1].real-dLoc[i].real for i in range(len(dLoc)-1)])
     # initPoint = 1j*(min_y - 1.1 * max_spacing)+(dLoc[0].real-1.1 * max_spacing)
     # ###
-    # initPoint = 0.5 - 1.0 * 1j
+    initPoint = 0.5 - 1.0 * 1j
     min_len=np.absolute(dLoc[0]-dLoc[1])
     for c in combinations(dLoc,2):
         min_len=min(min_len,np.absolute(c[0]-c[1]))
@@ -615,9 +619,8 @@ def invert_monodromy(MM):
         
         
       
-def monodromy_at_point_via_path(init_root,d,f,g,path_data,\
-                                 ts_ipath=1000,ts_mon=1000,option=None,\
-                            rotation_recursion_level=0, rotation_n=10):
+def monodromy_at_point_via_path(init_root, d, f, g, path_data, w_model,\
+                                 ts_ipath=1000, ts_mon=1000, option=None):
     """
     monodromy_at_point_via_path(init_root,d,f,g,path_data,ts_ipath,ts_mon)
     
@@ -660,14 +663,6 @@ def monodromy_at_point_via_path(init_root,d,f,g,path_data,\
 
     original_init_root = init_root
 
-    rot_rec_lvl = rotation_recursion_level
-    if rot_rec_lvl>0 and rot_rec_lvl<rotation_n:
-        print "I have rotated the x-plane %s times so far." % rot_rec_lvl
-        print "f = \n%s\n\ng = \n%s\n" % (f, g)
-    elif rot_rec_lvl>=rotation_n:
-        raise ValueError('Rotated a full 2pi angle, and couldnt '+\
-            'compute the braiding.')
-
     control_var = 'fine'
     
     segments=len(initial_path)-1
@@ -707,26 +702,13 @@ def monodromy_at_point_via_path(init_root,d,f,g,path_data,\
         return np.dot(MM,invert_monodromy(init_MM))
 
     elif control_var == 'rotate':
-        print "\n\
-            *************************************\n\
-            Having trouble tracking root braiding\n\
-                    Will rotate the x-plane      \n\
-            *************************************\n"
-        zeta = np.exp(2*np.pi*1j/rotation_n)
-        r_f = f / (zeta**2) #[x / (zeta**2) for x in f]
-        r_g = g / (zeta**3) #[x / (zeta**3) for x in f]
-        # print f
-        # print r_f
-        # print init_root
-        # print type(init_root)
-        r_init_root = sorted([(x / zeta) for x in original_init_root], cmp=real_part)
-        # print r_init_root
-        # print type(r_init_root)
-        
-        return monodromy_at_point_via_path(r_init_root, d, r_f, r_g, path_data, \
-                            ts_ipath=ts_ipath,ts_mon=ts_mon,option=option,\
-                            rotation_recursion_level=rot_rec_lvl+1)
-
+        ### Here we trigger a rotation of the x-plane
+        ### this will cause the evaluation of ALL 
+        ### monodromies to start over from scratch.
+        w_model.x_rotation_consistency_check = False
+        # print "need to rotate!!"
+        # print "consistency = %s" % w_model.x_rotation_consistency_check
+        return np.matrix([[0, 0], [0, 0]])
 
             
 def monodromy_at_point_wmodel(n,wmodel,ts_ipath=1000,ts_mon=1000,option=None):
@@ -761,6 +743,7 @@ def monodromy_at_point_wmodel(n,wmodel,ts_ipath=1000,ts_mon=1000,option=None):
                                         wmodel.get_discriminant_locus()[n],\
                                         wmodel.get_f(),wmodel.get_g(),\
                                         wmodel.get_path_data(),\
+                                        wmodel,\
                                         ts_ipath,ts_mon,option)
 
                                             
@@ -1242,11 +1225,11 @@ if __name__=="__main__":
     #wmodel=WeierstrassProto([-1.0],[rot**2*1.0,0,0])
     dnum=1
     
-    animate_roots_and_angles_path(wmodel,dnum,2,3,\
+    animate_roots_and_angles_path(wmodel,dnum,4,3,\
                                  timesteps=5000,steps=120,\
                                  path=None,breaks=None)
 
-    mon1 = monodromy_at_point_wmodel(0,wmodel,5000,5000,option='p')
+    # mon1 = monodromy_at_point_wmodel(0,wmodel,5000,5000,option='p')
 
     mon2 = monodromy_at_point_wmodel(1,wmodel,5000,5000,option='p')
 
