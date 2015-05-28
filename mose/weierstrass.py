@@ -299,7 +299,7 @@ class WeierstrassModelWithPaths(WeierstrassModel):
                             complex(rts_0[2])
                             ]
 
-        print "\nordered roots:\n%s" % [e1_0, e2_0, e3_0]
+        # print "\nordered roots:\n%s" % [e1_0, e2_0, e3_0]
         # print "\nf :%s\ng : %s\n" % (self.f, self.g)
 
         # # XXX: is this step size(=0.01) enough to calculate 
@@ -348,13 +348,13 @@ class WeierstrassModelWithPaths(WeierstrassModel):
         ### is related to period A. That's because
         ### with current conventions <B, A> = +1
 
-        eta_0 = period_B(e1_0, e2_0, e3_0)[0]
-        beta_0 = period_A(e1_0, e2_0, e3_0)[0]
+        eta_0 = period_A(e1_0, e2_0, e3_0)[0]
+        beta_0 = period_B(e1_0, e2_0, e3_0)[0]
 
-        eta_1_x = period_B(e1_1_x, e2_1_x, e3_1_x)[0]
-        beta_1_x = period_A(e1_1_x, e2_1_x, e3_1_x)[0]
-        eta_1_y = period_B(e1_1_y, e2_1_y, e3_1_y)[0]
-        beta_1_y = period_A(e1_1_y, e2_1_y, e3_1_y)[0]
+        eta_1_x = period_A(e1_1_x, e2_1_x, e3_1_x)[0]
+        beta_1_x = period_B(e1_1_x, e2_1_x, e3_1_x)[0]
+        eta_1_y = period_A(e1_1_y, e2_1_y, e3_1_y)[0]
+        beta_1_y = period_B(e1_1_y, e2_1_y, e3_1_y)[0]
 
         eta_prime_x = (eta_1_x - eta_0) / (u_1_x - u_0)
         beta_prime_x = (beta_1_x - beta_0) / (u_1_x - u_0)

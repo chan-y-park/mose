@@ -37,13 +37,13 @@ def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
 class EllipticFibration:
     def __init__(self, w_f, w_g, params, branch_point_charges=None):
 
-        self.f = w_f
-        self.g = w_g
+        # self.f = w_f
+        # self.g = w_g
         self.params = params
 
-        self.sym_f = sympy.sympify(self.f)
+        self.sym_f = sympy.sympify(w_f)
         self.num_f = self.sym_f.subs(self.params)
-        self.sym_g = sympy.sympify(self.g)
+        self.sym_g = sympy.sympify(w_g)
         self.num_g = self.sym_g.subs(self.params)
 
         u = sympy.Symbol('u')
@@ -53,7 +53,7 @@ class EllipticFibration:
         # We will work with the convention that the DSZ matrix is fixed to be
         # the following. Must keep this attribute of the class, as it will be 
         # used when computing the KSWCF for new Kwalls.
-        self.dsz_matrix = [[0, 1], [-1, 0]]
+        self.dsz_matrix = [[0, -1], [1, 0]]
 
         ### The following variable is true as long as all the
         ### branch point monodromies are computed using the 
@@ -113,9 +113,9 @@ class EllipticFibration:
                     *************************************\n"
         
         ### Now we update the f,g of the fibration class:
-        self.sym_f = sympy.sympify(self.f) / (phase ** 2)
+        self.sym_f = sympy.sympify(w_f) / (phase ** 2)
         self.num_f = self.sym_f.subs(self.params)
-        self.sym_g = sympy.sympify(self.g) / (phase ** 3)
+        self.sym_g = sympy.sympify(w_g) / (phase ** 3)
         self.num_g = self.sym_g.subs(self.params)
         self.f_coeffs = map(complex, sympy.Poly(self.num_f, u).all_coeffs())
         self.g_coeffs = map(complex, sympy.Poly(self.num_g, u).all_coeffs())
