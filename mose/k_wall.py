@@ -310,7 +310,7 @@ class PrimaryKWall(KWall):
         ### of the K-wall, relative to those of the discriminant locus 
         ### from which it emanates.
         eta_0 = sign * self.parents[0].hair.periods[0]
-        self.initial_charge = list(round(sign) * array(self.parents[0].charge))
+        self.initial_charge = list(int(round(sign)) * array(self.parents[0].charge))
         
 
         # The initial evolution of primary kwalls is handled with an

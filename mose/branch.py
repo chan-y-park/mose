@@ -59,16 +59,29 @@ class BranchPoint:
             (self.charge, self.locus)
 
     def grow_hair(self):
+        # print "\nprimary growth\n" 
         self.hair = Hair(self)
 
+        # print "\nPF growth\n" 
         trajectory_singularity_threshold = 10 ** 6
         ode_size_of_step = 1e-1
         ode_num_steps = 100
-        self.hair.grow_pf(trajectory_singularity_threshold,
-                    ode_size_of_step,   
-                    ode_num_steps)
+        
+        h_0 = complexify(self.hair.coordinates[0]).imag
+        max_distance = 0.5 * minimum_distance(self.fibration.branch_points)
+        self.hair.grow_pf(
+                        h_0=h_0,
+                        max_distance=max_distance,
+                        trajectory_singularity_threshold=trajectory_singularity_threshold,
+                        ode_size_of_step=ode_size_of_step,   
+                        ode_num_steps=ode_num_steps,
+                        )
 
-        data_plot(self.hair.periods, "Periods along the hair")
+        d_eta_by_d_u = [(self.hair.periods[i+1] - self.hair.periods[i]) \
+                    / (complexify(self.hair.coordinates[i+1]) \
+                    - complexify(self.hair.coordinates[i])) \
+                    for i in range(len(self.hair.coordinates)-1)]
+        data_plot(d_eta_by_d_u, "Periods along the hair")
 
     def determine_positive_period(self, reference_period):
         hair_initial_period = self.hair.periods[0]
@@ -133,9 +146,11 @@ class Hair:
         u = sym.Symbol('u')
         x = sym.Symbol('x')
 
-        eq = x ** 3 + w_f * x + w_g
+        eq = sym.simplify(x ** 3 + w_f * x + w_g)
+        
         sym_roots = sym.simplify(sym.solve(eq, x))
         e1, e2, e3 = sym_roots
+
         distances = map(abs, [e1-e2, e2-e3, e3-e1])
         pair = min(enumerate(map(lambda x: x.subs(u, u0), distances)), 
                     key=itemgetter(1))[0]
@@ -166,7 +181,7 @@ class Hair:
         ### NOTE THESE NUMERICAL CONSTANTS, THEY SHOULD BE THE SAME AS FOR 
         ### PRIMARY KWALLS, SO WHY DON'T WE DEFINE THEM ELSEWHERE?
         ### !!!!!
-        size_of_step = minimum_distance(self.fibration.branch_points)/2000.0
+        size_of_step = minimum_distance(self.fibration.branch_points)/5000.0
         max_num_steps = 400
 
         self.coordinates = numpy.empty((max_num_steps, 2), dtype=float)
@@ -204,12 +219,13 @@ class Hair:
             self.coordinates.resize((last_step, 2))
             self.periods.resize(last_step)
             
-        # print "PERIODS\n%s" % self.periods
-        # print "COORDINATES\n%s" % self.coordinates
+        # print "HAIR PERIODS\n%s" % self.periods
+        # print "HAIR COORDINATES\n%s" % self.coordinates
 
         self.pf_boundary_conditions = [u1, eta_1, eta_prime_1]
     
-    def grow_pf(self, trajectory_singularity_threshold=None,
+    def grow_pf(self, h_0=None, max_distance=None, 
+                trajectory_singularity_threshold=None,
                 ode_size_of_step=None, ode_num_steps=None, **ode_kwargs):
         """ 
         Implementation of the Picard-Fuchs growth of hairs
@@ -232,17 +248,17 @@ class Hair:
 
         step = 0
         i_0 = len(self.coordinates)
+        u = y_0[0]
         if i_0 == 0:
             self.coordinates = numpy.empty((ode_num_steps, 2), dtype=float)
             self.periods = numpy.empty(ode_num_steps, complex)
         elif i_0 > 0:
             self.coordinates.resize((i_0 + ode_num_steps, 2))
             self.periods.resize(i_0 + ode_num_steps)
-        while ode.successful() and step < ode_num_steps:
+        while ode.successful() and step < ode_num_steps \
+                                        and ((h_0 - u.imag) < max_distance):
             u, eta, d_eta = ode.y
-            ### Fixing theta to have downwards evolution for the hair
-            theta = -pi + cmath.phase(eta) - pi / 2
-            ode.set_f_params(matrix, trajectory_singularity_threshold, theta, self)
+            ode.set_f_params(matrix, trajectory_singularity_threshold, self)
             self.coordinates[i_0 + step] = [u.real, u.imag]
             self.periods[i_0 + step] = eta
             ode.integrate(ode.t + ode_size_of_step)
@@ -253,8 +269,7 @@ class Hair:
 
 
     
-def hair_pf_ode_f(t, y, pf_matrix, trajectory_singularity_threshold, theta, \
-                    hair):
+def hair_pf_ode_f(t, y, pf_matrix, trajectory_singularity_threshold, hair):
     u, eta, d_eta = y 
     matrix = pf_matrix(u)
 
@@ -267,7 +282,8 @@ def hair_pf_ode_f(t, y, pf_matrix, trajectory_singularity_threshold, theta, \
     # ode with respect to time t, but d_eta is understood to be 
     # (d eta / d u), with its own  appropriate b.c. and so on!
     ### NOTE THE FOLLOWING TWO OPTIONS FOR DERIVATIVE OF u
-    u_1 = exp( 1j * ( theta + pi ) ) / eta
+    u_1 = exp( 1j * ( -pi / 2 ) ) / abs(eta)
+    # u_1 = exp( 1j * ( theta + pi ) ) / eta
     # u_1 = exp( 1j * ( theta + pi - cmath.phase( eta ) ) )
     eta_1 = u_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
     d_eta_1 = u_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)

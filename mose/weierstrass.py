@@ -455,12 +455,14 @@ def sample_path_data(dLoc):
     """
     min_y = min([loc.imag for loc in dLoc])
     spacing = 0.45*min([dLoc[i+1].real-dLoc[i].real for i in range(len(dLoc)-1)])
-    initPoint = 1j*(min_y-5*spacing)+(dLoc[0].real-2*spacing)
+    # initPoint = 1j*(min_y-5*spacing)+(dLoc[0].real-2*spacing)
     # ###
-    # max_spacing = max([dLoc[i+1].real-dLoc[i].real for i in range(len(dLoc)-1)])
-    # initPoint = 1j*(min_y - 1.1 * max_spacing)+(dLoc[0].real-1.1 * max_spacing)
+    max_spacing = max([dLoc[i+1].real-dLoc[i].real for i in range(len(dLoc)-1)])
+    min_spacing = min([dLoc[i+1].real-dLoc[i].real for i in range(len(dLoc)-1)])
+    initPoint = 1j*(min_y - 1.1 * max_spacing)+(dLoc[0].real-0.2 * min_spacing)
     # ###
     # initPoint = 0.5 - 1.0 * 1j
+    print "The basepoint for the Wmodel is : %s" % initPoint
     min_len=np.absolute(dLoc[0]-dLoc[1])
     for c in combinations(dLoc,2):
         min_len=min(min_len,np.absolute(c[0]-c[1]))
@@ -516,6 +518,69 @@ def construct_path(d,path_data):
 
     return path                
 
+# #### Functions related to monodromy ####
+
+# def monodromy(G):
+#     """
+#     monodromy(G)
+    
+#     computes the monodromy matrix MM
+#     from the braiding array G
+    
+#     Parameter
+#     ---------
+#     G: an array of elements [G_1,G_2,...] of the braid group
+    
+#     Returns
+#     -------
+#     returns MM
+#     MM is a 2x2 matrix representation of the group element
+#     G_1 G_2 ...
+#     i.e.,
+#     MM = rho(G_1).rho(G_2). ....
+#     """
+#     def letter_to_matrix(g):
+#         if g == 'X':
+#             return np.matrix([[-1,0],[1,-1]])
+#         elif g == 'x':
+#             return np.matrix([[-1,0],[1,-1]])
+#         elif g == 'Y':
+#             return np.matrix([[1,-1],[0,1]])
+#         elif g == 'y':
+#             return np.matrix([[1,1],[0,1]])
+#         else:
+#             raise ValueError("SL(2,Z) element "+g+" unrecognized.")
+    
+#     MM=np.matrix([[1,0],[0,1]])
+#     for g in G:
+#         MM = np.dot(MM,letter_to_matrix(g))
+        
+#     return MM
+        
+    
+    
+# def invert_monodromy(MM):
+#     """
+#     monodromy_inverse(MM)
+    
+#     computes the inverse of a
+#     monodromy matrix MM
+
+#     Parameter
+#     ---------
+#     MM: a monodromy matrix
+    
+#     Returns
+#     -------
+#     returns MM^(-1)
+#     """
+    
+#     if np.shape(MM) != (2,2):
+#         raise ValueError("Monodromy matrix has wrong dimensions.")
+                
+#     return np.matrix([[MM[1,1],-MM[0,1]],[-MM[1,0],MM[0,0]]])
+
+
 #### Functions related to monodromy ####
 
 def monodromy(G):
@@ -539,7 +604,7 @@ def monodromy(G):
     """
     def letter_to_matrix(g):
         if g == 'X':
-            return np.matrix([[-1,0],[1,-1]])
+            return np.matrix([[-1,0],[-1,-1]])
         elif g == 'x':
             return np.matrix([[-1,0],[1,-1]])
         elif g == 'Y':
@@ -1169,8 +1234,8 @@ if __name__=="__main__":
     #wmodel=WeierstrassProto([7+1j,-20j+7,3+1j],[-1j+2,15+2j,-2+12j])
     
     #Seiberg-Witten
-    rot=np.exp(np.pi*1j/3.0 * 0.0)
-    xr=np.exp(np.pi*1j/3.0 * 0.0)
+    rot=np.exp(np.pi*1j/10.0 * 0.0)
+    xr=np.exp(np.pi*1j/10.0)
     wmodel=WeierstrassProto(np.array([-1.0/3*rot**2,0,1.0/4.0])/xr**2,
                             np.array([-2.0/27*rot**3,0,1.0/12*rot,0])/xr**3)
                             
@@ -1184,13 +1249,13 @@ if __name__=="__main__":
     #Arccos model
     #rot=np.exp(np.pi*1j/8.0)
     #wmodel=WeierstrassProto([-1.0],[rot**2*1.0,0,0])
-    dnum=1
+    # dnum=1
     
-    animate_roots_and_angles_path(wmodel,dnum,4,3,\
-                                 timesteps=5000,steps=120,\
-                                 path=None,breaks=None)
+    # animate_roots_and_angles_path(wmodel,dnum,4,3,\
+    #                              timesteps=5000,steps=120,\
+    #                              path=None,breaks=None)
 
-    # mon1 = monodromy_at_point_wmodel(0,wmodel,5000,5000,option='p')
+    mon1 = monodromy_at_point_wmodel(0,wmodel,5000,5000,option='p')
 
     mon2 = monodromy_at_point_wmodel(1,wmodel,5000,5000,option='p')
 

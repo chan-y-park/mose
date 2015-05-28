@@ -199,7 +199,9 @@ class EllipticFibration:
             ### elliptic fibration, hence of f, g; therefore this 
             ### should be called only after no more rotations of the 
             ### x-plane are necessary.
+            print "\nGrowing hair for branch point %s\n" % bp.count
             bp.grow_hair()
+            print "\nDetermine positive period for branch point %s\n" % bp.count
             bp.determine_positive_period(reference_period(bp))
 
 #        self.branch_cuts = [
@@ -564,7 +566,7 @@ def reference_period(branch_point):
     #        \n--------------------\
     #        \n%s" % path
 
-    print "\nu_0, eta_0, beta_0:\n%s\n" % [u0, eta_0, beta_0]
+    # print "\nu_0, eta_0, beta_0:\n%s\n" % [u0, eta_0, beta_0]
 
     def deriv(t, y):
         u, eta, d_eta = y 
@@ -630,20 +632,23 @@ def reference_period(branch_point):
         ###
         ### DEFINE THESE PARAMETERS ELSEWHERE !!!
         ###
-        if abs(u - u2) < 0.01 or abs(d_eta) > 10:
-            print "\nInterrupting PF transport of period!\n"
+        if abs(u - u2) < 0.001 or abs(d_eta) > 10:
+            # print "\nInterrupting PF transport of period!\n"
             break
         else:
             # print "time: %s" % ode.t
             ode.integrate(ode.t + dt)
 
     u_f, eta_gamma_f, d_eta_gamma_f = ode.y 
-    print "u_f = %s" % u_f
-    print "eta_f = %s\n" % eta_gamma_f
+    # print "u_f = %s" % u_f
+    # print "eta_f = %s\n" % eta_gamma_f
 
-    data_plot(recorded_loci,"u along PF path")
-    data_plot(recorded_periods,"eta along PF path")
-    data_plot(recorded_d_eta,"d_eta along PF path")
+    data_plot(recorded_loci,"u along reference path")
+    data_plot(recorded_periods,"eta along reference path")
+    d_eta_by_d_u = [(recorded_periods[i+1] - recorded_periods[i]) \
+                    / (recorded_loci[i+1] - recorded_loci[i]) \
+                    for i in range(len(recorded_loci)-1)]
+    data_plot(recorded_d_eta,"d_eta/d_u along reference path")
 
     return eta_gamma_f
 
