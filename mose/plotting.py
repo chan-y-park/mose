@@ -38,11 +38,20 @@ class KWallNetworkPlot(NetworkPlot):
         for i, ip in enumerate(k_wall_network.intersections):
             joints.append([ip.locus.real, ip.locus.imag])
             labels['joints'].append("intersection point #{}".format(i))
-        for i, wall in enumerate(k_wall_network.k_walls):
-            kwall_label = "K-wall #" + str(i) \
-                        + "\nInitial charge: " + str(wall.charge(0)) \
-                        + "\nDegeneracy: " + str(wall.degeneracy)
-            labels['walls'].append(kwall_label)
+        for i, k_wall in enumerate(k_wall_network.k_walls):
+            k_wall_label = "K-wall #" + str(i) \
+                        + "\nInitial charge: " + str(k_wall.charge(0)) \
+                        + "\nDegeneracy: " + str(k_wall.degeneracy)
+            num_segments = len(k_wall.splittings)
+            if num_segments > 0:
+                seg_labels = []
+                for j in range(num_segments+1):
+                    seg_labels.append(k_wall_label + 
+                        "\nLocal charge: {}".format(k_wall.local_charge[j])
+                    )
+                labels['walls'].append(seg_labels) 
+            else:
+                labels['walls'].append(k_wall_label)
             # labels['walls'].append("K-wall #{}".format(i))
 
         super(KWallNetworkPlot, self).draw(

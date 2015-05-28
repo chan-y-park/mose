@@ -55,9 +55,26 @@ class NetworkPlot(object):
         for i, wall in enumerate(walls):
             xs = wall.get_xs()
             ys = wall.get_ys()
+
             if(self.plot_data_points is True):
                 axes.plot(xs, ys, 'o', color='k')
+
+            segments = wall.splittings
+            if len(segments) > 0:
+                # The wall is segmented by the splittings.
+                segments.append(len(xs))
+                t_i = 0
+                for j in range(len(segments)):
+                    t_f = segments[j] 
+                    seg_xs = xs[t_i:t_f]
+                    seg_ys = ys[t_i:t_f]
+
+                    axes.plot(seg_xs, seg_ys, '-',
+                              #color='b',
+                              label=labels['walls'][i][j],)
+                    t_i = t_f
             else:
+                # The wall has no splitting.
                 axes.plot(xs, ys, '-',
                           #color='b',
                           label=labels['walls'][i],)
@@ -88,7 +105,7 @@ class NetworkPlot(object):
         # for artists of the current axes.
         self.data_cursor = mpldatacursor.datacursor(
             axes=self.plots[self.current_plot_idx],
-            formatter='{label}\nx={x:.3e}, y={y:.3e}'.format,
+            formatter='{label}'.format,
             tolerance=4,
             hover=True,
             #display='single',
