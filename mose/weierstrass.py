@@ -541,11 +541,11 @@ def monodromy(G):
         if g == 'X':
             return np.matrix([[-1,0],[1,-1]])
         elif g == 'x':
-            return np.matrix([[-1,0],[-1,-1]])
+            return np.matrix([[-1,0],[1,-1]])
         elif g == 'Y':
-            return np.matrix([[1,1],[0,1]])
-        elif g == 'y':
             return np.matrix([[1,-1],[0,1]])
+        elif g == 'y':
+            return np.matrix([[1,1],[0,1]])
         else:
             raise ValueError("SL(2,Z) element "+g+" unrecognized.")
     
