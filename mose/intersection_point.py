@@ -8,7 +8,7 @@ import logging
 import cmath
 from itertools import combinations
 from misc import dsz_pairing, complexify, sort_parent_kwalls, \
-    check_marginal_stabiliy_condition
+    check_marginal_stability_condition
 from intersection import NoIntersection, find_intersection_of_segments
 from genealogy import build_genealogy_tree
 
@@ -38,7 +38,7 @@ class IntersectionPoint:
 
         self.parents = sort_parent_kwalls(parents, [self.index_1, self.index_2])
 
-        check_marginal_stabiliy_condition(self)
+        check_marginal_stability_condition(self)
 
         self.charges = {str(self.parents[0].charge(self.index_1)),
                         str(self.parents[1].charge(self.index_2))}

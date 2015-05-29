@@ -59,10 +59,10 @@ class BranchPoint:
             (self.charge, self.locus)
 
     def grow_hair(self):
-        # print "\nprimary growth\n" 
+        logging.debug('\nprimary growth\n')
         self.hair = Hair(self)
 
-        # print "\nPF growth\n" 
+        logging.debug('\nPF growth\n')
         trajectory_singularity_threshold = 10 ** 6
         ode_size_of_step = 1e-1
         
@@ -76,7 +76,8 @@ class BranchPoint:
         self.hair.grow_pf(
                         # h_0=h_0,
                         # max_distance=max_distance,
-                        trajectory_singularity_threshold=trajectory_singularity_threshold,
+                        trajectory_singularity_threshold=\
+                                            trajectory_singularity_threshold,
                         ode_size_of_step=ode_size_of_step,   
                         ode_num_steps=ode_num_steps,
                         )
@@ -85,10 +86,17 @@ class BranchPoint:
                     / (complexify(self.hair.coordinates[i+1]) \
                     - complexify(self.hair.coordinates[i])) \
                     for i in range(len(self.hair.coordinates)-1)]
-        data_plot(d_eta_by_d_u, "Periods along the hair")
+        
+        ### If the level is '10' it means it's 'debug'
+        ### hence we will display this nice plot
+        if logging.getLogger().getEffectiveLevel() == 10:
+            data_plot(d_eta_by_d_u, "Periods along the hair")
 
-        if abs(self.hair.base_point - complexify(self.hair.coordinates[-1])) > 0.01:
-            print "\nHair growth didn't reach the basepoint!\n"
+        ###  DEIFNE THIS NUMERICAL CONSTANT ELSEWHERE !!!!
+        ###
+        if abs(self.hair.base_point - complexify(self.hair.coordinates[-1]))\
+                                                                     > 0.01:
+            logging.info('\nHair growth didn-t reach the basepoint!\n')
 
     def determine_positive_period(self, reference_period):
         hair_initial_period = self.hair.periods[0]
@@ -99,24 +107,11 @@ class BranchPoint:
                                     )
         self.positive_period = hair_initial_period * sign
 
-        print "\nThe hair final period is : %s\nat : %s\n" % \
-                                (hair_final_period, self.hair.coordinates[-1])
-        print "\nThe reference period is : %s\n" % reference_period
+        logging.debug('\nThe hair final period is : {}\nat : {}\n'.format(\
+                                hair_final_period, self.hair.coordinates[-1]))
+        logging.debug('\nThe reference period is : {}\n'\
+                                                    .format(reference_period))
 
-
-
-# class BranchCut:
-#     """
-#     The BranchCut class.
-#     Attributes: locus, charge, monodromy_matrix
-#     """
-#     count = 0
-
-#     def __init__(self, branch_point):
-#         self.charge = branch_point.charge
-#         self.monodromy_matrix = branch_point.monodromy_matrix
-#         self.locus = branch_point.locus
-#         BranchCut.count += 1
 
 
 def minimum_distance(branch_points):
@@ -150,7 +145,6 @@ class Hair:
         w_g = self.fibration.num_g
 
         u0 = self.initial_point.locus
-        # print "LOCUS = %s " % u0
         u = sym.Symbol('u')
         x = sym.Symbol('x')
 
@@ -206,7 +200,6 @@ class Hair:
 
             f1, f2, f3 = map(lambda x: x.subs(u, u1), sym_roots)
             roots = [complex(f1), complex(f2), complex(f3)]
-            # print "ROOTS %s" % roots
 
             segment = [u0, u1]
             ### setting period_sign = +1 and theta such that the
@@ -226,83 +219,9 @@ class Hair:
         if last_step < max_num_steps:
             self.coordinates.resize((last_step, 2))
             self.periods.resize(last_step)
-            
-        # print "HAIR PERIODS\n%s" % self.periods
-        # print "HAIR COORDINATES\n%s" % self.coordinates
 
         self.pf_boundary_conditions = [u1, eta_1, eta_prime_1]
     
-    #### This is the PF evolution used when we 
-    #### grow both from the basepoint and from each of the disc loci
-    ####
-#     def grow_pf(self, h_0=None, max_distance=None, 
-#                 trajectory_singularity_threshold=None,
-#                 ode_size_of_step=None, ode_num_steps=None, **ode_kwargs):
-#         """ 
-#         Implementation of the Picard-Fuchs growth of hairs
-#         """
-
-#         if(ode_num_steps is None or ode_num_steps == 0):
-#             # Don't grow this K-wall, exit immediately.
-#             return None
-
-#         ode = scipy.integrate.ode(hair_pf_ode_f)
-#         ode.set_integrator("zvode", **ode_kwargs)
-
-#         y_0 = self.pf_boundary_conditions
-#         # print "Boundary conditions for PF evolution: \n%s" % y_0
-#         ### y_0 contains the following:
-#         ### [u_0, eta_0, d_eta_0]
-#         ode.set_initial_value(y_0)
-
-#         matrix = self.fibration.pf_matrix
-
-#         step = 0
-#         i_0 = len(self.coordinates)
-#         u = y_0[0]
-#         if i_0 == 0:
-#             self.coordinates = numpy.empty((ode_num_steps, 2), dtype=float)
-#             self.periods = numpy.empty(ode_num_steps, complex)
-#         elif i_0 > 0:
-#             self.coordinates.resize((i_0 + ode_num_steps, 2))
-#             self.periods.resize(i_0 + ode_num_steps)
-#         while ode.successful() and step < ode_num_steps \
-#                                         and ((h_0 - u.imag) < max_distance):
-#             u, eta, d_eta = ode.y
-#             ode.set_f_params(matrix, trajectory_singularity_threshold, self)
-#             self.coordinates[i_0 + step] = [u.real, u.imag]
-#             self.periods[i_0 + step] = eta
-#             ode.integrate(ode.t + ode_size_of_step)
-#             step += 1
-#         if step < ode_num_steps:
-#             self.coordinates.resize((i_0 + step, 2))
-#             self.periods.resize(i_0 + step)
-
-# def hair_pf_ode_f(t, y, pf_matrix, trajectory_singularity_threshold, hair):
-#     u, eta, d_eta = y 
-#     matrix = pf_matrix(u)
-
-#     det_pf = abs(det(matrix))
-#     if det_pf > trajectory_singularity_threshold:
-#         hair.singular = True
-#         hair.singular_point = u
-
-#     # A confusing point to bear in mind: here we are solving the 
-#     # ode with respect to time t, but d_eta is understood to be 
-#     # (d eta / d u), with its own  appropriate b.c. and so on!
-#     ### NOTE THE FOLLOWING TWO OPTIONS FOR DERIVATIVE OF u
-#     u_1 = exp( 1j * ( -pi / 2 ) ) / abs(eta)
-#     # u_1 = exp( 1j * ( theta + pi ) ) / eta
-#     # u_1 = exp( 1j * ( theta + pi - cmath.phase( eta ) ) )
-#     eta_1 = u_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
-#     d_eta_1 = u_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
-#     return  array([u_1, eta_1, d_eta_1])
-
-
-    #### This is the PF evolution used when we 
-    #### grow only from each of the disc loci
-    #### but not from the basepoint
-    ####
     def grow_pf(self,
                 trajectory_singularity_threshold=None,
                 ode_size_of_step=None, ode_num_steps=None, **ode_kwargs):
@@ -311,14 +230,13 @@ class Hair:
         """
 
         if(ode_num_steps is None or ode_num_steps == 0):
-            # Don't grow this K-wall, exit immediately.
+            # Don't grow this hair, exit immediately.
             return None
 
         ode = scipy.integrate.ode(hair_pf_ode_f)
         ode.set_integrator("zvode", **ode_kwargs)
 
         y_0 = self.pf_boundary_conditions
-        # print "Boundary conditions for PF evolution: \n%s" % y_0
         ### y_0 contains the following:
         ### [u_0, eta_0, d_eta_0]
         ode.set_initial_value(y_0)
@@ -336,9 +254,9 @@ class Hair:
             self.periods.resize(i_0 + ode_num_steps)
         while ode.successful() and u.real > self.base_point.real \
                 and step < ode_num_steps and self.growth_control != 'stop':
-            u, eta, d_eta = ode.y
             ### checking if we reached the basepoint, in that case 
             ### then ode.y would be ['stop','stop','stop']
+            u, eta, d_eta = ode.y
             ode.set_f_params(matrix, trajectory_singularity_threshold, self)
             self.coordinates[i_0 + step] = [u.real, u.imag]
             self.periods[i_0 + step] = eta
@@ -367,7 +285,7 @@ def hair_pf_ode_f(t, y, pf_matrix, trajectory_singularity_threshold, hair):
     ### NOTE THE FOLLOWING TWO OPTIONS FOR DERIVATIVE OF u
     u_1 = path_derivative_alt(u, u_i, u_f)
     if u_1 == 'stop':
-        print "Stopping hair growth"
+        logging.debug('Stopping hair growth')
         hair.growth_control = 'stop'
         return array([u, eta, d_eta])
 
@@ -377,4 +295,39 @@ def hair_pf_ode_f(t, y, pf_matrix, trajectory_singularity_threshold, hair):
         return  array([u_1, eta_1, d_eta_1])
 
         
+def reference_period(branch_point): 
+    """ 
+    Detemine the period of the holomorphic one form dx / y along the
+    cycle that pinches at a given discriminant locus (the n-th).
+    Uses Picard-Fuchs evolution and initial values of the periods (1,0) and
+    (0,1) determined at the basepoint used to compute all the monodromies.
+    """
+    
+    logging.debug('\
+        \n******************************************\
+        \nEvolving periods for discriminant locus {}\
+        \n******************************************\n'.format(\
+                                                        branch_point.count))
+
+    charge = branch_point.charge
+    fibration = branch_point.fibration
+    w_model = fibration.w_model
+    
+    ### Setting up the path of integration. Since PF blows up
+    ### at the discriminant locus (although the period does not)
+    ### we will not get exactly to the locus.
+    u0 = w_model.base_point
+    u2 = complexify(branch_point.hair.coordinates[-1])
+    u1 = 1j * u0.imag + u2.real
+       
+    # Notation: using "eta" for the period of (1,0), using "beta" for (0,1)
+    period_data = w_model.compute_initial_periods()
+    eta_0 = period_data[0]
+    beta_0 = period_data[1]
+
+    ### the pinching-cycle period at the starting point, 
+    eta_gamma_0 = charge[0] * eta_0 + charge[1] * beta_0
+    
+    return eta_gamma_0
+
 
