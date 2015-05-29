@@ -620,42 +620,39 @@ def reference_period(branch_point):
     eta_gamma_0 = charge[0] * eta_0 + charge[1] * beta_0
     eta_prime_gamma_0 = charge[0] * eta_prime_0 + charge[1] * beta_prime_0
 
-    ### Now we PF-evolve the period
-    y_0 = [u0, eta_gamma_0, eta_prime_gamma_0]
-    ode.set_initial_value(y_0)    
-    # while ode.successful() and ode.t < t1 and singularity_check == False:
-    while ode.successful():
-        u, eta, d_eta = ode.y
-        recorded_periods.append(eta)
-        recorded_loci.append(u)
-        recorded_d_eta.append(d_eta)
-        ###
-        ### DEFINE THESE PARAMETERS ELSEWHERE !!!
-        ###
-        if abs(u - u2) < 0.001 or abs(d_eta) > 10:
-            # print "\nInterrupting PF transport of period!\n"
-            break
-        else:
-            # print "time: %s" % ode.t
-            ode.integrate(ode.t + dt)
+    # ### Now we PF-evolve the period
+    # y_0 = [u0, eta_gamma_0, eta_prime_gamma_0]
+    # ode.set_initial_value(y_0)    
+    # # while ode.successful() and ode.t < t1 and singularity_check == False:
+    # while ode.successful():
+    #     u, eta, d_eta = ode.y
+    #     recorded_periods.append(eta)
+    #     recorded_loci.append(u)
+    #     recorded_d_eta.append(d_eta)
+    #     ###
+    #     ### DEFINE THESE PARAMETERS ELSEWHERE !!!
+    #     ###
+    #     if abs(u - u2) < 0.001 or abs(d_eta) > 10:
+    #         # print "\nInterrupting PF transport of period!\n"
+    #         break
+    #     else:
+    #         # print "time: %s" % ode.t
+    #         ode.integrate(ode.t + dt)
 
-    u_f, eta_gamma_f, d_eta_gamma_f = ode.y 
-    # print "u_f = %s" % u_f
-    # print "eta_f = %s\n" % eta_gamma_f
+    # u_f, eta_gamma_f, d_eta_gamma_f = ode.y 
+    # # print "u_f = %s" % u_f
+    # # print "eta_f = %s\n" % eta_gamma_f
 
-    data_plot(recorded_loci,"u along reference path")
-    data_plot(recorded_periods,"eta along reference path")
-    d_eta_by_d_u = [(recorded_periods[i+1] - recorded_periods[i]) \
-                    / (recorded_loci[i+1] - recorded_loci[i]) \
-                    for i in range(len(recorded_loci)-1)]
-    data_plot(recorded_d_eta,"d_eta/d_u along reference path")
+    # data_plot(recorded_loci,"u along reference path")
+    # data_plot(recorded_periods,"eta along reference path")
+    # d_eta_by_d_u = [(recorded_periods[i+1] - recorded_periods[i]) \
+    #                 / (recorded_loci[i+1] - recorded_loci[i]) \
+    #                 for i in range(len(recorded_loci)-1)]
+    # data_plot(recorded_d_eta,"d_eta/d_u along reference path")
 
-    return eta_gamma_f
+    # return eta_gamma_f
+    return eta_gamma_0
 
-
-# def positive_period(n, charge, w_model, fibration): 
-    
-#     return 1.0
 
 
 

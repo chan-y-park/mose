@@ -322,7 +322,7 @@ def path_derivative(u, u_i, u_f):
     This function returns the derivative du/dt 
     for the path u(t) that is to be used for 
     computing the positive period via PF transport
-    from the basepoint.
+    FROM the basepoint.
 
     parameters:
     -----------
@@ -334,14 +334,14 @@ def path_derivative(u, u_i, u_f):
     the output:
     -----------
 
-    it will give a potivive real derivative 
+    it will give a posivive real derivative 
     until Re(u) reaches Re(u_f).
     Then it will give a positive imaginary
     derivative, until Im(u) reaches Im(u_f).
     In this way, an L-shaped path is produced
     """
 
-    epsilon = 0.1
+    epsilon = 0.01
 
     if u_i.real < u_f.real and u_i.imag < u_f.imag:
         if u.real < u_f.real:
@@ -373,6 +373,68 @@ def path_derivative(u, u_i, u_f):
         elif u.imag > u_f.imag:
             return -1 * epsilon * 1j
         else: 
-            return 0    
+            return 0   
+
+
+def path_derivative_alt(u, u_i, u_f):
+    """
+    This function returns the derivative du/dt 
+    for the path u(t) that is to be used for 
+    computing the positive period via PF transport
+    TO the basepoint.
+    The difference with the former function is that
+    here we give priority to vertical motion, 
+    and only then proceed horizontally.
+
+    parameters:
+    -----------
+
+    u = point of evaluation
+    u_i = the initial basepoint
+    u_f = the final point (the disc. locus)
+
+    the output:
+    -----------
+
+    it will give a potsivive real derivative 
+    until Re(u) reaches Re(u_f).
+    Then it will give a positive imaginary
+    derivative, until Im(u) reaches Im(u_f).
+    In this way, an L-shaped path is produced
+    """
+
+    epsilon = 0.1
+
+    if u_i.real < u_f.real and u_i.imag < u_f.imag:
+        if u.imag < u_f.imag:
+            return epsilon * 1j
+        elif u.real < u_f.real:
+            return epsilon
+        else: 
+            return 0
+
+    elif u_i.real < u_f.real and u_i.imag > u_f.imag:
+        if u.imag > u_f.imag:
+            return epsilon * (-1j)
+        elif u.real < u_f.real:
+            return epsilon
+        else: 
+            return 0
+
+    if u_i.real > u_f.real and u_i.imag < u_f.imag:
+        if u.imag < u_f.imag:
+            return epsilon * 1j
+        elif u.real > u_f.real:
+            return -1 * epsilon
+        else: 
+            return 0
+
+    if u_i.real > u_f.real and u_i.imag > u_f.imag:
+        if u.imag > u_f.imag:
+            return epsilon * (-1j)
+        elif u.real > u_f.real:
+            return -1 * epsilon
+        else: 
+            return 0   
 
 

@@ -16,7 +16,7 @@ from sympy import mpmath as mp
 from scipy import interpolate
 
 from misc import complexify, sort_by_abs, left_right, clock, order_roots, \
-                periods_relative_sign, data_plot
+                periods_relative_sign, data_plot, path_derivative_alt
 from monodromy import charge_monodromy
 
 class BranchPoint:
@@ -65,13 +65,17 @@ class BranchPoint:
         # print "\nPF growth\n" 
         trajectory_singularity_threshold = 10 ** 6
         ode_size_of_step = 1e-1
-        ode_num_steps = 100
+        
+        ### SHOULD REALLY ERASE THIS PARAMETER!
+        ### BUT WOULD REQUIRE TO IMPROVE THE WAY PF EVOLUTION IS HANDLED 
+        ### BELOW. TO DO!
+        ode_num_steps = 100000
         
         h_0 = complexify(self.hair.coordinates[0]).imag
         max_distance = 0.5 * minimum_distance(self.fibration.branch_points)
         self.hair.grow_pf(
-                        h_0=h_0,
-                        max_distance=max_distance,
+                        # h_0=h_0,
+                        # max_distance=max_distance,
                         trajectory_singularity_threshold=trajectory_singularity_threshold,
                         ode_size_of_step=ode_size_of_step,   
                         ode_num_steps=ode_num_steps,
@@ -82,6 +86,9 @@ class BranchPoint:
                     - complexify(self.hair.coordinates[i])) \
                     for i in range(len(self.hair.coordinates)-1)]
         data_plot(d_eta_by_d_u, "Periods along the hair")
+
+        if abs(self.hair.base_point - complexify(self.hair.coordinates[-1])) > 0.01:
+            print "\nHair growth didn't reach the basepoint!\n"
 
     def determine_positive_period(self, reference_period):
         hair_initial_period = self.hair.periods[0]
@@ -132,7 +139,8 @@ class Hair:
     def __init__(self, parent):
         self.initial_point = parent
         self.fibration = parent.fibration
-        self.singular = False
+        self.base_point = self.fibration.w_model.base_point
+        self.growth_control = 'fine'
 
         """ 
         Implementation of the ODE for evolving the hair, 
@@ -224,7 +232,78 @@ class Hair:
 
         self.pf_boundary_conditions = [u1, eta_1, eta_prime_1]
     
-    def grow_pf(self, h_0=None, max_distance=None, 
+    #### This is the PF evolution used when we 
+    #### grow both from the basepoint and from each of the disc loci
+    ####
+#     def grow_pf(self, h_0=None, max_distance=None, 
+#                 trajectory_singularity_threshold=None,
+#                 ode_size_of_step=None, ode_num_steps=None, **ode_kwargs):
+#         """ 
+#         Implementation of the Picard-Fuchs growth of hairs
+#         """
+
+#         if(ode_num_steps is None or ode_num_steps == 0):
+#             # Don't grow this K-wall, exit immediately.
+#             return None
+
+#         ode = scipy.integrate.ode(hair_pf_ode_f)
+#         ode.set_integrator("zvode", **ode_kwargs)
+
+#         y_0 = self.pf_boundary_conditions
+#         # print "Boundary conditions for PF evolution: \n%s" % y_0
+#         ### y_0 contains the following:
+#         ### [u_0, eta_0, d_eta_0]
+#         ode.set_initial_value(y_0)
+
+#         matrix = self.fibration.pf_matrix
+
+#         step = 0
+#         i_0 = len(self.coordinates)
+#         u = y_0[0]
+#         if i_0 == 0:
+#             self.coordinates = numpy.empty((ode_num_steps, 2), dtype=float)
+#             self.periods = numpy.empty(ode_num_steps, complex)
+#         elif i_0 > 0:
+#             self.coordinates.resize((i_0 + ode_num_steps, 2))
+#             self.periods.resize(i_0 + ode_num_steps)
+#         while ode.successful() and step < ode_num_steps \
+#                                         and ((h_0 - u.imag) < max_distance):
+#             u, eta, d_eta = ode.y
+#             ode.set_f_params(matrix, trajectory_singularity_threshold, self)
+#             self.coordinates[i_0 + step] = [u.real, u.imag]
+#             self.periods[i_0 + step] = eta
+#             ode.integrate(ode.t + ode_size_of_step)
+#             step += 1
+#         if step < ode_num_steps:
+#             self.coordinates.resize((i_0 + step, 2))
+#             self.periods.resize(i_0 + step)
+
+# def hair_pf_ode_f(t, y, pf_matrix, trajectory_singularity_threshold, hair):
+#     u, eta, d_eta = y 
+#     matrix = pf_matrix(u)
+
+#     det_pf = abs(det(matrix))
+#     if det_pf > trajectory_singularity_threshold:
+#         hair.singular = True
+#         hair.singular_point = u
+
+#     # A confusing point to bear in mind: here we are solving the 
+#     # ode with respect to time t, but d_eta is understood to be 
+#     # (d eta / d u), with its own  appropriate b.c. and so on!
+#     ### NOTE THE FOLLOWING TWO OPTIONS FOR DERIVATIVE OF u
+#     u_1 = exp( 1j * ( -pi / 2 ) ) / abs(eta)
+#     # u_1 = exp( 1j * ( theta + pi ) ) / eta
+#     # u_1 = exp( 1j * ( theta + pi - cmath.phase( eta ) ) )
+#     eta_1 = u_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
+#     d_eta_1 = u_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
+#     return  array([u_1, eta_1, d_eta_1])
+
+
+    #### This is the PF evolution used when we 
+    #### grow only from each of the disc loci
+    #### but not from the basepoint
+    ####
+    def grow_pf(self,
                 trajectory_singularity_threshold=None,
                 ode_size_of_step=None, ode_num_steps=None, **ode_kwargs):
         """ 
@@ -255,9 +334,11 @@ class Hair:
         elif i_0 > 0:
             self.coordinates.resize((i_0 + ode_num_steps, 2))
             self.periods.resize(i_0 + ode_num_steps)
-        while ode.successful() and step < ode_num_steps \
-                                        and ((h_0 - u.imag) < max_distance):
+        while ode.successful() and u.real > self.base_point.real \
+                and step < ode_num_steps and self.growth_control != 'stop':
             u, eta, d_eta = ode.y
+            ### checking if we reached the basepoint, in that case 
+            ### then ode.y would be ['stop','stop','stop']
             ode.set_f_params(matrix, trajectory_singularity_threshold, self)
             self.coordinates[i_0 + step] = [u.real, u.imag]
             self.periods[i_0 + step] = eta
@@ -270,6 +351,8 @@ class Hair:
 
     
 def hair_pf_ode_f(t, y, pf_matrix, trajectory_singularity_threshold, hair):
+    u_i = complexify(hair.coordinates[0])
+    u_f = hair.base_point
     u, eta, d_eta = y 
     matrix = pf_matrix(u)
 
@@ -282,11 +365,15 @@ def hair_pf_ode_f(t, y, pf_matrix, trajectory_singularity_threshold, hair):
     # ode with respect to time t, but d_eta is understood to be 
     # (d eta / d u), with its own  appropriate b.c. and so on!
     ### NOTE THE FOLLOWING TWO OPTIONS FOR DERIVATIVE OF u
-    u_1 = exp( 1j * ( -pi / 2 ) ) / abs(eta)
-    # u_1 = exp( 1j * ( theta + pi ) ) / eta
-    # u_1 = exp( 1j * ( theta + pi - cmath.phase( eta ) ) )
+    u_1 = path_derivative_alt(u, u_i, u_f)
     eta_1 = u_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
     d_eta_1 = u_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
+    
+    ### when the derivative is zero, it's time to stop!
+    if u_1 == 0:
+        print "Stopping hair growth"
+        hair.growth_control = 'stop'
+
     return  array([u_1, eta_1, d_eta_1])
 
         

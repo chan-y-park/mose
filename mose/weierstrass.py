@@ -455,11 +455,11 @@ def sample_path_data(dLoc):
     """
     min_y = min([loc.imag for loc in dLoc])
     spacing = 0.45*min([dLoc[i+1].real-dLoc[i].real for i in range(len(dLoc)-1)])
-    # initPoint = 1j*(min_y-5*spacing)+(dLoc[0].real-2*spacing)
+    initPoint = 1j*(min_y-5*spacing)+(dLoc[0].real-2*spacing)
     # ###
-    max_spacing = max([dLoc[i+1].real-dLoc[i].real for i in range(len(dLoc)-1)])
-    min_spacing = min([dLoc[i+1].real-dLoc[i].real for i in range(len(dLoc)-1)])
-    initPoint = 1j*(min_y - 1.1 * max_spacing)+(dLoc[0].real-0.2 * min_spacing)
+    # max_spacing = max([dLoc[i+1].real-dLoc[i].real for i in range(len(dLoc)-1)])
+    # min_spacing = min([dLoc[i+1].real-dLoc[i].real for i in range(len(dLoc)-1)])
+    # initPoint = 1j*(min_y - 1.1 * max_spacing)+(dLoc[0].real-0.2 * min_spacing)
     # ###
     # initPoint = 0.5 - 1.0 * 1j
     print "The basepoint for the Wmodel is : %s" % initPoint
