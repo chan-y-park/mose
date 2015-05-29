@@ -69,7 +69,7 @@ class BranchPoint:
         ### SHOULD REALLY ERASE THIS PARAMETER!
         ### BUT WOULD REQUIRE TO IMPROVE THE WAY PF EVOLUTION IS HANDLED 
         ### BELOW. TO DO!
-        ode_num_steps = 100000
+        ode_num_steps = 500000
         
         h_0 = complexify(self.hair.coordinates[0]).imag
         max_distance = 0.5 * minimum_distance(self.fibration.branch_points)
@@ -366,15 +366,15 @@ def hair_pf_ode_f(t, y, pf_matrix, trajectory_singularity_threshold, hair):
     # (d eta / d u), with its own  appropriate b.c. and so on!
     ### NOTE THE FOLLOWING TWO OPTIONS FOR DERIVATIVE OF u
     u_1 = path_derivative_alt(u, u_i, u_f)
-    eta_1 = u_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
-    d_eta_1 = u_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
-    
-    ### when the derivative is zero, it's time to stop!
-    if u_1 == 0:
+    if u_1 == 'stop':
         print "Stopping hair growth"
         hair.growth_control = 'stop'
+        return array([u, eta, d_eta])
 
-    return  array([u_1, eta_1, d_eta_1])
+    else:
+        eta_1 = u_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
+        d_eta_1 = u_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)    
+        return  array([u_1, eta_1, d_eta_1])
 
         
 
