@@ -12,6 +12,7 @@
 \newcommand{\ee}{\end{equation}}
 \newcommand{\IR}{\mathbb{R}}
 \newcommand{\IC}{\mathbb{C}}
+\newcommand{\CK}{{\cal K}}
 
 \usepackage{xcolor}
 \hypersetup{
@@ -25,10 +26,38 @@
 \maketitle
 \tableofcontents
 
+
+
+\section{Conventions!}
+We work with the following form of elliptic fibrations:
+\be
+\begin{split}
+	& \boxed{y^{2} = x^{3} + f(u)\, x +g(u)} \\
+	& \phantom{y^{2}}\,\, = (x-e_{1}(u))  (x-e_{2}(u))  (x-e_{2}(u)) \\
+	& \, w^{2} = 4x^{3} - g_{2}(u) x - g_{3}(u) \\
+	& \, \,\,\, w = 2 y
+\end{split}
+\ee
+with
+\be
+\begin{split}
+ 	\Delta(u) & = (g_{2}(u))^{3} - 27 (g_{3}(u))^{2}\ \\
+	& = \boxed{ -16 (4 f^{3} + 27 g^{2})}
+\end{split}
+\ee
+and 
+\be
+\begin{split}
+ 	\delta(u) & = 3g_{3} g'_{2} - 2 g_{2} g_{3}' \\
+	& = \boxed{ 16 (3\,g \,f' - 2 \,f\, g ')}
+\end{split}
+\ee
+
+
+\section{Primary K-walls}
 Efficient evolution is achieved by means of integration of Picard-Fuchs equations.
 However, these are singular at the discriminant loci, where k-wall begin. Therefore a different technique must be adopted for early stage evolution of primary k-walls.
 
-\section{Primary K-walls}
 The basic equation governing k-walls is
 \be
 	arg(Z_{\gamma}(u)) \in e^{i\vartheta}\IR_{-} \qquad \Leftrightarrow \qquad du/dt \sim e^{i(\theta +\pi)} / \eta_{\gamma}(u)
@@ -37,7 +66,7 @@ where $\eta_{\gamma}(u):=dZ_{\gamma}(u) / du$.
 
 In the vicinity of $u=u_{0}$ where $\gamma$ shrinks, two of the roots of the elliptic curve come close to each other
 \be
-	y^{2} = 4 x^{3} - g_{2}(u) x -g_{3}(u) = 4\prod_{i=1}^{3}(x-e_{i}(u))
+	y^{2} = x^{3} + f(u) x +g(u) = \prod_{i=1}^{3}(x-e_{i}(u))
 \ee
 in particular $e_{1}(u_{0})= e_{2}(u_{0})$.
 
@@ -92,13 +121,44 @@ which should become accessible as we compute more and more points.
 
 
 \section{Picard Fuchs}
-For now, see old notes with Dima.
+Define
+\be
+\begin{split}
+	& \lambda_{1} := \frac{dx}{w}\qquad \lambda_{2} := \frac{x\, dx}{w} \\
+	& \mu_{i}(\gamma) :=\oint_{\gamma}\lambda_{i} \qquad i=1,2
+\end{split}
+\ee
+then we have 
+\be
+	\eta(\gamma):=\oint\frac{dx}{y} = 2\mu_{1}
+\ee
+The $\mu_{i}$ satisfy the PF equations
+\be
+	{d\over du}{\mu_{i}} = M_{ij} {\mu_{j}}%
+	\qquad M_{ij} = \left(\begin{array}{cc} %
+	-{\Delta' \over 12 \Delta} & {3\delta \over 2\Delta} \\
+	-{g_{2} \delta \over 8 \Delta} & {\Delta' \over 12\Delta}
+	\end{array}\right)
+\ee
+If we consider the K-wall $\CK(\gamma,\vartheta)$ with a suitable affine parameter $t$, we can consider the following system of equations for explicitly constructing the K-wall
+\be
+\left\{\begin{array}{l}
+	{d\over dt}{\mu_{i}(u(t))}= {\dot u}\,M_{ij}(u(t)) {\mu_{j}}(u(t)) \\
+	\dot u = \exp{i(\vartheta+\pi - {\rm arg}\mu_{1}(u(t)))}
+\end{array}\right.
+\ee
 
-
+Note that from Picard-Fuchs we can obtain a second-order differential equation for $\eta_{}$
+\be
+	\eta{''}-\left(\frac{\delta'}{\delta}-\frac{\Delta'}{\Delta}\right)\eta'-\left[-\frac{3 g_2 \delta ^2}{16 \Delta ^2}+\frac{\delta ' \Delta '}{12 \delta \Delta }-\frac{\Delta ''}{12 \Delta}+\frac{\Delta'^2}{144 \Delta^2}\right]\eta=0 \label{eq:PF}
+\ee
+There is also a 2nd order PF equation that can be written directly for $a,\,a_{D}$, it can be derived by studying the commutator of the differential operator in (\ref{eq:PF}) with $\partial/\partial u$.
+In some simple cases these 2nd order differential problems can be matched with Riemann's differential equation, thus providing explicit closed form expressions for the periods. We won't need this machinery for elliptic fibrations, but it would probably be useful with more elaborate fibers.
 
 
 
 \section{Computing periods at generic points on ${\cal B}$}
+[REPLACE WITH ALGORITHM BY DANIEL AND CHAN]\\
 Let $e_{1},e_{2},e_{3}$ be the roots at some point $u$, such that $Re(e_{1})<Re(e_{2})<Re(e_{3})$.
 
 Assuming that we can pick the branch-cuts for the $e_{i}$ to emanate vertically from the $e_{i}(u)$ (not obvious that it will be the case numerically...), then the period integral

@@ -189,14 +189,21 @@ class WeierstrassModelWithPaths(WeierstrassModel):
         else:
             self.path_data=path_data
         init_p = self.path_data[1]
+        
+        ### Will declare once and for all the basepoint that is chosen 
+        ### to compute monodromies and hence trivialize the lattice 
+        ### fibration. All charges are expressed in terms of periods
+        ### of the lattice at this point!
+        self.base_point = init_p
+        
         init_poly = np.poly1d([1,0,self.f(init_p),self.g(init_p)])
         self.init_rts = sorted(init_poly.r,cmp=real_part)        
         self.paths=[]
         self.paths_for_periods = []
         for loc in self.disc_locus:
             self.paths.append(construct_path(loc,self.path_data))
-            self.paths_for_periods.append(construct_path_for_periods(\
-                                                        loc, self.path_data))
+
+        self.x_rotation_consistency_check = True
         
 
     
@@ -298,6 +305,9 @@ class WeierstrassModelWithPaths(WeierstrassModel):
                             complex(rts_0[2])
                             ]
 
+        # print "\nordered roots:\n%s" % [e1_0, e2_0, e3_0]
+        # print "\nf :%s\ng : %s\n" % (self.f, self.g)
+
         # # XXX: is this step size(=0.01) enough to calculate 
         # # the derivatives? And what about the phase of the step?
         # u_1 = self.path_data[1] + 0.01
@@ -344,13 +354,13 @@ class WeierstrassModelWithPaths(WeierstrassModel):
         ### is related to period A. That's because
         ### with current conventions <B, A> = +1
 
-        eta_0 = period_B(e1_0, e2_0, e3_0)[0]
-        beta_0 = period_A(e1_0, e2_0, e3_0)[0]
+        eta_0 = period_A(e1_0, e2_0, e3_0)[0]
+        beta_0 = period_B(e1_0, e2_0, e3_0)[0]
 
-        eta_1_x = period_B(e1_1_x, e2_1_x, e3_1_x)[0]
-        beta_1_x = period_A(e1_1_x, e2_1_x, e3_1_x)[0]
-        eta_1_y = period_B(e1_1_y, e2_1_y, e3_1_y)[0]
-        beta_1_y = period_A(e1_1_y, e2_1_y, e3_1_y)[0]
+        eta_1_x = period_A(e1_1_x, e2_1_x, e3_1_x)[0]
+        beta_1_x = period_B(e1_1_x, e2_1_x, e3_1_x)[0]
+        eta_1_y = period_A(e1_1_y, e2_1_y, e3_1_y)[0]
+        beta_1_y = period_B(e1_1_y, e2_1_y, e3_1_y)[0]
 
         eta_prime_x = (eta_1_x - eta_0) / (u_1_x - u_0)
         beta_prime_x = (beta_1_x - beta_0) / (u_1_x - u_0)
@@ -446,6 +456,13 @@ def sample_path_data(dLoc):
     min_y = min([loc.imag for loc in dLoc])
     spacing = 0.45*min([dLoc[i+1].real-dLoc[i].real for i in range(len(dLoc)-1)])
     initPoint = 1j*(min_y-5*spacing)+(dLoc[0].real-2*spacing)
+    # ###
+    # max_spacing = max([dLoc[i+1].real-dLoc[i].real for i in range(len(dLoc)-1)])
+    # min_spacing = min([dLoc[i+1].real-dLoc[i].real for i in range(len(dLoc)-1)])
+    # initPoint = 1j*(min_y - 1.1 * max_spacing)+(dLoc[0].real-0.2 * min_spacing)
+    # ###
+    # initPoint = 0.5 - 1.0 * 1j
+    print "The basepoint for the Wmodel is : %s" % initPoint
     min_len=np.absolute(dLoc[0]-dLoc[1])
     for c in combinations(dLoc,2):
         min_len=min(min_len,np.absolute(c[0]-c[1]))
@@ -499,52 +516,70 @@ def construct_path(d,path_data):
     path.append(d-edge-(1j)*edge)
     path.append(d-delta-(1j)*edge)  
 
-    return path        
+    return path                
 
+# #### Functions related to monodromy ####
 
-
-def construct_path_for_periods(d, path_data):
-    """
-    construct_path(d,path_data)
+# def monodromy(G):
+#     """
+#     monodromy(G)
     
-    constructs the path for tracking the evolution
-    of the periods from the basepoint to a locus "d" 
-    of a Weierstrass model.
-    The paths are pickd in such a way to avoid branch 
-    cuts, which are assumed to extend vertically above 
-    each discriminan locus.
+#     computes the monodromy matrix MM
+#     from the braiding array G
     
-    Parameters
-    ----------
-    d: discriminant locus (complex number)
-    path_data: a list of path data. path_data[0]
-    is the "spacing." path_data[1] is the starting
-    point of the path. path_data[2] is the minimum
-    distance between roots.
+#     Parameter
+#     ---------
+#     G: an array of elements [G_1,G_2,...] of the braid group
     
-    Returns
-    -------
-    path
+#     Returns
+#     -------
+#     returns MM
+#     MM is a 2x2 matrix representation of the group element
+#     G_1 G_2 ...
+#     i.e.,
+#     MM = rho(G_1).rho(G_2). ....
+#     """
+#     def letter_to_matrix(g):
+#         if g == 'X':
+#             return np.matrix([[-1,0],[1,-1]])
+#         elif g == 'x':
+#             return np.matrix([[-1,0],[1,-1]])
+#         elif g == 'Y':
+#             return np.matrix([[1,-1],[0,1]])
+#         elif g == 'y':
+#             return np.matrix([[1,1],[0,1]])
+#         else:
+#             raise ValueError("SL(2,Z) element "+g+" unrecognized.")
     
-    path is a list of three points whose
-    entries are complex numbers denoting a point
-    of the segment. 
-    The path has an 'L'-shape, starting with path[0],
-    evolving horizontally to path[1], then turning 
-    vertical and evolving upwards to path[2].
-    """
-    
-    delta, start, edge = path_data
-    edge *= 0.8*np.sqrt(0.5)
-    path = []
-    
-    path.append(start)
-    path.append(1j*start.imag + d.real)
-    path.append(d)  
-
-    return path        
-
+#     MM=np.matrix([[1,0],[0,1]])
+#     for g in G:
+#         MM = np.dot(MM,letter_to_matrix(g))
         
+#     return MM
+        
+    
+    
+# def invert_monodromy(MM):
+#     """
+#     monodromy_inverse(MM)
+    
+#     computes the inverse of a
+#     monodromy matrix MM
+
+#     Parameter
+#     ---------
+#     MM: a monodromy matrix
+    
+#     Returns
+#     -------
+#     returns MM^(-1)
+#     """
+    
+#     if np.shape(MM) != (2,2):
+#         raise ValueError("Monodromy matrix has wrong dimensions.")
+                
+#     return np.matrix([[MM[1,1],-MM[0,1]],[-MM[1,0],MM[0,0]]])
+
 
 #### Functions related to monodromy ####
 
@@ -569,13 +604,13 @@ def monodromy(G):
     """
     def letter_to_matrix(g):
         if g == 'X':
-            return np.matrix([[-1,0],[1,-1]])
-        elif g == 'x':
             return np.matrix([[-1,0],[-1,-1]])
+        elif g == 'x':
+            return np.matrix([[-1,0],[1,-1]])
         elif g == 'Y':
-            return np.matrix([[1,1],[0,1]])
-        elif g == 'y':
             return np.matrix([[1,-1],[0,1]])
+        elif g == 'y':
+            return np.matrix([[1,1],[0,1]])
         else:
             raise ValueError("SL(2,Z) element "+g+" unrecognized.")
     
@@ -610,9 +645,8 @@ def invert_monodromy(MM):
         
         
       
-def monodromy_at_point_via_path(init_root,d,f,g,path_data,\
-                                 ts_ipath=1000,ts_mon=1000,option=None,\
-                            rotation_recursion_level=0, rotation_n=10):
+def monodromy_at_point_via_path(init_root, d, f, g, path_data, w_model,\
+                                 ts_ipath=1000, ts_mon=1000, option=None):
     """
     monodromy_at_point_via_path(init_root,d,f,g,path_data,ts_ipath,ts_mon)
     
@@ -655,14 +689,6 @@ def monodromy_at_point_via_path(init_root,d,f,g,path_data,\
 
     original_init_root = init_root
 
-    rot_rec_lvl = rotation_recursion_level
-    if rot_rec_lvl>0 and rot_rec_lvl<rotation_n:
-        print "I have rotated the x-plane %s times so far." % rot_rec_lvl
-        print "f = \n%s\n\ng = \n%s\n" % (f, g)
-    elif rot_rec_lvl>=rotation_n:
-        raise ValueError('Rotated a full 2pi angle, and couldnt '+\
-            'compute the braiding.')
-
     control_var = 'fine'
     
     segments=len(initial_path)-1
@@ -702,26 +728,13 @@ def monodromy_at_point_via_path(init_root,d,f,g,path_data,\
         return np.dot(MM,invert_monodromy(init_MM))
 
     elif control_var == 'rotate':
-        print "\n\
-            *************************************\n\
-            Having trouble tracking root braiding\n\
-                    Will rotate the x-plane      \n\
-            *************************************\n"
-        zeta = np.exp(2*np.pi*1j/rotation_n)
-        r_f = f / (zeta**2) #[x / (zeta**2) for x in f]
-        r_g = g / (zeta**3) #[x / (zeta**3) for x in f]
-        # print f
-        # print r_f
-        # print init_root
-        # print type(init_root)
-        r_init_root = sorted([(x / zeta) for x in original_init_root], cmp=real_part)
-        # print r_init_root
-        # print type(r_init_root)
-        
-        return monodromy_at_point_via_path(r_init_root, d, r_f, r_g, path_data, \
-                            ts_ipath=ts_ipath,ts_mon=ts_mon,option=option,\
-                            rotation_recursion_level=rot_rec_lvl+1)
-
+        ### Here we trigger a rotation of the x-plane
+        ### this will cause the evaluation of ALL 
+        ### monodromies to start over from scratch.
+        w_model.x_rotation_consistency_check = False
+        # print "need to rotate!!"
+        # print "consistency = %s" % w_model.x_rotation_consistency_check
+        return np.matrix([[0, 0], [0, 0]])
 
             
 def monodromy_at_point_wmodel(n,wmodel,ts_ipath=1000,ts_mon=1000,option=None):
@@ -756,6 +769,7 @@ def monodromy_at_point_wmodel(n,wmodel,ts_ipath=1000,ts_mon=1000,option=None):
                                         wmodel.get_discriminant_locus()[n],\
                                         wmodel.get_f(),wmodel.get_g(),\
                                         wmodel.get_path_data(),\
+                                        wmodel,\
                                         ts_ipath,ts_mon,option)
 
                                             
@@ -1220,8 +1234,8 @@ if __name__=="__main__":
     #wmodel=WeierstrassProto([7+1j,-20j+7,3+1j],[-1j+2,15+2j,-2+12j])
     
     #Seiberg-Witten
-    rot=np.exp(np.pi*1j/3.0 * 0.0)
-    xr=np.exp(np.pi*1j/3.0 * 0.0)
+    rot=np.exp(np.pi*1j/10.0 * 0.0)
+    xr=np.exp(np.pi*1j/10.0)
     wmodel=WeierstrassProto(np.array([-1.0/3*rot**2,0,1.0/4.0])/xr**2,
                             np.array([-2.0/27*rot**3,0,1.0/12*rot,0])/xr**3)
                             
@@ -1235,9 +1249,9 @@ if __name__=="__main__":
     #Arccos model
     #rot=np.exp(np.pi*1j/8.0)
     #wmodel=WeierstrassProto([-1.0],[rot**2*1.0,0,0])
-    dnum=0
+    # dnum=1
     
-    # animate_roots_and_angles_path(wmodel,dnum,2,3,\
+    # animate_roots_and_angles_path(wmodel,dnum,4,3,\
     #                              timesteps=5000,steps=120,\
     #                              path=None,breaks=None)
 

@@ -246,6 +246,17 @@ A nice addition would be a function which allows the user to add a custom-made f
 
 
 
+
+\section{Automatized numerical checks}
+This is important especially once we graduate from pure SU(2), and start using the code intensively on more complicated fibrations.
+Write a routine that loads some saved kwall network data (either single-phase, or multi-phase), and performs several numerical checks. These should include: check that phases align at MS walls, check that there are no negative intersections of cycles, alternative computation of central charges (i.e. by manual integration) to compare with ODEint, transport of periods computef by means of period\_A/B compared to random points on kwalls, check that paths for positive-period PF evolution never cross branch cuts on the u-plane; check how well the positive period matches with the tip of the hair of a branch-point...
+
+
+\section{Detailed labels on plots}
+Improve the labels on kwalls, by determining which point of the trajectory is closest to the mouse. Then show $\eta_{\gamma}, Z_{\gamma}$ at that point, and also the charge \emph{at that point} which should be {\tt kwall.charge(point\_n)}.
+
+
+
 \section{Tilting the u-plane}
 Make sure that branch cuts do not overlap. If two branch-points align vertically, the code should automatically rotate the u-plane by a phase since the beginning.
 A suitable phase can be determined automatically to be e.g. a half of the smallest phase between any two discriminant loci.
