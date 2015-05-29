@@ -95,8 +95,6 @@ trajectory!" % (sp[0], sp[-1])
 
 
     def check_cuts(self):
-       ## self.splittings = (55, 107, 231) 
-       ## self.local_charge = (self.initial_charge, (2,1), (0,-1), (1,1))
        # determine at which points the wall crosses a cut, for instance
        # (55,107,231) would mean that we change charge 3 times
        # hence self.splittings would have length, 3 while
@@ -157,9 +155,9 @@ trajectory!" % (sp[0], sp[-1])
        self.cuts_intersections = sorted(self.cuts_intersections , \
                                        cmp = lambda k1,k2: cmp(k1[1],k2[1]))
 
-       # print \
-       # "\nK-wall %s\nintersects the following cuts at the points\n%s\n" \
-       # % (self, intersections)
+       logging.debug(\
+       '\nK-wall {}\nintersects the following cuts at the points\n{}\n'\
+       .format(self, intersections))
 
        # now define the lis of splitting points (for convenience) ad the 
        # list of local charges
@@ -167,7 +165,7 @@ trajectory!" % (sp[0], sp[-1])
        self.local_charge = [self.initial_charge]
        for k in range(len(self.cuts_intersections)):
            branch_point = self.cuts_intersections[k][0]   # branch-point
-           # t = self.cuts_intersections[k][1]       # proper time
+           # t = self.cuts_intersections[k][1]           # proper time
            direction = self.cuts_intersections[k][2]     # 'ccw' or 'cw'
            charge = self.local_charge[-1]
            new_charge = charge_monodromy(charge, branch_point, direction)
@@ -185,15 +183,12 @@ trajectory!" % (sp[0], sp[-1])
             # Don't grow this K-wall, exit immediately.
             return None
 
-        # singularity_check= False
-
         theta = self.phase
 
         ode = scipy.integrate.ode(k_wall_pf_ode_f)
         ode.set_integrator("zvode", **ode_kwargs)
 
         y_0 = self.pf_boundary_conditions
-        # print "Boundary conditions for PF evolution: \n%s" % y_0
         ### y_0 contains the following:
         ### [u_0, eta_0, d_eta_0, central_charge_0]
         ode.set_initial_value(y_0)
@@ -222,25 +217,8 @@ trajectory!" % (sp[0], sp[-1])
 
         self.check_cuts()
 
-        #### An alternative method of computing the central charge
-        self.central_charge_alt =  [0.0]
-
-        # print "PERIODS\n%s" % self.periods
-
-        for i in range(len(self.coordinates[:-1])):
-            du = complexify(self.coordinates[i+1]) \
-                 - complexify(self.coordinates[i])
-            eta_avg = 0.5 * (self.periods[i+1] + self.periods[i])
-            c_c = complex(self.central_charge_alt[-1] + eta_avg * du)
-            # print "integration data: \ndu = %s\neta_avg = %s\nc_c = %s" % (du, eta_avg, c_c)
-            self.central_charge_alt.append(c_c) 
-
     def plot_periods(self):
         data_plot(self.periods, "periods of dx/y")
-        # rescaled_list = [((self.periods[i+1] - self.periods[i]) \
-        #               * (complexify(self.coordinates[i+1]) - complexify(self.coordinates[i]))) \
-        #               for i in range(len(self.periods)-1)]
-        # data_plot(rescaled_list, "periods of dx/y")
 
     def plot_central_charge(self):
         data_plot(self.central_charge, "central charges")
@@ -310,7 +288,8 @@ class PrimaryKWall(KWall):
         ### of the K-wall, relative to those of the discriminant locus 
         ### from which it emanates.
         eta_0 = sign * self.parents[0].hair.periods[0]
-        self.initial_charge = list(int(round(sign)) * array(self.parents[0].charge))
+        self.initial_charge = list(int(round(sign)) \
+                                    * array(self.parents[0].charge))
         
 
         # The initial evolution of primary kwalls is handled with an
@@ -358,17 +337,14 @@ class PrimaryKWall(KWall):
         ### Computing the central charge: for primary kwalls
         ### we simply integrate by hand the values of eta(u) du
         ### Later, we use Picard-Fuchs.
-
+        
         self.central_charge = [0.0]
-
-        # print "PERIODS\n%s" % self.periods
 
         for i in range(len(self.coordinates[:-1])):
             du = complexify(self.coordinates[i+1]) \
                  - complexify(self.coordinates[i])
             eta_avg = 0.5 * (self.periods[i+1] + self.periods[i])
             c_c = complex(self.central_charge[-1] + eta_avg * du)
-            # print "\nu = %s\ndu = %s\neta_avg = %s\nZ = %s" % (self.coordinates[i], du, eta_avg, c_c)
             self.central_charge.append(c_c) 
 
         self.pf_boundary_conditions = [u1, eta_1, eta_prime_1, c_c]

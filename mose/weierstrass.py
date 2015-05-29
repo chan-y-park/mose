@@ -44,6 +44,7 @@ aligned in ascending order of the real part.
 """
 
 import cmath
+import logging
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import numpy as np
@@ -305,72 +306,13 @@ class WeierstrassModelWithPaths(WeierstrassModel):
                             complex(rts_0[2])
                             ]
 
-        # print "\nordered roots:\n%s" % [e1_0, e2_0, e3_0]
-        # print "\nf :%s\ng : %s\n" % (self.f, self.g)
-
-        # # XXX: is this step size(=0.01) enough to calculate 
-        # # the derivatives? And what about the phase of the step?
-        # u_1 = self.path_data[1] + 0.01
-        # init_poly_1 = np.poly1d([1,0,self.f(u_1),self.g(u_1)])
-        # rts_1 = sorted(init_poly_1.r,cmp=real_part)
-        # e1_1, e2_1, e3_1 = [complex(rts_1[0]),\
-        #                     complex(rts_1[1]),\
-        #                     complex(rts_1[2])
-        #                     ]
-
-        # ### NOTE: eta is related to period B, while beta 
-        # ### is related to period A. That's because
-        # ### with current conventions <B, A> = +1
-
-        # eta_0 = period_B(e1_0, e2_0, e3_0)[0]
-        # beta_0 = period_A(e1_0, e2_0, e3_0)[0]
-
-        # eta_1 = period_B(e1_1, e2_1, e3_1)[0]
-        # beta_1 = period_A(e1_1, e2_1, e3_1)[0]
-
-        # eta_prime_0 = (eta_1 - eta_0) / (u_1 - u_0)
-        # beta_prime_0 = (beta_1 - beta_0) / (u_1 - u_0)
-
-
-        # XXX: is this step size(=0.01) enough to calculate 
-        # the derivatives? And what about the phase of the step?
-        u_1_x = self.path_data[1] + 0.0001
-        init_poly_1_x = np.poly1d([1,0,self.f(u_1_x),self.g(u_1_x)])
-        rts_1_x = sorted(init_poly_1_x.r,cmp=real_part)
-        e1_1_x, e2_1_x, e3_1_x = [complex(rts_1_x[0]),\
-                            complex(rts_1_x[1]),\
-                            complex(rts_1_x[2])
-                            ]
-
-        u_1_y = self.path_data[1] + 0.0001*1j
-        init_poly_1_y = np.poly1d([1,0,self.f(u_1_y),self.g(u_1_y)])
-        rts_1_y = sorted(init_poly_1_y.r,cmp=real_part)
-        e1_1_y, e2_1_y, e3_1_y = [complex(rts_1_y[0]),\
-                            complex(rts_1_y[1]),\
-                            complex(rts_1_y[2])
-                            ]
-
         ### NOTE: eta is related to period B, while beta 
         ### is related to period A. That's because
         ### with current conventions <B, A> = +1
-
         eta_0 = period_A(e1_0, e2_0, e3_0)[0]
         beta_0 = period_B(e1_0, e2_0, e3_0)[0]
 
-        eta_1_x = period_A(e1_1_x, e2_1_x, e3_1_x)[0]
-        beta_1_x = period_B(e1_1_x, e2_1_x, e3_1_x)[0]
-        eta_1_y = period_A(e1_1_y, e2_1_y, e3_1_y)[0]
-        beta_1_y = period_B(e1_1_y, e2_1_y, e3_1_y)[0]
-
-        eta_prime_x = (eta_1_x - eta_0) / (u_1_x - u_0)
-        beta_prime_x = (beta_1_x - beta_0) / (u_1_x - u_0)
-        eta_prime_y = (eta_1_y - eta_0) / (u_1_y - u_0)
-        beta_prime_y = (beta_1_y - beta_0) / (u_1_y - u_0)
-
-        eta_prime_0 = 0.5 * (eta_prime_x - 1j * eta_prime_y)
-        beta_prime_0 = 0.5 * (beta_prime_x - 1j * beta_prime_y)
-
-        return [eta_0, eta_prime_0, beta_0, beta_prime_0]
+        return [eta_0, beta_0]
       
         
 class WeierstrassProto(WeierstrassModelWithPaths):
@@ -454,15 +396,20 @@ def sample_path_data(dLoc):
     l : minimum distance between two roots
     """
     min_y = min([loc.imag for loc in dLoc])
-    spacing = 0.45*min([dLoc[i+1].real-dLoc[i].real for i in range(len(dLoc)-1)])
+    spacing = 0.45 * min([dLoc[i+1].real-dLoc[i].real \
+                                            for i in range(len(dLoc)-1)])
     initPoint = 1j*(min_y-5*spacing)+(dLoc[0].real-2*spacing)
-    # ###
-    # max_spacing = max([dLoc[i+1].real-dLoc[i].real for i in range(len(dLoc)-1)])
-    # min_spacing = min([dLoc[i+1].real-dLoc[i].real for i in range(len(dLoc)-1)])
-    # initPoint = 1j*(min_y - 1.1 * max_spacing)+(dLoc[0].real-0.2 * min_spacing)
-    # ###
-    # initPoint = 0.5 - 1.0 * 1j
-    print "The basepoint for the Wmodel is : %s" % initPoint
+    
+    ### Another possible automatized choice of the basepoint
+    ###
+    # max_spacing = max([dLoc[i+1].real-dLoc[i].real \
+    #                            for i in range(len(dLoc)-1)])
+    # min_spacing = min([dLoc[i+1].real-dLoc[i].real \
+    #                            for i in range(len(dLoc)-1)])
+    # initPoint = 1j*(min_y - 1.1 * max_spacing) \
+    #                            + (dLoc[0].real-0.2 * min_spacing)
+
+    logging.debug('The basepoint for the Wmodel is : {}'.format(initPoint))
     min_len=np.absolute(dLoc[0]-dLoc[1])
     for c in combinations(dLoc,2):
         min_len=min(min_len,np.absolute(c[0]-c[1]))
@@ -517,68 +464,6 @@ def construct_path(d,path_data):
     path.append(d-delta-(1j)*edge)  
 
     return path                
-
-# #### Functions related to monodromy ####
-
-# def monodromy(G):
-#     """
-#     monodromy(G)
-    
-#     computes the monodromy matrix MM
-#     from the braiding array G
-    
-#     Parameter
-#     ---------
-#     G: an array of elements [G_1,G_2,...] of the braid group
-    
-#     Returns
-#     -------
-#     returns MM
-#     MM is a 2x2 matrix representation of the group element
-#     G_1 G_2 ...
-#     i.e.,
-#     MM = rho(G_1).rho(G_2). ....
-#     """
-#     def letter_to_matrix(g):
-#         if g == 'X':
-#             return np.matrix([[-1,0],[1,-1]])
-#         elif g == 'x':
-#             return np.matrix([[-1,0],[1,-1]])
-#         elif g == 'Y':
-#             return np.matrix([[1,-1],[0,1]])
-#         elif g == 'y':
-#             return np.matrix([[1,1],[0,1]])
-#         else:
-#             raise ValueError("SL(2,Z) element "+g+" unrecognized.")
-    
-#     MM=np.matrix([[1,0],[0,1]])
-#     for g in G:
-#         MM = np.dot(MM,letter_to_matrix(g))
-        
-#     return MM
-        
-    
-    
-# def invert_monodromy(MM):
-#     """
-#     monodromy_inverse(MM)
-    
-#     computes the inverse of a
-#     monodromy matrix MM
-
-#     Parameter
-#     ---------
-#     MM: a monodromy matrix
-    
-#     Returns
-#     -------
-#     returns MM^(-1)
-#     """
-    
-#     if np.shape(MM) != (2,2):
-#         raise ValueError("Monodromy matrix has wrong dimensions.")
-                
-#     return np.matrix([[MM[1,1],-MM[0,1]],[-MM[1,0],MM[0,0]]])
 
 
 #### Functions related to monodromy ####
@@ -732,8 +617,6 @@ def monodromy_at_point_via_path(init_root, d, f, g, path_data, w_model,\
         ### this will cause the evaluation of ALL 
         ### monodromies to start over from scratch.
         w_model.x_rotation_consistency_check = False
-        # print "need to rotate!!"
-        # print "consistency = %s" % w_model.x_rotation_consistency_check
         return np.matrix([[0, 0], [0, 0]])
 
             
@@ -955,8 +838,9 @@ def evolve_to_get_braiding(init_data,f,g,start_end,timesteps=1000):
             # raise ValueError('Roots not being properly distinguished: '+\
             #                    'timesteps too sparse.')
             print '\nsort_roots:: Roots not being properly distinguished: '+\
-                               'timesteps too sparse. '+ \
-                               '\n\nrts:\n%s\n\nlast_rts:\n%s\n\nsorted_rts\n%s' % (rts,last_rts,sorted_rts)
+                       'timesteps too sparse. '+ \
+                       '\n\nrts:\n%s\n\nlast_rts:\n%s\n\nsorted_rts\n%s'\
+                        % (rts,last_rts,sorted_rts)
             return ['rotate', 'rotate']
         else:            
             return [sorted_rts,max_diff_cons]    
@@ -1014,8 +898,8 @@ def evolve_to_get_braiding(init_data,f,g,start_end,timesteps=1000):
                     raise ValueError('Cannot distinguish y and Y.')
                 return 'y'
         else:
-            # raise ValueError('Timesteps too small to extract braiding.')
-            print '\nbraiding_action:: Timesteps too small to extract braiding.'
+            logging.debug('\nbraiding_action: Timesteps too small to extract'\
+                                                                + ' braiding.')
             return 'rotate'
                 
     def minimum_diff_rts(rts):
@@ -1093,10 +977,10 @@ def evolve_to_get_braiding(init_data,f,g,start_end,timesteps=1000):
 #Test Functions to test evolution functions
 
 def animate_roots_and_angles_path(wmodel,dnum,xspan=5,yspan=2,\
-                                  timesteps=1000,steps=10,path=None,breaks=None):
+                            timesteps=1000,steps=10,path=None,breaks=None):
     
     def crds_to_roots(crds):
-        return [crds[0]+1j*crds[1],crds[2]+1j*crds[3],crds[4]+1j*crds[5]]            
+        return [crds[0]+1j*crds[1],crds[2]+1j*crds[3],crds[4]+1j*crds[5]]
                                         
     def boxspan(list,ratio):
         minval=min(list)
@@ -1202,15 +1086,19 @@ def animate_roots_and_angles_path(wmodel,dnum,xspan=5,yspan=2,\
         for t, line in enumerate(lines_roots):
             line.set_data(root_xcoords[t][:steps*i],root_ycoords[t][:steps*i])
         for t, l in enumerate(lines_angles):
-            l[0].set_data(angle_xcoords[t][:steps*i],angle_ycoords[t][:steps*i])
+            l[0].set_data(angle_xcoords[t][:steps*i],\
+                                            angle_ycoords[t][:steps*i])
             l[1].set_data(angle_xcoords[t][steps*i-20:steps*i],\
                           angle_ycoords[t][steps*i-20:steps*i])
-            l[2].set_data(angle_xcoords[t][steps*i-1],angle_ycoords[t][steps*i-1])
+            l[2].set_data(angle_xcoords[t][steps*i-1],\
+                                            angle_ycoords[t][steps*i-1])
         lines_point[0].set_data(dLoc_x,dLoc_y)
-        lines_point[1].set_data(point_xcoords[:steps*i],point_ycoords[:steps*i])
+        lines_point[1].set_data(point_xcoords[:steps*i],\
+                                            point_ycoords[:steps*i])
         lines_point[2].set_data(point_xcoords[steps*i-20:steps*i],\
                                 point_ycoords[steps*i-20:steps*i])
-        lines_point[3].set_data(point_xcoords[steps*i-1],point_ycoords[steps*i-1])
+        lines_point[3].set_data(point_xcoords[steps*i-1],\
+                                            point_ycoords[steps*i-1])
         return (lines_roots+lines_angles[0]+lines_angles[1]+lines_angles[2]+\
                 lines_point),
 
@@ -1221,10 +1109,11 @@ def animate_roots_and_angles_path(wmodel,dnum,xspan=5,yspan=2,\
     plt.show()
 
 
+
+
+
+
 #Test Functions to test evolution functions
-
-
-
 
 
 if __name__=="__main__":

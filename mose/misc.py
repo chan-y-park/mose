@@ -26,15 +26,13 @@ def formatted_date_time():
 def sort_by_abs(a, b, u0):
     a_val = complex(a.subs(u, u0))
     b_val = complex(b.subs(u, u0))
-    # print a, b
-    # print a_val, b_val
 
     if abs(a_val) > abs(b_val):
         return a, b
     elif abs(b_val) > abs(a_val):
         return b, a
     elif abs(b_val) == abs(a_val):
-        print "\nCANT SORT ROOTS NEAR A DISCRIMINANT LOCUS!\n"
+        logging.info('\nCANT SORT ROOTS NEAR A DISCRIMINANT LOCUS!\n')
         return a, b
 
 def left_right(list, point):
@@ -46,7 +44,7 @@ def left_right(list, point):
     returning repsectively 'left' or 'right'
     """
     if point > len(list)-1:
-        print "Can't determine direction, point doesn't belong to list!"
+        logging.info('Cant determine direction, point doesnt belong to list!')
     elif point > 0:
         if list[point-1][0] < list[point][0]:
             return 'right'
@@ -64,7 +62,7 @@ def clock(direction):
     elif direction == 'right':
         return 'cw'
     else:
-        print "\nCannot read direction!\n"
+        logging.info('\nCannot read direction!\n')
 
 def is_list(p): 
     return isinstance(p, list)
@@ -112,18 +110,18 @@ def order_roots(roots, segment, sign, theta):
         eta_u1 = (sign) * 4.0 * ((e3 - f1) ** (-0.5)) * \
                                     mp.ellipk( ((f2 - f1) / (e3 - f1)) )
         phase_1 = cmath.phase( \
-                    cmath.exp(1j * (theta + cmath.pi - cmath.phase(eta_u1))) / \
-                    (u1 - u0) \
-                    )
+                cmath.exp(1j * (theta + cmath.pi - cmath.phase(eta_u1))) / \
+                (u1 - u0) \
+                )
 
         ### Second possibility ###
         f1, f2 = twins[::-1]
         eta_u1 = (sign) * 4.0 * ((e3 - f1) ** (-0.5)) * \
                                     mp.ellipk( ((f2 - f1) / (e3 - f1)) )
         phase_2 = cmath.phase( \
-                    cmath.exp(1j * (theta + cmath.pi - cmath.phase(eta_u1))) / \
-                    (u1 - u0) \
-                    )
+                cmath.exp(1j * (theta + cmath.pi - cmath.phase(eta_u1))) / \
+                (u1 - u0) \
+                )
 
         if abs(phase_1) < abs(phase_2):
             e1, e2 = twins
@@ -133,7 +131,6 @@ def order_roots(roots, segment, sign, theta):
         eta_u1 = (sign) * 4.0 * ((e3 - e1) ** (-0.5)) * \
                                     mp.ellipk( ((e2 - e1) / (e3 - e1)) )
 
-        # print "ETA_1 = %s " % eta_u1
         return [[e1, e2, e3], complex(eta_u1)]
     else:
         return 0
@@ -222,12 +219,13 @@ def periods_relative_sign(p_1, p_2):
         trouble += ' modulus discrepancy too large '
 
     if trouble != ' ':
-        print "\nWARNING: could not reliably determine the positive period, \
-                \ndue to: " + trouble
+        logging.info('\
+            \nWARNING: could not reliably determine the positive period, \
+            \ndue to: {}'.format(trouble))
 
     return sign
 
-def check_marginal_stabiliy_condition(intersection):
+def check_marginal_stability_condition(intersection):
     ### Enable the code below, once the computation of 
     ### central charges is implemented.
 
@@ -240,27 +238,25 @@ def check_marginal_stabiliy_condition(intersection):
     Z_1 = kwall_1.central_charge[index_1]
     Z_2 = kwall_2.central_charge[index_2]
 
-    Z_1_alt = kwall_1.central_charge_alt[index_1]
-    Z_2_alt = kwall_2.central_charge_alt[index_2]
-
+    ### DEFINE THIS NUMERICAL CONSTANT ELSEWHERE !!!
+    ###
     if -1.0 * pi / 10 < phase(Z_1 / Z_2) < pi / 10 :
-        print "\nOK: the central charges of kwalls %s do align\
-               \nat their intersection u = %s. \
+        logging.debug('\nOK: the central charges of kwalls {} do align\
+               \nat their intersection u = {}. \
                \nIn fact, they are:\
-               \nZ_1 = %s\nZ_2 = %s\n" % ([kwall_1, kwall_2], locus, Z_1, Z_2)
-        print "The alternative central charges read: \nZ_1 = %s\nZ_2 = %s\n" \
-                % (Z_1_alt, Z_2_alt)
-        pass
+               \nZ_1 = {}\nZ_2 = {}\n'\
+               .format([kwall_1, kwall_2], locus, Z_1, Z_2))
+
     else:
         ### the phase discrepancy is too large to be on a MS wall
-        print "\nWARNING: the central charges of kwalls %s do not align\
-               \nat their intersection u = %s. \
+        logging.debug('\nWARNING: the central charges of kwalls {} don-t align\
+               \nat their intersection u = {}. \
                \nIn fact, they are:\
-               \nZ_1 = %s\nZ_2 = %s\n" % ([kwall_1, kwall_2], locus, Z_1, Z_2)
-        print "The alternative central charges read: \nZ_1 = %s\nZ_2 = %s\n" \
-                % (Z_1_alt, Z_2_alt)
+               \nZ_1 = {}\nZ_2 = {}\n'\
+               .format([kwall_1, kwall_2], locus, Z_1, Z_2))
+    
+    pass
 
-    # pass
 
 
 def sort_parent_kwalls(parents, indices):

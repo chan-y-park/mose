@@ -61,10 +61,6 @@ def check_evolved_period(charge, d):
     beta_0 = period_data[2]
     beta_prime_0 = period_data[3]
 
-    # print "\nThe integration path\
-    #        \n--------------------\
-    #        \n%s" % path
-
     print "\nu_0, eta_0, beta_0:\n%s\n" % [u0, eta_0, beta_0]
 
     def deriv(t, y):
@@ -72,10 +68,6 @@ def check_evolved_period(charge, d):
 
         matrix = fibration.pf_matrix(u)
         det_pf = abs(det(matrix))
-        # print "u = %s" % u
-        # print "eta = %s" % eta
-        # print "d_eta = %s" % d_eta
-        # print "Jacobian determinant : %s" % det_pf
         ###
         ### MOVE THIS PARAMETER ELSEWHERE !!!
         ###
@@ -145,14 +137,27 @@ def check_evolved_period(charge, d):
     print "to compare with:\nkwall point = %s\nkwall period = %s\n" % \
                 (complexify(k0.coordinates[100]), k0.periods[100])
 
-    # data_plot(recorded_loci,"u along PF path")
-    # data_plot(recorded_periods,"eta along PF path")
-    # data_plot(recorded_d_eta,"d_eta along PF path")
+    data_plot(recorded_loci,"u along PF path")
+    data_plot(recorded_periods,"eta along PF path")
+    data_plot(recorded_d_eta,"d_eta along PF path")
 
 
     # return eta_gamma_f
 
 
-# def positive_period(n, charge, w_model, fibration): 
-    
-#     return 1.0
+
+
+
+######### 
+# IMPLEMENT THE CHECK WITH THE FOLLOWING ROUTINE FOR CENTRAL CHARGE NUMERICS (?)
+#########
+
+        # #### An alternative method of computing the central charge
+        # self.central_charge_alt =  [0.0]
+
+        # for i in range(len(self.coordinates[:-1])):
+        #     du = complexify(self.coordinates[i+1]) \
+        #          - complexify(self.coordinates[i])
+        #     eta_avg = 0.5 * (self.periods[i+1] + self.periods[i])
+        #     c_c = complex(self.central_charge_alt[-1] + eta_avg * du)
+        #     self.central_charge_alt.append(c_c) 
