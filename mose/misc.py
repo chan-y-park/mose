@@ -345,33 +345,39 @@ def path_derivative(u, u_i, u_f):
 
     if u_i.real < u_f.real and u_i.imag < u_f.imag:
         if u.real < u_f.real:
-            return epsilon
+            ### The last factor is meant to make it slow down
+            ### as it approaches the right 'height' (imaginary part)
+            ### but the '+epsilon' is needed, otherwise it will go 
+            ### to zero, and will not make the turn to continue evolving
+            ### towards u_f.
+            ### The same reasonning applies everywhere else in this function.
+            return epsilon * (u_f.real - u.real)
         elif u.imag < u_f.imag:
-            return epsilon * 1j
+            return epsilon * 1j * (u_f.imag - u.imag)
         else: 
             return 0
 
     elif u_i.real < u_f.real and u_i.imag > u_f.imag:
         if u.real < u_f.real:
-            return epsilon
+            return epsilon * (u_f.real - u.real)
         elif u.imag > u_f.imag:
-            return -1 * epsilon * 1j
+            return -1 * epsilon * 1j * (u.imag - u_f.imag)
         else: 
             return 0
 
     if u_i.real > u_f.real and u_i.imag < u_f.imag:
         if u.real > u_f.real:
-            return -1 * epsilon
+            return -1 * epsilon * (u.real - u_f.real)
         elif u.imag < u_f.imag:
-            return epsilon * 1j
+            return epsilon * 1j * (u_f.imag - u.imag)
         else: 
             return 0
 
     if u_i.real > u_f.real and u_i.imag > u_f.imag:
         if u.real > u_f.real:
-            return -1 * epsilon
+            return -1 * epsilon * (u.real - u_f.real)
         elif u.imag > u_f.imag:
-            return -1 * epsilon * 1j
+            return -1 * epsilon * 1j * (u.imag - u_f.imag)
         else: 
             return 0   
 
