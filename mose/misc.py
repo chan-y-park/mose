@@ -157,22 +157,52 @@ def cut_singular_k_wall(k_wall):
     k_wall.periods = periods[0:i_0]
 
 
-def integrand(*args):
+def phase2(c):
+    # Give the phase of a complex number c between 0 and 2pi
+    phase_c = phase(c)
+    if phase_c < 0:
+        return phase_c + 2*pi
+    else:
+        return phase_c
+
+
+def phase3(c, theta_cut):
+    # Give the phase of a complex number c 
+    # with a branch cut along theta = theta_cut, -pi < theta_cut < pi.
+    phase_c = phase(c)
+    if phase_c > theta_cut:
+        return phase_c - 2*pi
+    else:
+        return phase_c
+
+
+def integrand(period, *args):
     """
-    2/sqrt{(x-a)(x-b)(x-c)} for x along the line connecting a and b, 
+    2/sqrt{(x-a)(x-b)(x-c)} for x along the line (a, b) or (b, c), 
     with a choice of branch cuts.
     """
     x, a, b, c = [complex(v) for v in args]
+
+#    theta_a = phase3(x-a, phase(a-b))
+#    theta_b = phase3(x-b, phase(a-b))
+#    theta_c = phase3(x-c, 0)
+
     theta_a = phase(x-a)
-    theta_b = phase(x-b)
-    # Move the branch cut
-    phase_x_c = phase(x-c)
-    if phase_x_c < 0:
-        theta_c = phase_x_c + 2*pi
+
+    if period == 'A':
+        # x \in (a, b)
+        theta_b = theta_a + pi
+    elif period == 'B':
+        # x \in (b, c)
+        theta_b = phase(x-b)
     else:
-        theta_c = phase_x_c
+        return None
+    
+    theta_c = phase2(x-c)
+
     return 2/(sqrt(abs(x-a)*abs(x-b)*abs(x-c)) *
               exp(1.0j*(theta_a + theta_b + theta_c)/2.0))
+
 
 # XXX: Consider a factor of 2 from (y^2 = 4x^3 + ...) vs (y^2 = x^3 + ...)
 def period_A(a, b, c):
@@ -180,8 +210,8 @@ def period_A(a, b, c):
     Calculate \int_b^a 2/sqrt{(x-a)(x-b)(x-c)} dx
     """
     # x = b + (a-b)*t, t \in [0, 1].
-    fr = lambda t: ((a-b) * integrand(b+(a-b)*t, a, b, c)).real
-    fi = lambda t: ((a-b) * integrand(b+(a-b)*t, a, b, c)).imag
+    fr = lambda t: ((a-b) * integrand('A', b+(a-b)*t, a, b, c)).real
+    fi = lambda t: ((a-b) * integrand('A', b+(a-b)*t, a, b, c)).imag
     r_part, r_error = n_int(fr, 0, 1)
     i_part, i_error = n_int(fi, 0, 1)
     return (r_part + 1j*i_part, r_error, i_error)
@@ -192,8 +222,8 @@ def period_B(a, b, c):
     Calculate \int_b^c 2/sqrt{(x-a)(x-b)(x-c)} dx
     """
     # x = b + (c-b)*t, t \in [0, 1].
-    fr = lambda t: ((c-b) * integrand(b+(c-b)*t, a, b, c)).real
-    fi = lambda t: ((c-b) * integrand(b+(c-b)*t, a, b, c)).imag
+    fr = lambda t: ((c-b) * integrand('B', b+(c-b)*t, a, b, c)).real
+    fi = lambda t: ((c-b) * integrand('B', b+(c-b)*t, a, b, c)).imag
     r_part, r_error = n_int(fr, 0, 1)
     i_part, i_error = n_int(fi, 0, 1)
     return (r_part + 1j*i_part, r_error, i_error)
