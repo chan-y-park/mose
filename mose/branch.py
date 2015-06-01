@@ -50,7 +50,6 @@ class BranchPoint:
         ### This should be more robust against issues
         ### arising from multiprocessing.
         self.genealogy = identifier
-        self.sym_roots = []
         
         self.monodromy_matrix = monodromy_matrix
         BranchPoint.count += 1
@@ -142,31 +141,36 @@ class Hair:
         Implementation of the ODE for evolving the hair, 
         valid in neighborhood of an A_1 singularity. 
         """
-        w_f = self.fibration.num_f
-        w_g = self.fibration.num_g
-
         u0 = self.initial_point.locus
         u = sym.Symbol('u')
         v = sym.Symbol('v')
         x = sym.Symbol('x')
 
-        eq = sym.simplify(x ** 3 + w_f * x + w_g)
-        self.initial_point.sym_roots = sym.simplify(sym.solve(eq, x))
+        # ### Disabling the following for this reason:
+        # ### Instead of computing these for each branch point, 
+        # ### we do it once and for all in the elliptic_fibration module
+        # ### and then pass the result here
+        # w_f = self.fibration.num_f
+        # w_g = self.fibration.num_g
+        # eq = sym.simplify(x ** 3 + w_f * x + w_g)
+        # self.initial_point.sym_roots = sym.simplify(sym.solve(eq, x))
 
-        ### There is no apparent gain in speed using the approximation below
-        ### In fact, it's still a cubic equation that we need to solve,
-        ### no matter what.
-        ### But keep it here, just in case it might be relevant for numerics
-        ### with complicated fibrations...
-        # ### To speed up the computation of hair initial evolution, as well 
-        # ### as primary Kwall initial evolution, we consider a Taylor
-        # ### expansion in u, instead of the full expression.
-        # ### This will help with the computation of the roots of the equation.
-        # eq_1 = sym.simplify(eq.subs(u, u0 + v))
-        # eq_2 = series(eq_1, x=u, n=2).removeO().subs(v, u - u0)
-        # self.initial_point.sym_roots = sym.simplify(sym.solve(eq_2, x))
 
-        e1, e2, e3 = self.initial_point.sym_roots
+
+        # ### There is no apparent gain in speed using the approximation below
+        # ### In fact, it's still a cubic equation that we need to solve,
+        # ### no matter what.
+        # ### But keep it here, just in case it might be relevant for numerics
+        # ### with complicated fibrations...
+        # # ### To speed up the computation of hair initial evolution, as well 
+        # # ### as primary Kwall initial evolution, we consider a Taylor
+        # # ### expansion in u, instead of the full expression.
+        # # ### This will help with the computation of the roots of the equation.
+        # # eq_1 = sym.simplify(eq.subs(u, u0 + v))
+        # # eq_2 = series(eq_1, x=u, n=2).removeO().subs(v, u - u0)
+        # # self.initial_point.sym_roots = sym.simplify(sym.solve(eq_2, x))
+
+        e1, e2, e3 = self.fibration.sym_roots
 
         distances = map(abs, [e1-e2, e2-e3, e3-e1])
         pair = min(enumerate(map(lambda x: x.subs(u, u0), distances)), 
@@ -214,7 +218,7 @@ class Hair:
             u1 = u0 + size_of_step * (-1j)
 
             f1, f2, f3 = map(complex, map(lambda x: x.subs(u, u1), \
-                                                self.initial_point.sym_roots))
+                                                self.fibration.sym_roots))
 
             roots = [f1, f2, f3]
 

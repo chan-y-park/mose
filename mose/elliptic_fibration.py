@@ -47,6 +47,7 @@ class EllipticFibration:
         self.f_coeffs = map(complex, sympy.Poly(self.num_f, u).all_coeffs())
         self.g_coeffs = map(complex, sympy.Poly(self.num_g, u).all_coeffs())
 
+
         # We will work with the convention that the DSZ matrix is fixed to be
         # the following. Must keep this attribute of the class, as it will be 
         # used when computing the KSWCF for new Kwalls.
@@ -121,6 +122,15 @@ class EllipticFibration:
         branch_point_charges = [
             monodromy_eigencharge(m) for m in branch_point_monodromies
         ]
+
+        ### Here we determine the functional expressions for the e_i
+        ### these will be used both in hair evolution and in primary kwall
+        ### evolution. For each branch point, this expression is thus used 
+        ### 3 times, hence computing it here only once is a great boost.
+        x = sympy.Symbol('x')
+        eq = sympy.simplify(x ** 3 + self.num_f * x + self.num_g)
+        self.sym_roots = sympy.simplify(sympy.solve(eq, x))
+        
 
         ### The following might be useful if some trouble is encountered
         ### with automatic computation of discriminant charges from weierstrass 
