@@ -11,7 +11,7 @@ from cmath import exp, pi
 from numpy import array, linspace
 from numpy.linalg import det
 from scipy.integrate import odeint
-from sympy import diff, N, simplify
+from sympy import diff, N, simplify, series
 from sympy import mpmath as mp
 from scipy import interpolate
 
@@ -262,8 +262,13 @@ class PrimaryKWall(KWall):
         u = sym.Symbol('u')
         x = sym.Symbol('x')
 
-        eq = x ** 3 + w_f * x + w_g
-        sym_roots = sym.simplify(sym.solve(eq, x))
+        # eq = x ** 3 + w_f * x + w_g
+        # sym_roots = sym.simplify(sym.solve(eq, x))
+        
+        ### These are computed once and for all in the neighborhood of u0
+        ### when the evolution of hair needs to compute them
+        sym_roots = self.initial_point.sym_roots
+
         e1, e2, e3 = sym_roots
         distances = map(abs, [e1-e2, e2-e3, e3-e1])
         pair = min(enumerate(map(lambda x: x.subs(u, u0), distances)), 
@@ -314,8 +319,8 @@ class PrimaryKWall(KWall):
             u1 = u0 + size_of_step * exp(1j*(theta + pi - cmath.phase(eta_0)))
             # u1 = u0 + size_of_step * exp(1j*(theta + pi)) /  (10 * eta_0)
 
-            f1, f2, f3 = map(lambda x: x.subs(u, u1), sym_roots)
-            roots = [complex(f1), complex(f2), complex(f3)]
+            f1, f2, f3 = map(complex, map(lambda x: x.subs(u, u1), sym_roots))
+            roots = [f1, f2, f3]
             # print "ROOTS %s" % roots
 
             segment = [u0, u1]
