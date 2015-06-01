@@ -44,6 +44,7 @@ aligned in ascending order of the real part.
 """
 
 import cmath
+import logging
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import numpy as np
@@ -189,14 +190,20 @@ class WeierstrassModelWithPaths(WeierstrassModel):
         else:
             self.path_data=path_data
         init_p = self.path_data[1]
+        
+        ### Will declare once and for all the basepoint that is chosen 
+        ### to compute monodromies and hence trivialize the lattice 
+        ### fibration. All charges are expressed in terms of periods
+        ### of the lattice at this point!
+        self.base_point = init_p
+        
         init_poly = np.poly1d([1,0,self.f(init_p),self.g(init_p)])
         self.init_rts = sorted(init_poly.r,cmp=real_part)        
         self.paths=[]
         self.paths_for_periods = []
         for loc in self.disc_locus:
             self.paths.append(construct_path(loc,self.path_data))
-            self.paths_for_periods.append(construct_path_for_periods(\
-                                                        loc, self.path_data))
+
         self.x_rotation_consistency_check = True
         
 
@@ -299,72 +306,13 @@ class WeierstrassModelWithPaths(WeierstrassModel):
                             complex(rts_0[2])
                             ]
 
-        print "\nordered roots:\n%s" % [e1_0, e2_0, e3_0]
-        # print "\nf :%s\ng : %s\n" % (self.f, self.g)
-
-        # # XXX: is this step size(=0.01) enough to calculate 
-        # # the derivatives? And what about the phase of the step?
-        # u_1 = self.path_data[1] + 0.01
-        # init_poly_1 = np.poly1d([1,0,self.f(u_1),self.g(u_1)])
-        # rts_1 = sorted(init_poly_1.r,cmp=real_part)
-        # e1_1, e2_1, e3_1 = [complex(rts_1[0]),\
-        #                     complex(rts_1[1]),\
-        #                     complex(rts_1[2])
-        #                     ]
-
-        # ### NOTE: eta is related to period B, while beta 
-        # ### is related to period A. That's because
-        # ### with current conventions <B, A> = +1
-
-        # eta_0 = period_B(e1_0, e2_0, e3_0)[0]
-        # beta_0 = period_A(e1_0, e2_0, e3_0)[0]
-
-        # eta_1 = period_B(e1_1, e2_1, e3_1)[0]
-        # beta_1 = period_A(e1_1, e2_1, e3_1)[0]
-
-        # eta_prime_0 = (eta_1 - eta_0) / (u_1 - u_0)
-        # beta_prime_0 = (beta_1 - beta_0) / (u_1 - u_0)
-
-
-        # XXX: is this step size(=0.01) enough to calculate 
-        # the derivatives? And what about the phase of the step?
-        u_1_x = self.path_data[1] + 0.0001
-        init_poly_1_x = np.poly1d([1,0,self.f(u_1_x),self.g(u_1_x)])
-        rts_1_x = sorted(init_poly_1_x.r,cmp=real_part)
-        e1_1_x, e2_1_x, e3_1_x = [complex(rts_1_x[0]),\
-                            complex(rts_1_x[1]),\
-                            complex(rts_1_x[2])
-                            ]
-
-        u_1_y = self.path_data[1] + 0.0001*1j
-        init_poly_1_y = np.poly1d([1,0,self.f(u_1_y),self.g(u_1_y)])
-        rts_1_y = sorted(init_poly_1_y.r,cmp=real_part)
-        e1_1_y, e2_1_y, e3_1_y = [complex(rts_1_y[0]),\
-                            complex(rts_1_y[1]),\
-                            complex(rts_1_y[2])
-                            ]
-
         ### NOTE: eta is related to period B, while beta 
         ### is related to period A. That's because
         ### with current conventions <B, A> = +1
+        eta_0 = period_A(e1_0, e2_0, e3_0)[0]
+        beta_0 = period_B(e1_0, e2_0, e3_0)[0]
 
-        eta_0 = period_B(e1_0, e2_0, e3_0)[0]
-        beta_0 = period_A(e1_0, e2_0, e3_0)[0]
-
-        eta_1_x = period_B(e1_1_x, e2_1_x, e3_1_x)[0]
-        beta_1_x = period_A(e1_1_x, e2_1_x, e3_1_x)[0]
-        eta_1_y = period_B(e1_1_y, e2_1_y, e3_1_y)[0]
-        beta_1_y = period_A(e1_1_y, e2_1_y, e3_1_y)[0]
-
-        eta_prime_x = (eta_1_x - eta_0) / (u_1_x - u_0)
-        beta_prime_x = (beta_1_x - beta_0) / (u_1_x - u_0)
-        eta_prime_y = (eta_1_y - eta_0) / (u_1_y - u_0)
-        beta_prime_y = (beta_1_y - beta_0) / (u_1_y - u_0)
-
-        eta_prime_0 = 0.5 * (eta_prime_x - 1j * eta_prime_y)
-        beta_prime_0 = 0.5 * (beta_prime_x - 1j * beta_prime_y)
-
-        return [eta_0, eta_prime_0, beta_0, beta_prime_0]
+        return [eta_0, beta_0]
       
         
 class WeierstrassProto(WeierstrassModelWithPaths):
@@ -448,13 +396,20 @@ def sample_path_data(dLoc):
     l : minimum distance between two roots
     """
     min_y = min([loc.imag for loc in dLoc])
-    spacing = 0.45*min([dLoc[i+1].real-dLoc[i].real for i in range(len(dLoc)-1)])
-    # initPoint = 1j*(min_y-5*spacing)+(dLoc[0].real-2*spacing)
-    # ###
-    # max_spacing = max([dLoc[i+1].real-dLoc[i].real for i in range(len(dLoc)-1)])
-    # initPoint = 1j*(min_y - 1.1 * max_spacing)+(dLoc[0].real-1.1 * max_spacing)
-    # ###
-    initPoint = 0.5 - 1.0 * 1j
+    spacing = 0.45 * min([dLoc[i+1].real-dLoc[i].real \
+                                            for i in range(len(dLoc)-1)])
+    initPoint = 1j*(min_y-5*spacing)+(dLoc[0].real-2*spacing)
+    
+    ### Another possible automatized choice of the basepoint
+    ###
+    # max_spacing = max([dLoc[i+1].real-dLoc[i].real \
+    #                            for i in range(len(dLoc)-1)])
+    # min_spacing = min([dLoc[i+1].real-dLoc[i].real \
+    #                            for i in range(len(dLoc)-1)])
+    # initPoint = 1j*(min_y - 1.1 * max_spacing) \
+    #                            + (dLoc[0].real-0.2 * min_spacing)
+
+    logging.debug('The basepoint for the Wmodel is : {}'.format(initPoint))
     min_len=np.absolute(dLoc[0]-dLoc[1])
     for c in combinations(dLoc,2):
         min_len=min(min_len,np.absolute(c[0]-c[1]))
@@ -508,52 +463,8 @@ def construct_path(d,path_data):
     path.append(d-edge-(1j)*edge)
     path.append(d-delta-(1j)*edge)  
 
-    return path        
+    return path                
 
-
-
-def construct_path_for_periods(d, path_data):
-    """
-    construct_path(d,path_data)
-    
-    constructs the path for tracking the evolution
-    of the periods from the basepoint to a locus "d" 
-    of a Weierstrass model.
-    The paths are pickd in such a way to avoid branch 
-    cuts, which are assumed to extend vertically above 
-    each discriminan locus.
-    
-    Parameters
-    ----------
-    d: discriminant locus (complex number)
-    path_data: a list of path data. path_data[0]
-    is the "spacing." path_data[1] is the starting
-    point of the path. path_data[2] is the minimum
-    distance between roots.
-    
-    Returns
-    -------
-    path
-    
-    path is a list of three points whose
-    entries are complex numbers denoting a point
-    of the segment. 
-    The path has an 'L'-shape, starting with path[0],
-    evolving horizontally to path[1], then turning 
-    vertical and evolving upwards to path[2].
-    """
-    
-    delta, start, edge = path_data
-    edge *= 0.8*np.sqrt(0.5)
-    path = []
-    
-    path.append(start)
-    path.append(1j*start.imag + d.real)
-    path.append(d)  
-
-    return path        
-
-        
 
 #### Functions related to monodromy ####
 
@@ -578,13 +489,13 @@ def monodromy(G):
     """
     def letter_to_matrix(g):
         if g == 'X':
-            return np.matrix([[-1,0],[1,-1]])
-        elif g == 'x':
             return np.matrix([[-1,0],[-1,-1]])
+        elif g == 'x':
+            return np.matrix([[-1,0],[1,-1]])
         elif g == 'Y':
-            return np.matrix([[1,1],[0,1]])
-        elif g == 'y':
             return np.matrix([[1,-1],[0,1]])
+        elif g == 'y':
+            return np.matrix([[1,1],[0,1]])
         else:
             raise ValueError("SL(2,Z) element "+g+" unrecognized.")
     
@@ -706,8 +617,6 @@ def monodromy_at_point_via_path(init_root, d, f, g, path_data, w_model,\
         ### this will cause the evaluation of ALL 
         ### monodromies to start over from scratch.
         w_model.x_rotation_consistency_check = False
-        # print "need to rotate!!"
-        # print "consistency = %s" % w_model.x_rotation_consistency_check
         return np.matrix([[0, 0], [0, 0]])
 
             
@@ -929,8 +838,9 @@ def evolve_to_get_braiding(init_data,f,g,start_end,timesteps=1000):
             # raise ValueError('Roots not being properly distinguished: '+\
             #                    'timesteps too sparse.')
             print '\nsort_roots:: Roots not being properly distinguished: '+\
-                               'timesteps too sparse. '+ \
-                               '\n\nrts:\n%s\n\nlast_rts:\n%s\n\nsorted_rts\n%s' % (rts,last_rts,sorted_rts)
+                       'timesteps too sparse. '+ \
+                       '\n\nrts:\n%s\n\nlast_rts:\n%s\n\nsorted_rts\n%s'\
+                        % (rts,last_rts,sorted_rts)
             return ['rotate', 'rotate']
         else:            
             return [sorted_rts,max_diff_cons]    
@@ -988,8 +898,8 @@ def evolve_to_get_braiding(init_data,f,g,start_end,timesteps=1000):
                     raise ValueError('Cannot distinguish y and Y.')
                 return 'y'
         else:
-            # raise ValueError('Timesteps too small to extract braiding.')
-            print '\nbraiding_action:: Timesteps too small to extract braiding.'
+            logging.debug('\nbraiding_action: Timesteps too small to extract'\
+                                                                + ' braiding.')
             return 'rotate'
                 
     def minimum_diff_rts(rts):
@@ -1067,10 +977,10 @@ def evolve_to_get_braiding(init_data,f,g,start_end,timesteps=1000):
 #Test Functions to test evolution functions
 
 def animate_roots_and_angles_path(wmodel,dnum,xspan=5,yspan=2,\
-                                  timesteps=1000,steps=10,path=None,breaks=None):
+                            timesteps=1000,steps=10,path=None,breaks=None):
     
     def crds_to_roots(crds):
-        return [crds[0]+1j*crds[1],crds[2]+1j*crds[3],crds[4]+1j*crds[5]]            
+        return [crds[0]+1j*crds[1],crds[2]+1j*crds[3],crds[4]+1j*crds[5]]
                                         
     def boxspan(list,ratio):
         minval=min(list)
@@ -1176,15 +1086,19 @@ def animate_roots_and_angles_path(wmodel,dnum,xspan=5,yspan=2,\
         for t, line in enumerate(lines_roots):
             line.set_data(root_xcoords[t][:steps*i],root_ycoords[t][:steps*i])
         for t, l in enumerate(lines_angles):
-            l[0].set_data(angle_xcoords[t][:steps*i],angle_ycoords[t][:steps*i])
+            l[0].set_data(angle_xcoords[t][:steps*i],\
+                                            angle_ycoords[t][:steps*i])
             l[1].set_data(angle_xcoords[t][steps*i-20:steps*i],\
                           angle_ycoords[t][steps*i-20:steps*i])
-            l[2].set_data(angle_xcoords[t][steps*i-1],angle_ycoords[t][steps*i-1])
+            l[2].set_data(angle_xcoords[t][steps*i-1],\
+                                            angle_ycoords[t][steps*i-1])
         lines_point[0].set_data(dLoc_x,dLoc_y)
-        lines_point[1].set_data(point_xcoords[:steps*i],point_ycoords[:steps*i])
+        lines_point[1].set_data(point_xcoords[:steps*i],\
+                                            point_ycoords[:steps*i])
         lines_point[2].set_data(point_xcoords[steps*i-20:steps*i],\
                                 point_ycoords[steps*i-20:steps*i])
-        lines_point[3].set_data(point_xcoords[steps*i-1],point_ycoords[steps*i-1])
+        lines_point[3].set_data(point_xcoords[steps*i-1],\
+                                            point_ycoords[steps*i-1])
         return (lines_roots+lines_angles[0]+lines_angles[1]+lines_angles[2]+\
                 lines_point),
 
@@ -1195,10 +1109,11 @@ def animate_roots_and_angles_path(wmodel,dnum,xspan=5,yspan=2,\
     plt.show()
 
 
+
+
+
+
 #Test Functions to test evolution functions
-
-
-
 
 
 if __name__=="__main__":
@@ -1208,8 +1123,8 @@ if __name__=="__main__":
     #wmodel=WeierstrassProto([7+1j,-20j+7,3+1j],[-1j+2,15+2j,-2+12j])
     
     #Seiberg-Witten
-    rot=np.exp(np.pi*1j/3.0 * 0.0)
-    xr=np.exp(np.pi*1j/3.0 * 0.0)
+    rot=np.exp(np.pi*1j/10.0 * 0.0)
+    xr=np.exp(np.pi*1j/10.0)
     wmodel=WeierstrassProto(np.array([-1.0/3*rot**2,0,1.0/4.0])/xr**2,
                             np.array([-2.0/27*rot**3,0,1.0/12*rot,0])/xr**3)
                             
@@ -1223,13 +1138,13 @@ if __name__=="__main__":
     #Arccos model
     #rot=np.exp(np.pi*1j/8.0)
     #wmodel=WeierstrassProto([-1.0],[rot**2*1.0,0,0])
-    dnum=1
+    # dnum=1
     
-    animate_roots_and_angles_path(wmodel,dnum,4,3,\
-                                 timesteps=5000,steps=120,\
-                                 path=None,breaks=None)
+    # animate_roots_and_angles_path(wmodel,dnum,4,3,\
+    #                              timesteps=5000,steps=120,\
+    #                              path=None,breaks=None)
 
-    # mon1 = monodromy_at_point_wmodel(0,wmodel,5000,5000,option='p')
+    mon1 = monodromy_at_point_wmodel(0,wmodel,5000,5000,option='p')
 
     mon2 = monodromy_at_point_wmodel(1,wmodel,5000,5000,option='p')
 

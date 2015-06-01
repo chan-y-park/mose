@@ -27,15 +27,13 @@ def formatted_date_time():
 def sort_by_abs(a, b, u0):
     a_val = complex(a.subs(u, u0))
     b_val = complex(b.subs(u, u0))
-    # print a, b
-    # print a_val, b_val
 
     if abs(a_val) > abs(b_val):
         return a, b
     elif abs(b_val) > abs(a_val):
         return b, a
     elif abs(b_val) == abs(a_val):
-        print "\nCANT SORT ROOTS NEAR A DISCRIMINANT LOCUS!\n"
+        logging.info('\nCANT SORT ROOTS NEAR A DISCRIMINANT LOCUS!\n')
         return a, b
 
 def left_right(list, point):
@@ -47,7 +45,7 @@ def left_right(list, point):
     returning repsectively 'left' or 'right'
     """
     if point > len(list)-1:
-        print "Can't determine direction, point doesn't belong to list!"
+        logging.info('Cant determine direction, point doesnt belong to list!')
     elif point > 0:
         if list[point-1][0] < list[point][0]:
             return 'right'
@@ -65,7 +63,7 @@ def clock(direction):
     elif direction == 'right':
         return 'cw'
     else:
-        print "\nCannot read direction!\n"
+        logging.info('\nCannot read direction!\n')
 
 def is_list(p): 
     return isinstance(p, list)
@@ -113,18 +111,18 @@ def order_roots(roots, segment, sign, theta):
         eta_u1 = (sign) * 4.0 * ((e3 - f1) ** (-0.5)) * \
                                     mp.ellipk( ((f2 - f1) / (e3 - f1)) )
         phase_1 = cmath.phase( \
-                    cmath.exp(1j * (theta + cmath.pi - cmath.phase(eta_u1))) / \
-                    (u1 - u0) \
-                    )
+                cmath.exp(1j * (theta + cmath.pi - cmath.phase(eta_u1))) / \
+                (u1 - u0) \
+                )
 
         ### Second possibility ###
         f1, f2 = twins[::-1]
         eta_u1 = (sign) * 4.0 * ((e3 - f1) ** (-0.5)) * \
                                     mp.ellipk( ((f2 - f1) / (e3 - f1)) )
         phase_2 = cmath.phase( \
-                    cmath.exp(1j * (theta + cmath.pi - cmath.phase(eta_u1))) / \
-                    (u1 - u0) \
-                    )
+                cmath.exp(1j * (theta + cmath.pi - cmath.phase(eta_u1))) / \
+                (u1 - u0) \
+                )
 
         if abs(phase_1) < abs(phase_2):
             e1, e2 = twins
@@ -134,7 +132,6 @@ def order_roots(roots, segment, sign, theta):
         eta_u1 = (sign) * 4.0 * ((e3 - e1) ** (-0.5)) * \
                                     mp.ellipk( ((e2 - e1) / (e3 - e1)) )
 
-        # print "ETA_1 = %s " % eta_u1
         return [[e1, e2, e3], complex(eta_u1)]
     else:
         return 0
@@ -253,12 +250,13 @@ def periods_relative_sign(p_1, p_2):
         trouble += ' modulus discrepancy too large '
 
     if trouble != ' ':
-        print "\nWARNING: could not reliably determine the positive period, \
-                \ndue to: " + trouble
+        logging.info('\
+            \nWARNING: could not reliably determine the positive period, \
+            \ndue to: {}'.format(trouble))
 
     return sign
 
-def check_marginal_stabiliy_condition(intersection):
+def check_marginal_stability_condition(intersection):
     ### Enable the code below, once the computation of 
     ### central charges is implemented.
 
@@ -271,27 +269,25 @@ def check_marginal_stabiliy_condition(intersection):
     Z_1 = kwall_1.central_charge[index_1]
     Z_2 = kwall_2.central_charge[index_2]
 
-    Z_1_alt = kwall_1.central_charge_alt[index_1]
-    Z_2_alt = kwall_2.central_charge_alt[index_2]
-
+    ### DEFINE THIS NUMERICAL CONSTANT ELSEWHERE !!!
+    ###
     if -1.0 * pi / 10 < phase(Z_1 / Z_2) < pi / 10 :
-        print "\nOK: the central charges of kwalls %s do align\
-               \nat their intersection u = %s. \
+        logging.debug('\nOK: the central charges of kwalls {} do align\
+               \nat their intersection u = {}. \
                \nIn fact, they are:\
-               \nZ_1 = %s\nZ_2 = %s\n" % ([kwall_1, kwall_2], locus, Z_1, Z_2)
-        print "The alternative central charges read: \nZ_1 = %s\nZ_2 = %s\n" \
-                % (Z_1_alt, Z_2_alt)
-        pass
+               \nZ_1 = {}\nZ_2 = {}\n'\
+               .format([kwall_1, kwall_2], locus, Z_1, Z_2))
+
     else:
         ### the phase discrepancy is too large to be on a MS wall
-        print "\nWARNING: the central charges of kwalls %s do not align\
-               \nat their intersection u = %s. \
+        logging.debug('\nWARNING: the central charges of kwalls {} don-t align\
+               \nat their intersection u = {}. \
                \nIn fact, they are:\
-               \nZ_1 = %s\nZ_2 = %s\n" % ([kwall_1, kwall_2], locus, Z_1, Z_2)
-        print "The alternative central charges read: \nZ_1 = %s\nZ_2 = %s\n" \
-                % (Z_1_alt, Z_2_alt)
+               \nZ_1 = {}\nZ_2 = {}\n'\
+               .format([kwall_1, kwall_2], locus, Z_1, Z_2))
+    
+    pass
 
-    # pass
 
 
 def sort_parent_kwalls(parents, indices):
@@ -353,7 +349,7 @@ def path_derivative(u, u_i, u_f):
     This function returns the derivative du/dt 
     for the path u(t) that is to be used for 
     computing the positive period via PF transport
-    from the basepoint.
+    FROM the basepoint.
 
     parameters:
     -----------
@@ -365,45 +361,119 @@ def path_derivative(u, u_i, u_f):
     the output:
     -----------
 
-    it will give a potivive real derivative 
+    it will give a posivive real derivative 
     until Re(u) reaches Re(u_f).
     Then it will give a positive imaginary
     derivative, until Im(u) reaches Im(u_f).
     In this way, an L-shaped path is produced
     """
 
-    epsilon = 0.1
+    epsilon = 0.01
 
     if u_i.real < u_f.real and u_i.imag < u_f.imag:
         if u.real < u_f.real:
-            return epsilon
+            ### The last factor is meant to make it slow down
+            ### as it approaches the right 'height' (imaginary part)
+            ### but the '+epsilon' is needed, otherwise it will go 
+            ### to zero, and will not make the turn to continue evolving
+            ### towards u_f.
+            ### The same reasonning applies everywhere else in this function.
+            return epsilon * (u_f.real - u.real)
         elif u.imag < u_f.imag:
-            return epsilon * 1j
+            return epsilon * 1j * (u_f.imag - u.imag)
         else: 
             return 0
 
     elif u_i.real < u_f.real and u_i.imag > u_f.imag:
         if u.real < u_f.real:
-            return epsilon
+            return epsilon * (u_f.real - u.real)
         elif u.imag > u_f.imag:
-            return -1 * epsilon * 1j
+            return -1 * epsilon * 1j * (u.imag - u_f.imag)
         else: 
             return 0
 
     if u_i.real > u_f.real and u_i.imag < u_f.imag:
         if u.real > u_f.real:
-            return -1 * epsilon
+            return -1 * epsilon * (u.real - u_f.real)
         elif u.imag < u_f.imag:
-            return epsilon * 1j
+            return epsilon * 1j * (u_f.imag - u.imag)
         else: 
             return 0
 
     if u_i.real > u_f.real and u_i.imag > u_f.imag:
         if u.real > u_f.real:
-            return -1 * epsilon
+            return -1 * epsilon * (u.real - u_f.real)
         elif u.imag > u_f.imag:
-            return -1 * epsilon * 1j
+            return -1 * epsilon * 1j * (u.imag - u_f.imag)
         else: 
-            return 0    
+            return 0   
+
+
+def path_derivative_alt(u, u_i, u_f):
+    """
+    This function returns the derivative du/dt 
+    for the path u(t) that is to be used for 
+    computing the positive period via PF transport
+    TO the basepoint.
+    The difference with the former function is that
+    here we give priority to vertical motion, 
+    and only then proceed horizontally.
+
+    parameters:
+    -----------
+
+    u = point of evaluation
+    u_i = the initial basepoint
+    u_f = the final point (the disc. locus)
+
+    the output:
+    -----------
+
+    it will give a potsivive real derivative 
+    until Re(u) reaches Re(u_f).
+    Then it will give a positive imaginary
+    derivative, until Im(u) reaches Im(u_f).
+    In this way, an L-shaped path is produced
+    """
+
+    epsilon = 0.01
+
+    if u_i.real < u_f.real and u_i.imag < u_f.imag:
+        if u.imag < u_f.imag:
+            ### The last factor is meant to make it slow down
+            ### as it approaches the right 'height' (imaginary part)
+            ### but the '+epsilon' is needed, otherwise it will go 
+            ### to zero, and will not make the turn to continue evolving
+            ### towards u_f.
+            ### The same reasonning applies everywhere else in this function.
+            return epsilon * 1j * (u_f.imag - u.imag + epsilon)
+        elif u.real < u_f.real:
+            return epsilon * (u_f.real - u.real + epsilon)
+        else: 
+            return 'stop'
+
+    elif u_i.real < u_f.real and u_i.imag > u_f.imag:
+        if u.imag > u_f.imag:
+            return epsilon * (-1j) * (u.imag - u_f.imag+ epsilon)
+        elif u.real < u_f.real:
+            return epsilon * (u_f.real - u.real + epsilon)
+        else: 
+            return 'stop'
+
+    if u_i.real > u_f.real and u_i.imag < u_f.imag:
+        if u.imag < u_f.imag:
+            return epsilon * 1j * (u_f.imag - u.imag + epsilon)
+        elif u.real > u_f.real:
+            return -1 * epsilon * (u.real - u_f.real + epsilon)
+        else: 
+            return 'stop'
+
+    if u_i.real > u_f.real and u_i.imag > u_f.imag:
+        if u.imag > u_f.imag:
+            return epsilon * (-1j) * (u.imag - u_f.imag + epsilon)
+        elif u.real > u_f.real:
+            return -1 * epsilon * (u.real - u_f.real + epsilon)
+        else: 
+            return 'stop'   
 
 

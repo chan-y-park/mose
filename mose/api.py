@@ -33,8 +33,17 @@ def set_logging(level):
         logging_level = logging.WARNING
         logging_format = '%(message)s'
 
-    logging.basicConfig(level=logging_level, format=logging_format, 
-                        stream=sys.stdout)
+    # logging.basicConfig(level=logging_level, format=logging_format, 
+    #                     stream=sys.stdout)
+    
+    logger = logging.getLogger()
+    logger.setLevel(logging_level)
+    ### create console handler with a higher log level
+    ch = logging.StreamHandler()
+    ch.setLevel(logging_level)
+    formatter = logging.Formatter(logging_format)
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
 
 
 def analysis(config, phase=None,):

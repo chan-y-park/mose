@@ -11,7 +11,7 @@ from cmath import exp, pi
 from numpy import array, linspace
 from numpy.linalg import det
 from scipy.integrate import odeint
-from sympy import diff, N, simplify
+from sympy import diff, N, simplify, series
 from sympy import mpmath as mp
 from scipy import interpolate
 
@@ -95,8 +95,6 @@ trajectory!" % (sp[0], sp[-1])
 
 
     def check_cuts(self):
-       ## self.splittings = (55, 107, 231) 
-       ## self.local_charge = (self.initial_charge, (2,1), (0,-1), (1,1))
        # determine at which points the wall crosses a cut, for instance
        # (55,107,231) would mean that we change charge 3 times
        # hence self.splittings would have length, 3 while
@@ -157,9 +155,9 @@ trajectory!" % (sp[0], sp[-1])
        self.cuts_intersections = sorted(self.cuts_intersections , \
                                        cmp = lambda k1,k2: cmp(k1[1],k2[1]))
 
-       # print \
-       # "\nK-wall %s\nintersects the following cuts at the points\n%s\n" \
-       # % (self, intersections)
+       logging.debug(\
+       '\nK-wall {}\nintersects the following cuts at the points\n{}\n'\
+       .format(self, intersections))
 
        # now define the lis of splitting points (for convenience) ad the 
        # list of local charges
@@ -167,7 +165,7 @@ trajectory!" % (sp[0], sp[-1])
        self.local_charge = [self.initial_charge]
        for k in range(len(self.cuts_intersections)):
            branch_point = self.cuts_intersections[k][0]   # branch-point
-           # t = self.cuts_intersections[k][1]       # proper time
+           # t = self.cuts_intersections[k][1]           # proper time
            direction = self.cuts_intersections[k][2]     # 'ccw' or 'cw'
            charge = self.local_charge[-1]
            new_charge = charge_monodromy(charge, branch_point, direction)
@@ -185,15 +183,12 @@ trajectory!" % (sp[0], sp[-1])
             # Don't grow this K-wall, exit immediately.
             return None
 
-        singularity_check= False
-
         theta = self.phase
 
         ode = scipy.integrate.ode(k_wall_pf_ode_f)
         ode.set_integrator("zvode", **ode_kwargs)
 
         y_0 = self.pf_boundary_conditions
-        # print "Boundary conditions for PF evolution: \n%s" % y_0
         ### y_0 contains the following:
         ### [u_0, eta_0, d_eta_0, central_charge_0]
         ode.set_initial_value(y_0)
@@ -222,25 +217,8 @@ trajectory!" % (sp[0], sp[-1])
 
         self.check_cuts()
 
-        #### An alternative method of computing the central charge
-        self.central_charge_alt =  [0.0]
-
-        # print "PERIODS\n%s" % self.periods
-
-        for i in range(len(self.coordinates[:-1])):
-            du = complexify(self.coordinates[i+1]) \
-                 - complexify(self.coordinates[i])
-            eta_avg = 0.5 * (self.periods[i+1] + self.periods[i])
-            c_c = complex(self.central_charge_alt[-1] + eta_avg * du)
-            # print "integration data: \ndu = %s\neta_avg = %s\nc_c = %s" % (du, eta_avg, c_c)
-            self.central_charge_alt.append(c_c) 
-
     def plot_periods(self):
         data_plot(self.periods, "periods of dx/y")
-        # rescaled_list = [((self.periods[i+1] - self.periods[i]) \
-        #               * (complexify(self.coordinates[i+1]) - complexify(self.coordinates[i]))) \
-        #               for i in range(len(self.periods)-1)]
-        # data_plot(rescaled_list, "periods of dx/y")
 
     def plot_central_charge(self):
         data_plot(self.central_charge, "central charges")
@@ -277,16 +255,24 @@ class PrimaryKWall(KWall):
         Implementation of the ODE for evolving primary walls, 
         valid in neighborhood of an A_1 singularity. 
         """
-        w_f = self.fibration.num_f
-        w_g = self.fibration.num_g
+        
         theta = self.phase
         u0, sign = initial_condition
         u = sym.Symbol('u')
         x = sym.Symbol('x')
 
-        eq = x ** 3 + w_f * x + w_g
-        sym_roots = sym.simplify(sym.solve(eq, x))
-        e1, e2, e3 = sym_roots
+        ### Disabling the following: roots are computed once and
+        ### for all at the level of the elliptic fibration
+        # w_f = self.fibration.num_f
+        # w_g = self.fibration.num_g
+        # eq = x ** 3 + w_f * x + w_g
+        # sym_roots = sym.simplify(sym.solve(eq, x))
+        
+        # ### These are computed once and for all in the neighborhood of u0
+        # ### when the evolution of hair needs to compute them
+        # sym_roots = self.initial_point.sym_roots
+
+        e1, e2, e3 = self.fibration.sym_roots
         distances = map(abs, [e1-e2, e2-e3, e3-e1])
         pair = min(enumerate(map(lambda x: x.subs(u, u0), distances)), 
                     key=itemgetter(1))[0]
@@ -306,21 +292,13 @@ class PrimaryKWall(KWall):
 
         ellipk_period = 4.0 * ((f3_0 - f1_0) ** (-0.5)) * pi / 2.0
 
-        ### The 'sign' variable only fixes the charge of the K-wall.
-        ### In contrast, the actual sign of the period should be determined 
-        ### by comparing with the PF-evolution of the cycle as computed at
-        ### the basepoint for monodromy computations.
+        ### The 'sign' variable fixes both the charge and the period 
+        ### of the K-wall, relative to those of the discriminant locus 
+        ### from which it emanates.
+        eta_0 = sign * self.parents[0].hair.periods[0]
+        self.initial_charge = list(int(round(sign)) \
+                                    * array(self.parents[0].charge))
         
-        rel_sign = periods_relative_sign(ellipk_period, \
-                                          self.reference_initial_period)
-        period_sign = sign * rel_sign
-
-        eta_0 = (period_sign) * ellipk_period
-
-        print "\nThe initial value of eta_\gamma for this Kwall is : %s" \
-                                                                    % eta_0
-        print "\nThe reference value of eta_\gamma for this Kwall is : %s\n" \
-                                % (rel_sign * self.reference_initial_period)
 
         # The initial evolution of primary kwalls is handled with an
         # automatic tuning.
@@ -344,12 +322,13 @@ class PrimaryKWall(KWall):
             u1 = u0 + size_of_step * exp(1j*(theta + pi - cmath.phase(eta_0)))
             # u1 = u0 + size_of_step * exp(1j*(theta + pi)) /  (10 * eta_0)
 
-            f1, f2, f3 = map(lambda x: x.subs(u, u1), sym_roots)
-            roots = [complex(f1), complex(f2), complex(f3)]
+            f1, f2, f3 = map(complex, map(lambda x: x.subs(u, u1), \
+                                                    self.fibration.sym_roots))
+            roots = [f1, f2, f3]
             # print "ROOTS %s" % roots
 
             segment = [u0, u1]
-            try_step = order_roots(roots, segment, period_sign, theta)
+            try_step = order_roots(roots, segment, sign, theta)
             # check if root tracking is no longer valid
             if try_step == 0: 
                 break
@@ -367,40 +346,17 @@ class PrimaryKWall(KWall):
         ### Computing the central charge: for primary kwalls
         ### we simply integrate by hand the values of eta(u) du
         ### Later, we use Picard-Fuchs.
-
+        
         self.central_charge = [0.0]
-
-        # print "PERIODS\n%s" % self.periods
 
         for i in range(len(self.coordinates[:-1])):
             du = complexify(self.coordinates[i+1]) \
                  - complexify(self.coordinates[i])
             eta_avg = 0.5 * (self.periods[i+1] + self.periods[i])
             c_c = complex(self.central_charge[-1] + eta_avg * du)
-            # print "\nu = %s\ndu = %s\neta_avg = %s\nZ = %s" % (self.coordinates[i], du, eta_avg, c_c)
             self.central_charge.append(c_c) 
 
-        # print "\nThe last pedestrian central charge is\
-        # \nZ = %s\nu = %s" % (self.central_charge[-1], self.coordinates[-1])
-
         self.pf_boundary_conditions = [u1, eta_1, eta_prime_1, c_c]
-        
-
-        ### Now we need to find the correct initial charge for the K-wall.
-        ### The parent branch point gives such data, but with ambiguity on the 
-        ### overall sign. This is fixed by comparing the period of the 
-        ### holomorphic differential along the vanishing cycle with the 
-        ### corresponding period as evolved via PF from the basepoint on the 
-        ### u-plane where we trivialized the charge lattice, which we used to 
-        ### compute monodromies.
-        parent_bp = self.parents[0]
-        positive_period = parent_bp.positive_period
-        positive_charge = parent_bp.charge
-        kwall_period = self.periods[0]      # this period is used for evolution
-        kwall_sign = ((kwall_period / positive_period).real /
-                      abs((kwall_period / positive_period).real))
-        kwall_charge = list(int(kwall_sign) * array(positive_charge))
-        self.initial_charge = kwall_charge
 
 
 class DescendantKWall(KWall):
