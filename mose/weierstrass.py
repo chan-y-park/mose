@@ -398,8 +398,10 @@ def sample_path_data(dLoc):
     min_y = min([loc.imag for loc in dLoc])
     spacing = 0.45 * min([dLoc[i+1].real-dLoc[i].real \
                                             for i in range(len(dLoc)-1)])
-    initPoint = 1j*(min_y-5*spacing)+(dLoc[0].real-2*spacing)
+    # initPoint = 1j*(min_y-5*spacing)+(dLoc[0].real-2*spacing)
     
+    initPoint = 2.0-0.6j
+
     ### Another possible automatized choice of the basepoint
     ###
     # max_spacing = max([dLoc[i+1].real-dLoc[i].real \
