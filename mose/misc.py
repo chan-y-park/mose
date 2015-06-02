@@ -1,3 +1,5 @@
+
+
 import logging
 import numpy
 import datetime
@@ -225,38 +227,6 @@ def periods_relative_sign(p_1, p_2):
             \ndue to: {}'.format(trouble))
 
     return sign
-
-def check_marginal_stability_condition(intersection):
-    ### Enable the code below, once the computation of 
-    ### central charges is implemented.
-
-    kwall_1 = intersection.parents[0]
-    kwall_2 = intersection.parents[1]
-    index_1 = intersection.index_1
-    index_2 = intersection.index_2
-    locus = intersection.locus
-
-    Z_1 = kwall_1.central_charge[index_1]
-    Z_2 = kwall_2.central_charge[index_2]
-
-    ### DEFINE THIS NUMERICAL CONSTANT ELSEWHERE !!!
-    ###
-    if -1.0 * pi / 10 < phase(Z_1 / Z_2) < pi / 10 :
-        logging.debug('\nOK: the central charges of kwalls {} do align\
-               \nat their intersection u = {}. \
-               \nIn fact, they are:\
-               \nZ_1 = {}\nZ_2 = {}\n'\
-               .format([kwall_1, kwall_2], locus, Z_1, Z_2))
-
-    else:
-        ### the phase discrepancy is too large to be on a MS wall
-        logging.debug('\nWARNING: the central charges of kwalls {} don-t align\
-               \nat their intersection u = {}. \
-               \nIn fact, they are:\
-               \nZ_1 = {}\nZ_2 = {}\n'\
-               .format([kwall_1, kwall_2], locus, Z_1, Z_2))
-    
-    pass
 
 
 
