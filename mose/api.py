@@ -172,7 +172,7 @@ def save_data(config, data, data_dir=None, data_file_name='data'):
 
 
 def save(config, data, k_wall_network_plot=None, ms_wall_plot=None,
-         data_dir=None, open_dialog=True):
+         data_dir=None, open_dialog=False):
     """
     Save config & data files in a directory.
     """
