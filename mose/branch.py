@@ -348,6 +348,12 @@ def reference_period(branch_point):
 
     ### the pinching-cycle period at the starting point, 
     eta_gamma_0 = charge[0] * eta_0 + charge[1] * beta_0
+
+    logging.debug('\
+                    \nThe charge is: {}\
+                    \nThe A-period is: {}\
+                    \nThe B-period is: {}\
+                    '.format(charge, eta_0, beta_0))
     
     return eta_gamma_0
 
