@@ -390,34 +390,40 @@ def path_derivative_alt(u, u_i, u_f):
     epsilon = 0.01
 
     if u_i.real < u_f.real and u_i.imag < u_f.imag:
-        if u.imag < u_f.imag:
-            ### The last factor is meant to make it slow down
-            ### as it approaches the right 'height' (imaginary part)
-            ### but the '+epsilon' is needed, otherwise it will go 
-            ### to zero, and will not make the turn to continue evolving
-            ### towards u_f.
-            ### The same reasonning applies everywhere else in this function.
-            return epsilon * 1j * (u_f.imag - u.imag + epsilon)
-        elif u.real < u_f.real:
-            return epsilon * (u_f.real - u.real + epsilon)
-        else: 
-            return 'stop'
+        # if u.imag < u_f.imag:
+        #     ### The last factor is meant to make it slow down
+        #     ### as it approaches the right 'height' (imaginary part)
+        #     ### but the '+epsilon' is needed, otherwise it will go 
+        #     ### to zero, and will not make the turn to continue evolving
+        #     ### towards u_f.
+        #     ### The same reasonning applies everywhere else in this function.
+        #     return epsilon * 1j * (u_f.imag - u.imag + epsilon)
+        # elif u.real < u_f.real:
+        #     return epsilon * (u_f.real - u.real + epsilon)
+        # else: 
+        #     return 'stop'
+        raise ValueError('The basepoint of the fibration should have \
+                        \n a smaller imaginary part than all of the \
+                        \n discriminant loci.')
 
     elif u_i.real < u_f.real and u_i.imag > u_f.imag:
         if u.imag > u_f.imag:
-            return epsilon * (-1j) * (u.imag - u_f.imag+ epsilon)
+            return epsilon * (-1j) * (u.imag - u_f.imag + epsilon)
         elif u.real < u_f.real:
             return epsilon * (u_f.real - u.real + epsilon)
         else: 
             return 'stop'
 
     if u_i.real > u_f.real and u_i.imag < u_f.imag:
-        if u.imag < u_f.imag:
-            return epsilon * 1j * (u_f.imag - u.imag + epsilon)
-        elif u.real > u_f.real:
-            return -1 * epsilon * (u.real - u_f.real + epsilon)
-        else: 
-            return 'stop'
+        # if u.imag < u_f.imag:
+        #     return epsilon * 1j * (u_f.imag - u.imag + epsilon)
+        # elif u.real > u_f.real:
+        #     return -1 * epsilon * (u.real - u_f.real + epsilon)
+        # else: 
+        #     return 'stop'
+        raise ValueError('The basepoint of the fibration should have \
+                        \n a smaller imaginary part than all of the \
+                        \n discriminant loci.')
 
     if u_i.real > u_f.real and u_i.imag > u_f.imag:
         if u.imag > u_f.imag:
@@ -426,5 +432,6 @@ def path_derivative_alt(u, u_i, u_f):
             return -1 * epsilon * (u.real - u_f.real + epsilon)
         else: 
             return 'stop'   
+        
 
 
