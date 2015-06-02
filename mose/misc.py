@@ -182,7 +182,6 @@ def integrand(period, *args):
     return 2/(sqrt(abs(x-a)*abs(x-b)*abs(x-c)) *
               exp(1.0j*(theta_a + theta_b + theta_c)/2.0))
 
-# XXX: Consider a factor of 2 from (y^2 = 4x^3 + ...) vs (y^2 = x^3 + ...)
 def period_A(a, b, c):
     """
     Calculate \int_b^a 2/sqrt{(x-a)(x-b)(x-c)} dx
