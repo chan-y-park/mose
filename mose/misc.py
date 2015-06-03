@@ -1,5 +1,4 @@
-
-
+import string
 import logging
 import numpy
 import datetime
@@ -263,63 +262,80 @@ def sort_parent_kwalls(parents, indices):
     du_2 = complexify(kwall_2.coordinates[index_2+1]) - \
                 complexify(kwall_2.coordinates[index_2])
 
-    eta_1 = kwall_1.periods[index_1]
-    eta_2 = kwall_2.periods[index_2]
-    Z_1 = kwall_1.central_charge[index_1]
-    Z_2 = kwall_2.central_charge[index_2]
+    ### Based on the phase-evolution of K-walls, if you fix a point
+    ### in the chamber of origin, then kwall_l will sweep through it first
+    ### and kwall_r will sweep later. Therefore kwall_l has a SMALLER phase 
+    ### than kwall_r in that chamber.
 
     if phase(du_2 / du_1) > 0:
         kwall_l = kwall_1
         kwall_r = kwall_2
-        du_l = du_1
-        du_r = du_2
-        eta_l = eta_1
-        eta_r = eta_2
-        Z_l = Z_1
-        Z_r = Z_2
     else:
         kwall_l = kwall_2
         kwall_r = kwall_1
-        du_l = du_2
-        du_r = du_1
-        eta_l = eta_2
-        eta_r = eta_1
-        Z_l = Z_2
-        Z_r = Z_1
+    
+    return [kwall_r, kwall_l]
 
 
-    ### Now, since dZ/du = eta, we can pick du = -(du_l + du_r)
-    ### which points backwards toward the chamber from which the 
-    ### two kwalls are coming.
-    ### Then we compute Z_prime_l = Z_l + du * eta_l
-    ### and similar for Z_prime_r.
-    ### This gives the central charges a the SAME point, off the 
-    ### MS wall, and within the "originating" chamber, we can 
-    ### then use those to sort the kwalls.
-
-    du = -(du_1 + du_2)
-    Z_prime_l = Z_l + du * eta_l
-    Z_prime_r = Z_r + du * eta_r
-
-    logging.debug('Intersection with k-wall {} on the left,'
-                +' and kwall {} on the right'
-                +'\ndelta_u = {}'
-                +'\nZ_prime_l = {}'
-                +'\nZ_prime_r = {}'
-                +'\narg(Z_prime_l) = {}'
-                +'\narg(Z_prime_r) = {}'
-                +'\narg(Z_prime_l / Z_prime_r) = {}'
-                .format(kwall_l, kwall_r, du, Z_prime_l, Z_prime_r,
-                        phase(Z_prime_l), phase(Z_prime_r), 
-                        phase(Z_prime_l / Z_prime_r)
-                        ))
-
-    if phase(Z_prime_l / Z_prime_r) > 0:
-        ### the phase of Z_prime_l is greater than the phase of Z_prime_r
-        return [kwall_l, kwall_r]
-    else:
-        ### the phase of Z_1 is smaller than the phase of Z_2
-        return [kwall_r, kwall_l]
+    ### The following is actually overkill
+    ### but keep it here in case we encounter mistakes..
+    ###
+    # eta_1 = kwall_1.periods[index_1]
+    # eta_2 = kwall_2.periods[index_2]
+    # Z_1 = kwall_1.central_charge[index_1]
+    # Z_2 = kwall_2.central_charge[index_2]
+    #
+    # if phase(du_2 / du_1) > 0:
+    #     kwall_l = kwall_1
+    #     kwall_r = kwall_2
+    #     du_l = du_1
+    #     du_r = du_2
+    #     eta_l = eta_1
+    #     eta_r = eta_2
+    #     Z_l = Z_1
+    #     Z_r = Z_2
+    # else:
+    #     kwall_l = kwall_2
+    #     kwall_r = kwall_1
+    #     du_l = du_2
+    #     du_r = du_1
+    #     eta_l = eta_2
+    #     eta_r = eta_1
+    #     Z_l = Z_2
+    #     Z_r = Z_1
+    # 
+    # ### Now, since dZ/du = eta, we can pick du = -(du_l + du_r)
+    # ### which points backwards toward the chamber from which the 
+    # ### two kwalls are coming.
+    # ### Then we compute Z_prime_l = Z_l + du * eta_l
+    # ### and similar for Z_prime_r.
+    # ### This gives the central charges a the SAME point, off the 
+    # ### MS wall, and within the "originating" chamber, we can 
+    # ### then use those to sort the kwalls.
+    #
+    # du = -(du_1 + du_2)
+    # Z_prime_l = Z_l + du * eta_l
+    # Z_prime_r = Z_r + du * eta_r
+    #
+    # logging.debug('Intersection with k-wall {} on the left,'
+    #             +' and kwall {} on the right'
+    #             +'\ndelta_u = {}'
+    #             +'\nZ_prime_l = {}'
+    #             +'\nZ_prime_r = {}'
+    #             +'\narg(Z_prime_l) = {}'
+    #             +'\narg(Z_prime_r) = {}'
+    #             +'\narg(Z_prime_l / Z_prime_r) = {}'
+    #             .format(kwall_l, kwall_r, du, Z_prime_l, Z_prime_r,
+    #                     phase(Z_prime_l), phase(Z_prime_r), 
+    #                     phase(Z_prime_l / Z_prime_r)
+    #                     ))
+    #
+    # if phase(Z_prime_l / Z_prime_r) > 0:
+    #     ### the phase of Z_prime_l is greater than the phase of Z_prime_r
+    #     return [kwall_l, kwall_r]
+    # else:
+    #     ### the phase of Z_1 is smaller than the phase of Z_2
+    #     return [kwall_r, kwall_l]
 
 
 

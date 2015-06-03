@@ -41,9 +41,15 @@ class KWallNetworkPlot(NetworkPlot):
             labels['joints'].append("intersection point #{}".format(i))
         for i, k_wall in enumerate(k_wall_network.k_walls):
             k_wall_label = "K-wall #" + str(i) \
-                        + "\nDegeneracy: " + str(k_wall.degeneracy)
+                        + "\nDegeneracy: " + str(k_wall.degeneracy) \
+                        + "\nIdentifier: " + str(k_wall.identifier)
             num_segments = len(k_wall.splittings)
-            if num_segments > 0:
+            
+            if num_segments == 0:
+                single_label = k_wall_label + \
+                    "\nLocal charge: {}".format(k_wall.initial_charge)
+                labels['walls'].append(single_label) 
+            elif num_segments > 0:
                 seg_labels = []
                 for j in range(num_segments+1):
                     seg_labels.append(k_wall_label + 

@@ -83,6 +83,11 @@ def diagnose_kwall_network(kwn):
     for i in kwn.intersections:
         check_dsz_positivity(i, pairing_matrix)
 
+
+    print "\n\n\t4) Checking assignments of positive periods:\n"
+    check_positive_periods(kwn)
+        
+
     # print "\n\n\t4) Checking numerics of holomorphic periods:\n"
     # for k in kwn.k_walls:
     #     check_evolved_period(kwn, k)
@@ -249,7 +254,8 @@ def check_marginal_stability_condition(intersection):
                \nat their intersection u = {}. \
                \nIn fact, they are:\
                \nZ_1 = {}\nZ_2 = {}\n'\
-               .format([kwall_1, kwall_2], locus, Z_1, Z_2))
+               .format([kwall_1.identifier, kwall_2.identifier], \
+                        locus, Z_1, Z_2))
 
     else:
         ### the phase discrepancy is too large to be on a MS wall
@@ -262,6 +268,46 @@ def check_marginal_stability_condition(intersection):
                \nat their intersection u = {}. \
                \nIn fact, they are:\
                \nZ_1 = {}\nZ_2 = {}\n'\
-               .format([kwall_1, kwall_2], locus, Z_1, Z_2))
+               .format([kwall_1.identifier, kwall_2.identifier], \
+                locus, Z_1, Z_2))
     
     pass
+
+
+def check_positive_periods(kwn):
+    kwalls = kwn.k_walls
+    bpts = kwn.fibration.branch_points
+    
+    # Notation: using "eta" for the period of (1,0), using "beta" for (0,1)
+    period_data = kwn.fibration.w_model.compute_initial_periods()
+    eta_0 = period_data[0]
+    beta_0 = period_data[1]
+
+    print "\nThe A-period : %s" % eta_0
+    print "The B-period : %s" % beta_0
+
+    print "\nA list of kwalls, their initial charges, and their initial periods."
+    for k in kwalls:
+        print [k.identifier, k.initial_charge, k.periods[0]]
+
+    print "\nA list of branch-points\
+        \ncharges, hair base periods, hair tip periods, positive periods."
+    for b in bpts:
+        print [b.charge, b.hair.periods[0], b.hair.periods[-1], \
+                                                            b.positive_period] 
+
+    print "\nA list of branch-points: their positive charges, hair-tip positive \
+        \n periods and the corresponding reference periods."
+    for b in bpts:
+        positive_charge = b.charge
+        ref_period = positive_charge[0] * eta_0 + positive_charge[1] * beta_0
+        sign = b.positive_period / b.hair.periods[0]
+        hair_tip_positive_period = b.hair.periods[-1] * sign
+        print [b.genealogy, positive_charge, hair_tip_positive_period, \
+                                                                ref_period]
+
+
+
+    
+
+

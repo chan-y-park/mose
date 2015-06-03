@@ -12,7 +12,8 @@ import pdb
 
 from config import MoseConfig
 from gui import open_gui
-from api import (set_logging, analysis, save, load, load_config, make_plots,)
+from api import (set_logging, analysis, save, load, load_config, make_plots,
+                run_diagnostics)
 
 
 shortopts = 'c:g:hl:p:'
