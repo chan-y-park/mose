@@ -10,10 +10,10 @@ def charge_monodromy(charge, branch_point, direction):
 	we follow Seiberg-Wittten.
 	"""
 	gamma = np.array(charge)
-	if direction == 'cw':
-		monodromy_matrix = np.array(branch_point.monodromy_matrix)
-		return map(int, map(round, np.dot(monodromy_matrix, charge)))
 	if direction == 'ccw':
+		monodromy_matrix = np.array(branch_point.monodromy_matrix)
+		return map(int, map(round, np.dot(charge, monodromy_matrix)))
+	if direction == 'cw':
 		monodromy_matrix = \
 						np.linalg.inv(np.array(branch_point.monodromy_matrix))
-		return map(int, map(round, np.dot(monodromy_matrix, charge)))
+		return map(int, map(round, np.dot(charge, monodromy_matrix)))
