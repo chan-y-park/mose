@@ -112,8 +112,8 @@ def order_roots(roots, segment, sign, theta):
         f1, f2 = twins
         eta_u1 = (sign) * 4.0 * ((e3 - f1) ** (-0.5)) * \
                                     mp.ellipk( ((f2 - f1) / (e3 - f1)) )
-        phase_1 = cmath.phase( \
-                cmath.exp(1j * (theta + cmath.pi - cmath.phase(eta_u1))) / \
+        phase_1 = phase( \
+                cmath.exp(1j * (theta + cmath.pi - phase(eta_u1))) / \
                 (u1 - u0) \
                 )
 
@@ -121,8 +121,8 @@ def order_roots(roots, segment, sign, theta):
         f1, f2 = twins[::-1]
         eta_u1 = (sign) * 4.0 * ((e3 - f1) ** (-0.5)) * \
                                     mp.ellipk( ((f2 - f1) / (e3 - f1)) )
-        phase_2 = cmath.phase( \
-                cmath.exp(1j * (theta + cmath.pi - cmath.phase(eta_u1))) / \
+        phase_2 = phase( \
+                cmath.exp(1j * (theta + cmath.pi - phase(eta_u1))) / \
                 (u1 - u0) \
                 )
 
@@ -242,30 +242,64 @@ def periods_relative_sign(p_1, p_2):
 
 
 def sort_parent_kwalls(parents, indices):
-    ####### MUST USE ANOTHER METHOD! THIS IS A STUPID ONE, 
-    ####### THE CENTRAL CHARGES HAVE THE SAME PHASE ALL 
-    ####### ALONG THE KWALL!!!
-    
-    ### Enable the code below, once the computation of 
-    ### central charges is implemented.
-
     kwall_1 = parents[0]
     kwall_2 = parents[1]
-    ### will check central charges slightly before the walls intersect
-    index_1 = max(indices[0] - 10, 0)
-    index_2 = max(indices[1] - 10, 0)
+    index_1 = indices[0]
+    index_2 = indices[1]
 
+    ### determine which kwall comes "from the left"
+    ### and which "from the right" at the intersection point
+    ### meaning that (l_kwall, r_kwall) ~ (x, y)
+    ### where the orientation is understood as given by tangent vectors
+    du_1 = complexify(kwall_1.coordinates[index_1+1]) - \
+                complexify(kwall_1.coordinates[index_1])
+    du_2 = complexify(kwall_2.coordinates[index_2+1]) - \
+                complexify(kwall_2.coordinates[index_2])
+
+    eta_1 = kwall_1.periods[index_1]
+    eta_2 = kwall_2.periods[index_2]
     Z_1 = kwall_1.central_charge[index_1]
     Z_2 = kwall_2.central_charge[index_2]
 
-    if phase(Z_1 / Z_2) > 0:
-        ### the phase of Z_1 is greater than the phase of Z_2
-        return [kwall_1, kwall_2]
+    if phase(du_2 / du_1) > 0:
+        kwall_l = kwall_1
+        kwall_r = kwall_2
+        du_l = du_1
+        du_r = du_2
+        eta_l = eta_1
+        eta_r = eta_2
+        Z_l = Z_1
+        Z_r = Z_2
+    else:
+        kwall_l = kwall_2
+        kwall_r = kwall_1
+        du_l = du_2
+        du_r = du_1
+        eta_l = eta_2
+        eta_r = eta_1
+        Z_l = Z_2
+        Z_r = Z_1
+
+    ### Now, since dZ/du = eta, we can pick du = -(du_l + du_r)
+    ### which points backwards toward the chamber from which the 
+    ### two kwalls are coming.
+    ### Then we compute Z_prime_l = Z_l + du * eta_l
+    ### and similar for Z_prime_r.
+    ### This gives the central charges a the SAME point, off the 
+    ### MS wall, and within the "originating" chamber, we can 
+    ### then use those to sort the kwalls.
+
+    du = -(du_1 + du_2)
+    Z_prime_l = Z_l + du * eta_l
+    Z_prime_r = Z_r + du * eta_r
+
+    if phase(Z_prime_l / Z_prime_r) > 0:
+        ### the phase of Z_prime_l is greater than the phase of Z_prime_r
+        return [kwall_l, kwall_r]
     else:
         ### the phase of Z_1 is smaller than the phase of Z_2
-        return [kwall_2, kwall_1]
+        return [kwall_r, kwall_l]
 
-    # return parents
 
 
 def data_plot(cmplx_list, title):

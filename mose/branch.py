@@ -107,9 +107,9 @@ class BranchPoint:
                                     )
         self.positive_period = hair_initial_period * sign
 
-        logging.info('\nThe hair final period is : {}\nat : {}\n'.format(\
+        logging.debug('\nThe hair final period is : {}\nat : {}\n'.format(\
                                 hair_final_period, self.hair.coordinates[-1]))
-        logging.info('\nThe reference period is : {}\n'\
+        logging.debug('\nThe reference period is : {}\n'\
                                                     .format(reference_period))
 
 
