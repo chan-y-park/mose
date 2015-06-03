@@ -25,7 +25,7 @@ class KWall(object):
     The K-wall class.
 
     Attributes: coordinates, periods, degeneracy, phase, charge, 
-    parents, boundary_condition, count (shared), singular.
+    parents, boundary_condition, singular.
     Methods: evolve, terminate (?).
     Arguments of the instance: (initial_charge, degeneracy, phase, 
     parents, boundary_condition)
@@ -54,6 +54,7 @@ class KWall(object):
         self.cuts_intersections = []
         self.splittings = None
         self.local_charge = None
+        self.identifier = None
 
     # def __str__(self):
     #     return ('KWall info: initial charge {}, '

@@ -34,7 +34,8 @@ class KWallNetworkPlot(NetworkPlot):
         labels = {'branch_points': [], 'joints': [], 'walls': []}
         for i, bp in enumerate(k_wall_network.fibration.branch_points):
             branch_points.append([bp.locus.real, bp.locus.imag])
-            labels['branch_points'].append("branch point #{}".format(i))
+            labels['branch_points'].append("branch point #{}\nM = {}\
+                \ncharge = {}".format(i, bp.monodromy_matrix, bp.charge))
         for i, ip in enumerate(k_wall_network.intersections):
             joints.append([ip.locus.real, ip.locus.imag])
             labels['joints'].append("intersection point #{}".format(i))

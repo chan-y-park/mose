@@ -287,6 +287,7 @@ def sort_parent_kwalls(parents, indices):
         Z_l = Z_2
         Z_r = Z_1
 
+
     ### Now, since dZ/du = eta, we can pick du = -(du_l + du_r)
     ### which points backwards toward the chamber from which the 
     ### two kwalls are coming.
@@ -299,6 +300,19 @@ def sort_parent_kwalls(parents, indices):
     du = -(du_1 + du_2)
     Z_prime_l = Z_l + du * eta_l
     Z_prime_r = Z_r + du * eta_r
+
+    logging.debug('Intersection with k-wall {} on the left,'
+                +' and kwall {} on the right'
+                +'\ndelta_u = {}'
+                +'\nZ_prime_l = {}'
+                +'\nZ_prime_r = {}'
+                +'\narg(Z_prime_l) = {}'
+                +'\narg(Z_prime_r) = {}'
+                +'\narg(Z_prime_l / Z_prime_r) = {}'
+                .format(kwall_l, kwall_r, du, Z_prime_l, Z_prime_r,
+                        phase(Z_prime_l), phase(Z_prime_r), 
+                        phase(Z_prime_l / Z_prime_r)
+                        ))
 
     if phase(Z_prime_l / Z_prime_r) > 0:
         ### the phase of Z_prime_l is greater than the phase of Z_prime_r
@@ -485,4 +499,11 @@ def path_derivative_alt(u, u_i, u_f):
             return 'stop'   
         
 
+def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
+    """
+    Function used to generate random strings
+    to identify various objects, such as discriminant loci
+    or kwalls.
+    """
+    return ''.join(random.choice(chars) for _ in range(size))
 

@@ -8,7 +8,7 @@ from elliptic_fibration import EllipticFibration
 from k_wall import PrimaryKWall, DescendantKWall
 from intersection import HitTable
 from intersection_point import find_new_intersections
-from misc import complexify, cut_singular_k_wall
+from misc import complexify, cut_singular_k_wall, id_generator
 from kswcf import progeny_2
 from k_wall import KWall
 
@@ -146,15 +146,13 @@ class KWallNetwork:
                     else:
                         cut_singular_k_wall(k_wall)
                         new_k_walls.append(k_wall)
-                        # logging.info(
-                        #     """
-                        #     **************
-                        #     SINGULAR K-WALL! WILL BE DROPPED.
-                        #     **************
-                        #     """
-                        # )
-        # End of iterations.
+
+        ### End of iterations.
         self.k_walls += new_k_walls
+        
+        ### Now add an identifier to each kwall.
+        for k in self.k_walls:
+            k.identifier = id_generator()
 
 class FibrationManager(BaseManager): 
     pass

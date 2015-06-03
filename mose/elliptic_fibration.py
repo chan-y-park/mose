@@ -26,13 +26,10 @@ from cmath import exp, pi
 from numpy import array, linspace
 from numpy.linalg import det
 from operator import itemgetter
-from misc import path_derivative, data_plot, complexify
+from misc import path_derivative, data_plot, complexify, id_generator
 
 
 NEGLIGIBLE_BOUND = 0.1**12
-
-def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
-    return ''.join(random.choice(chars) for _ in range(size))
 
 class EllipticFibration:
     def __init__(self, w_f, w_g, params, branch_point_charges=None):
