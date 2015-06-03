@@ -242,6 +242,10 @@ def periods_relative_sign(p_1, p_2):
 
 
 def sort_parent_kwalls(parents, indices):
+    ####### MUST USE ANOTHER METHOD! THIS IS A STUPID ONE, 
+    ####### THE CENTRAL CHARGES HAVE THE SAME PHASE ALL 
+    ####### ALONG THE KWALL!!!
+    
     ### Enable the code below, once the computation of 
     ### central charges is implemented.
 

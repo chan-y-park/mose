@@ -398,9 +398,10 @@ def sample_path_data(dLoc):
     min_y = min([loc.imag for loc in dLoc])
     spacing = 0.45 * min([dLoc[i+1].real-dLoc[i].real \
                                             for i in range(len(dLoc)-1)])
-    # initPoint = 1j*(min_y-5*spacing)+(dLoc[0].real-2*spacing)
+    initPoint = 1j*(min_y-5*spacing)+(dLoc[0].real-2*spacing)
     
-    initPoint = 2.0-0.6j
+    ### A manual choice
+    # initPoint = 2.0-0.6j
 
     ### Another possible automatized choice of the basepoint
     ###
@@ -1140,11 +1141,12 @@ if __name__=="__main__":
     #Arccos model
     #rot=np.exp(np.pi*1j/8.0)
     #wmodel=WeierstrassProto([-1.0],[rot**2*1.0,0,0])
-    # dnum=1
     
-    # animate_roots_and_angles_path(wmodel,dnum,4,3,\
-    #                              timesteps=5000,steps=120,\
-    #                              path=None,breaks=None)
+
+    dnum=0
+    animate_roots_and_angles_path(wmodel,dnum,4,3,\
+                                 timesteps=5000,steps=120,\
+                                 path=None,breaks=None)
 
     mon1 = monodromy_at_point_wmodel(0,wmodel,5000,5000,option='p')
 
