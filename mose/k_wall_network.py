@@ -65,6 +65,7 @@ class KWallNetwork:
                     fibration=self.fibration,
                     initial_condition=[bp.locus, sign],
                     #label="K-wall #{}".format(len(self.k_walls))
+                    identifier=id_generator()
                 )
                 k_wall.grow_pf(
                     trajectory_singularity_threshold,
@@ -135,6 +136,7 @@ class KWallNetwork:
                         intersection=intersection,
                         charge_wrt_parents=charge,
                         #label="K-wall #{}".format(len(self.k_walls))
+                        identifier=id_generator()
                     )
                     k_wall.grow_pf(
                         trajectory_singularity_threshold,
@@ -149,10 +151,6 @@ class KWallNetwork:
 
         ### End of iterations.
         self.k_walls += new_k_walls
-        
-        ### Now add an identifier to each kwall.
-        for k in self.k_walls:
-            k.identifier = id_generator()
 
 class FibrationManager(BaseManager): 
     pass
