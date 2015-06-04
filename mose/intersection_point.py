@@ -7,7 +7,7 @@ Uses general-purpose module, intersection.py
 import logging
 import cmath
 from itertools import combinations
-from misc import dsz_pairing, complexify, sort_parent_kwalls
+from misc import dsz_pairing, complexify, sort_parent_kwalls, id_generator
 from intersection import NoIntersection, find_intersection_of_segments
 from genealogy import build_genealogy_tree
 
@@ -51,6 +51,7 @@ class IntersectionPoint:
                     [self.parents[0].degeneracy, self.parents[1].degeneracy]
         self.genealogy = build_genealogy_tree(self)
         self.phase = self.parents[0].phase
+        self.identifier = id_generator()
 
     def __eq__(self, other):
         if (self.parents == other.parents and

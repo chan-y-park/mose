@@ -105,10 +105,10 @@ def check_dsz_positivity(intersection, pairing_matrix):
 
     if m < 0:
         print "NEGATIVE intersection pairing for intersection %s" % \
-                                                                intersection
+                                                   intersection.identifier
     else:
         print "Positive intersection pairing for intersection %s" % \
-                                                                intersection
+                                                   intersection.identifier
 
 
 
@@ -225,8 +225,8 @@ def check_c_c_numerics(kwall):
                                                     kwall.central_charge[-1])
 
     if discrepancy < C_C_TOLERANCE:
-        print "Central charge numerics for kwall %s\n is OK to %s accuracy\n" \
-                                                    % (kwall, C_C_TOLERANCE)
+        print "Central charge numerics for kwall %s\nis OK to %s accuracy\n" \
+                                            % (kwall.identifier, C_C_TOLERANCE)
 
 
 
@@ -276,6 +276,10 @@ def check_marginal_stability_condition(intersection):
 
 def check_positive_periods(kwn):
     kwalls = kwn.k_walls
+    prim_kwalls = []
+    for k in kwalls:
+        if k.__class__.__name__ == 'PrimaryKWall':
+            prim_kwalls.append(k)
     bpts = kwn.fibration.branch_points
     
     # Notation: using "eta" for the period of (1,0), using "beta" for (0,1)
@@ -283,31 +287,73 @@ def check_positive_periods(kwn):
     eta_0 = period_data[0]
     beta_0 = period_data[1]
 
-    print "\nThe A-period : %s" % eta_0
+    print "\nFundamental periods at the basepoint b_i of the W-model"
+    print "The A-period : %s" % eta_0
     print "The B-period : %s" % beta_0
 
-    print "\nA list of kwalls, their initial charges, and their initial periods."
-    for k in kwalls:
-        print [k.identifier, k.initial_charge, k.periods[0]]
+    print "\nList of primary kwall data:"
+    print "k_wall\tu_0\t\teta(u_0)\teta(b_i)\tgamma(u_0).(A, B)\tgamma(u_0)"
+    for k in prim_kwalls:
+        print prim_kwall_info(k, eta_0, beta_0)
 
-    print "\nA list of branch-points\
-        \ncharges, hair base periods, hair tip periods, positive periods."
+    print "\nWill now show the plots of the parallel transport of the periods\
+        \nat branch points to the basepoint b_i"
     for b in bpts:
-        print [b.charge, b.hair.periods[0], b.hair.periods[-1], \
-                                                            b.positive_period] 
+        data_plot(b.hair.periods,"eta along hair path")
 
-    print "\nA list of branch-points: their positive charges, hair-tip positive \
-        \n periods and the corresponding reference periods."
-    for b in bpts:
-        positive_charge = b.charge
-        ref_period = positive_charge[0] * eta_0 + positive_charge[1] * beta_0
-        sign = b.positive_period / b.hair.periods[0]
-        hair_tip_positive_period = b.hair.periods[-1] * sign
-        print [b.genealogy, positive_charge, hair_tip_positive_period, \
-                                                                ref_period]
+    # print "\nA list of kwalls, their initial charges, and their initial periods."
+    # for k in kwalls:
+    #     print [k.identifier, k.initial_charge, k.periods[0]]
+
+    # print "\nA list of branch-points\
+    #     \ncharges, hair base periods, hair tip periods, positive periods."
+    # for b in bpts:
+    #     print [b.charge, b.hair.periods[0], b.hair.periods[-1], \
+    #                                                         b.positive_period] 
+
+    # print "\nA list of branch-points: their positive charges, hair-tip positive \
+    #     \n periods and the corresponding reference periods."
+    # for b in bpts:
+    #     positive_charge = b.charge
+    #     ref_period = positive_charge[0] * eta_0 + positive_charge[1] * beta_0
+    #     sign = b.positive_period / b.hair.periods[0]
+    #     hair_tip_positive_period = b.hair.periods[-1] * sign
+    #     print [b.genealogy, positive_charge, hair_tip_positive_period, \
+    #                                                             ref_period]
 
 
 
-    
+def format_cplx(z):
+    """
+    formats complex numbers into strings with 2 decimal digits
+    """
+    return "{0.real:.2f} + {0.imag:.2f}j".format(z)
+
+def prim_kwall_info(kwall, a, b):
+    """
+    Returns the info to be printed about a kwall.
+    a, b are the A-period and B-period at the basepoint of the W-model.
+    """
+    label = kwall.identifier
+    u_0 = complexify(kwall.coordinates[0])
+    gamma_u_0 = kwall.charge(0)
+    eta_u_0 = kwall.periods[0]
+    bpt = kwall.parents[0]
+    ### determine the relative sign of the kwall's periods
+    ### wrt the bpt's hair periods
+    sign = bpt.hair.periods[0] / eta_u_0
+    eta_b_i = sign * bpt.hair.periods[-1]
+    ref_period = gamma_u_0[0] * a + gamma_u_0[1] * b
+
+    return "{}\t{}\t{}\t{}\t{}\t\t{}"\
+                .format(label, 
+                        format_cplx(u_0), 
+                        format_cplx(eta_u_0), 
+                        format_cplx(eta_b_i), 
+                        format_cplx(ref_period),
+                        gamma_u_0
+                        )
+
+
 
 
