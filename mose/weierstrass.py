@@ -401,7 +401,7 @@ def sample_path_data(dLoc):
     initPoint = 1j*(min_y-5*spacing)+(dLoc[0].real-2*spacing)
     
     ### A manual choice
-    # initPoint = 2.0-0.6j
+    # initPoint = 4.0-1.0j
 
     ### Another possible automatized choice of the basepoint
     ###

@@ -121,33 +121,36 @@ class KWallNetwork:
                     ks_filtration_degree,
                 )
                 logging.debug('progeny = %s', progeny)
-                for sibling in progeny:
-                    # the charge formatted wrt the basis of parent charges
-                    charge, degeneracy = sibling
-                    actual_charge = list(
-                        charge[0]*array(gamma_1) + charge[1]*array(gamma_2)
-                    )
-                    k_wall = DescendantKWall(
-                        initial_charge=actual_charge,
-                        degeneracy=degeneracy,
-                        phase=phase,
-                        parents=parents,
-                        fibration=self.fibration,
-                        intersection=intersection,
-                        charge_wrt_parents=charge,
-                        #label="K-wall #{}".format(len(self.k_walls))
-                        identifier=id_generator()
-                    )
-                    k_wall.grow_pf(
-                        trajectory_singularity_threshold,
-                        ode_size_of_step,   
-                        ode_num_steps,
-                    )
-                    if (not k_wall.singular):
-                        new_k_walls.append(k_wall)
-                    else:
-                        cut_singular_k_wall(k_wall)
-                        new_k_walls.append(k_wall)
+                if progeny == None:
+                    pass
+                else:
+                    for sibling in progeny:
+                        # the charge formatted wrt the basis of parent charges
+                        charge, degeneracy = sibling
+                        actual_charge = list(
+                            charge[0]*array(gamma_1) + charge[1]*array(gamma_2)
+                        )
+                        k_wall = DescendantKWall(
+                            initial_charge=actual_charge,
+                            degeneracy=degeneracy,
+                            phase=phase,
+                            parents=parents,
+                            fibration=self.fibration,
+                            intersection=intersection,
+                            charge_wrt_parents=charge,
+                            #label="K-wall #{}".format(len(self.k_walls))
+                            identifier=id_generator()
+                        )
+                        k_wall.grow_pf(
+                            trajectory_singularity_threshold,
+                            ode_size_of_step,   
+                            ode_num_steps,
+                        )
+                        if (not k_wall.singular):
+                            new_k_walls.append(k_wall)
+                        else:
+                            cut_singular_k_wall(k_wall)
+                            new_k_walls.append(k_wall)
 
         ### End of iterations.
         self.k_walls += new_k_walls
