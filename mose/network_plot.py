@@ -59,9 +59,9 @@ class NetworkPlot(object):
             if(self.plot_data_points is True):
                 axes.plot(xs, ys, 'o', color='k')
 
-            segments = wall.splittings
-            if len(segments) > 0:
+            if len(wall.splittings) > 0:
                 # The wall is segmented by the splittings.
+                segments = [t for t in wall.splittings]
                 segments.append(len(xs))
                 t_i = 0
                 for j in range(len(segments)):
