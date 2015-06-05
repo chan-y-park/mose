@@ -120,10 +120,10 @@ class WeierstrassModel:
             new_gcoeff = rotate_poly(gcoeff, self.u_rot_phase)
 
             if u_rot_counter > 0:
-                logging.info('\n**************************'
+                logging.info(('\n**************************'
                             +'\nBranch cuts are too close.'
                             +' Will rotate the u-plane by an angle {}\n'
-                            +'**************************\n'.format(rot_angle))
+                            +'**************************\n').format(rot_angle))
             
             self.initialize_w_model(new_fcoeff, new_gcoeff)
             u_rot_counter += 1

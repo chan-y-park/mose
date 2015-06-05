@@ -272,16 +272,20 @@ def sort_parent_kwalls(parents, indices):
     if phase(du_2 / du_1) > 0:
         kwall_l = kwall_1
         kwall_r = kwall_2
+        index_l = index_1
+        index_r = index_2
     else:
         kwall_l = kwall_2
         kwall_r = kwall_1
+        index_l = index_2
+        index_r = index_1
     
-    return [kwall_r, kwall_l]
+    return [kwall_r, kwall_l], [index_l, index_r]
 
 
     ### The following is actually overkill
     ### but keep it here in case we encounter mistakes..
-    ###
+    ### NOTE THE FOLLOWING ALGORITHM NEEDS TO INCLUDE INDEX_1,2 AS WELL!
     # eta_1 = kwall_1.periods[index_1]
     # eta_2 = kwall_2.periods[index_2]
     # Z_1 = kwall_1.central_charge[index_1]

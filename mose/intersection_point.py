@@ -31,19 +31,21 @@ class IntersectionPoint:
     def __init__(self, data, parents):
 
         self.locus = data[0]
-        self.index_1 = data[1]
-        self.index_2 = data[2]
+        index_1 = data[1]
+        index_2 = data[2]
 
-
-        self.parents = sort_parent_kwalls(parents, \
-                                                [self.index_1, self.index_2])
+        ### Sort the parents and the corresponding indices
+        ### according to how they come to the intersection
+        ### as (kwall_l, kwall_r) ~ (x, y)
+        self.parents, self.indices = sort_parent_kwalls(parents, \
+                                                [index_1, index_2])
 
         ### This check has been deferred to the diagnostics module
         ### and will only be performed upon specific request.
         # check_marginal_stability_condition(self)
 
-        self.charges = {str(self.parents[0].charge(self.index_1)),
-                        str(self.parents[1].charge(self.index_2))}
+        self.charges = {str(self.parents[0].charge(self.indices[0])),
+                        str(self.parents[1].charge(self.indices[1]))}
 
         ### note the { } and conversion to strings, 
         ### since the charges are useful for classification purposes, mostly
