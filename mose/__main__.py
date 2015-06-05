@@ -99,7 +99,7 @@ def run_with_optlist(optlist):
         data = analysis(config, phase=opts['phase'],)
 
     if (
-        (opts['show-plot'] or opts['save-data']) is True
+        opts['show-plot'] is True
         #or (opts['save-data-at'] is not None)
     ):
         k_wall_network_plot, ms_wall_plot = make_plots(
