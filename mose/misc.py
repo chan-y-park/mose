@@ -91,6 +91,7 @@ def order_roots(roots, segment, sign, theta):
     e1 and e2 are the colliding roots, e3 is the far one,
     they are all expected to be evaluated at u1.
     """
+
     e1_0, e2_0, e3_0 = roots
     u0, u1 = segment
     distances = map(abs, [e1_0 - e2_0, e2_0 - e3_0, e3_0 - e1_0])
@@ -528,3 +529,25 @@ def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
 
 def int_sign(x):
     return int(round(x / abs(x)))
+
+def real_part(x, y):
+            if x.real>y.real:
+                return 1
+            else: return -1
+
+def get_real_part(z):
+    return z.real
+
+def rotate_poly(poly_coeffs, phase):
+    """
+    takes a polynomial, e.g. A x^2 + B x + C
+    in form [A, B, C] and returns the corresponding 
+    coefficients after a rotation x -> x * phase
+    i.e. [A * phase^2, B * phase, C] in this example.
+    """
+    return [complex(x * (phase ** (len(poly_coeffs)-i-1))) \
+                                            for i,x in enumerate(poly_coeffs)]
+
+
+
+
