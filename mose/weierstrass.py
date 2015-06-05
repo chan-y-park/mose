@@ -48,6 +48,7 @@ import logging
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import numpy as np
+from numpy import linalg as LA
 from scipy.integrate import odeint
 # from scipy.special import ellipk
 from sympy.mpmath import ellipk
@@ -613,7 +614,22 @@ def monodromy_at_point_via_path(init_root, d, f, g, path_data, w_model,\
                 init_root = ev_result[1]
         
     if control_var == 'fine':
-        return np.dot(MM,invert_monodromy(init_MM))
+        mon_matrix = np.dot(MM,invert_monodromy(init_MM))
+        # return mon_matrix
+
+        ### Is the following approach conceptually wrong?
+        ###
+        ### Now we make sure to return a monodromy
+        ### matrix whose eigenvalue is +1, not -1
+        ### this would otherwise cause trouble
+        ### with kwalls undergoing the wrong monodromy, 
+        ### then intersecting each other with negative
+        ### pairing.
+        eigen_vals = list(LA.eig(mon_matrix)[0])
+        if eigen_vals[0] >= 0 and eigen_vals[1] >= 0:
+            return mon_matrix
+        else:
+            return (-1 * mon_matrix)
 
     elif control_var == 'rotate':
         ### Here we trigger a rotation of the x-plane

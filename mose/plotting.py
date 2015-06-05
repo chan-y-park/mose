@@ -44,7 +44,7 @@ class KWallNetworkPlot(NetworkPlot):
                         + "\nDegeneracy: " + str(k_wall.degeneracy) \
                         + "\nIdentifier: " + str(k_wall.identifier)
             num_segments = len(k_wall.splittings)
-            
+
             if num_segments == 0:
                 single_label = k_wall_label + \
                     "\nLocal charge: {}".format(k_wall.initial_charge)
@@ -56,9 +56,10 @@ class KWallNetworkPlot(NetworkPlot):
                         "\nLocal charge: {}".format(k_wall.local_charge[j])
                     )
                 labels['walls'].append(seg_labels) 
-            else:
-                labels['walls'].append(k_wall_label)
+            # else:
+            #     labels['walls'].append(k_wall_label)
             # labels['walls'].append("K-wall #{}".format(i))
+
 
         super(KWallNetworkPlot, self).draw(
             phase=k_wall_network.phase,

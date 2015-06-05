@@ -17,7 +17,7 @@ from scipy import interpolate
 
 from branch import BranchPoint, minimum_distance
 from misc import complexify, sort_by_abs, left_right, clock, order_roots, \
-                periods_relative_sign, data_plot
+                periods_relative_sign, data_plot, int_sign
 from monodromy import charge_monodromy
 
 class KWall(object):
@@ -246,10 +246,6 @@ class PrimaryKWall(KWall):
         )
         self.initial_point = self.parents[0]
         self.identifier = identifier
-
-        ### This is the period corresponding to the 'positive charge'
-        ### which is passed as 'initial_charge'
-        self.reference_initial_period = self.parents[0].positive_period
         
         #self.network = network
 
@@ -302,6 +298,11 @@ class PrimaryKWall(KWall):
         positive_charge = self.parents[0].charge
         
         eta_0 = sign * positive_period
+        ### The following sign will need to be used in the initial evolution
+        ### of primary kwalls: it is the sign relating the actual period
+        ### of the kwall (given by eta_0) to the elliptic-K-function
+        ### period.
+        ellipk_sign = int_sign((eta_0 / ellipk_period).real)
         self.initial_charge = list(int(round(sign)) \
                                     * array(positive_charge))
         
@@ -334,7 +335,7 @@ class PrimaryKWall(KWall):
             # print "ROOTS %s" % roots
 
             segment = [u0, u1]
-            try_step = order_roots(roots, segment, sign, theta)
+            try_step = order_roots(roots, segment, ellipk_sign, theta)
             # check if root tracking is no longer valid
             if try_step == 0: 
                 break
