@@ -100,6 +100,7 @@ def run_with_optlist(optlist):
 
     if (
         opts['show-plot'] is True
+        # (opts['show-plot'] or opts['save-data']) is True
         #or (opts['save-data-at'] is not None)
     ):
         k_wall_network_plot, ms_wall_plot = make_plots(
