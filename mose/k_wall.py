@@ -414,7 +414,7 @@ class DescendantKWall(KWall):
         if intersection.indices[0] > n_trials:
             index_1 = intersection.indices[0]
         else:
-            index_1 = n_trials ## since we need to use 'inddex_1 - 1 ' later on
+            index_1 = n_trials ## since we need to use 'index_1 - 1 ' later on
         if intersection.indices[1] > n_trials:
             index_2 = intersection.indices[1]
         else:
