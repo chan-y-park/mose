@@ -280,7 +280,7 @@ def sort_parent_kwalls(parents, indices):
         index_l = index_2
         index_r = index_1
     
-    return [kwall_r, kwall_l], [index_l, index_r]
+    return [kwall_l, kwall_r], [index_l, index_r]
 
 
     ### The following is actually overkill
