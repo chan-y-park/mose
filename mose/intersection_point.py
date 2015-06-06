@@ -57,8 +57,8 @@ class IntersectionPoint:
 
     def __eq__(self, other):
         if (self.parents == other.parents and
-            self.index_1 == other.index_1 and
-            self.index_2 == other.index_2):
+            self.indices[0] == other.indices[0] and
+            self.indices[1] == other.indices[1]):
             return True
         else:
             return False
