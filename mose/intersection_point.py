@@ -57,8 +57,8 @@ class IntersectionPoint:
 
     def __eq__(self, other):
         if (self.parents == other.parents and
-            self.index_1 == other.index_1 and
-            self.index_2 == other.index_2):
+            self.indices[0] == other.indices[0] and
+            self.indices[1] == other.indices[1]):
             return True
         else:
             return False
@@ -194,7 +194,8 @@ def find_new_intersections(kwalls, new_kwalls, intersections, hit_table,
                         pass
 
 
-
+            # for ints in list_of_intersection_points:
+            #     print "%s(%s)\t%s(%s)" % (kwall_1.identifier, ints[1], kwall_2.identifier, ints[2])
             new_ints += [IntersectionPoint(intersection, [kwall_1, kwall_2]) \
                             for intersection in list_of_intersection_points] 
 

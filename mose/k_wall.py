@@ -411,12 +411,12 @@ class DescendantKWall(KWall):
         ### steps of a kwall have same position and periods
         n_trials = 3
 
-        if intersection.index_1 > n_trials:
-            index_1 = intersection.index_1
+        if intersection.indices[0] > n_trials:
+            index_1 = intersection.indices[0]
         else:
-            index_1 = n_trials ## since we need to use 'index_1 - 1 ' later on
-        if intersection.index_2 > n_trials:
-            index_2 = intersection.index_2
+            index_1 = n_trials ## since we need to use 'inddex_1 - 1 ' later on
+        if intersection.indices[1] > n_trials:
+            index_2 = intersection.indices[1]
         else:
             index_2 = n_trials ## since we need to use 'index_2 - 1 ' later on
         path_1 = map(complexify, parents[0].coordinates)

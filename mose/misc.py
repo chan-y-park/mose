@@ -254,7 +254,7 @@ def sort_parent_kwalls(parents, indices):
     kwall_2 = parents[1]
     index_1 = indices[0]
     index_2 = indices[1]
-
+  
     ### determine which kwall comes "from the left"
     ### and which "from the right" at the intersection point
     ### meaning that (l_kwall, r_kwall) ~ (x, y)
@@ -280,7 +280,7 @@ def sort_parent_kwalls(parents, indices):
         index_l = index_2
         index_r = index_1
     
-    return [kwall_r, kwall_l], [index_l, index_r]
+    return [kwall_l, kwall_r], [index_l, index_r]
 
 
     ### The following is actually overkill
