@@ -37,6 +37,13 @@ PERIOD_TOLERANCE = 0.01
 
 #------------------------------------------------------------------------
 
+### Defines the tolerance for the discontinuity of the periods
+### along a kwall. 
+### It is the maximum allowed value of abs((eta_i+1 - eta_i)/ eta_i)
+PERIOD_DISCONTINUITY_TOLERANCE = 0.1
+
+#------------------------------------------------------------------------
+
 import logging
 import math
 import cmath
@@ -78,37 +85,43 @@ def diagnose_kwall_network(kwn):
     for i in kwn.intersections:
         check_marginal_stability_condition(i)
 
-    print "\n\n\t3) Checking positivity of DSZ pairings at intersections:\n"
+    print "\n\n\t3) Checking DSZ pairings at intersections:\n"
     pairing_matrix = array(kwn.fibration.dsz_matrix)
     for i in kwn.intersections:
-        check_dsz_positivity(i, pairing_matrix)
+        check_dsz_pairing(i, pairing_matrix)
 
 
     print "\n\n\t4) Checking assignments of positive periods:\n"
     check_positive_periods(kwn)
         
 
-    # print "\n\n\t4) Checking numerics of holomorphic periods:\n"
-    # for k in kwn.k_walls:
-    #     check_evolved_period(kwn, k)
+    print "\n\n\t5) Checking discontinuities of holomorphic periods:\n"
+    for n, k in enumerate(kwn.k_walls):
+        kwall_period_continuity(k, n)
+    print "\nDone.\n"
 
 
 
-def check_dsz_positivity(intersection, pairing_matrix):
+def check_dsz_pairing(intersection, pairing_matrix):
     ### The parents are sorted by the IntersectionPoint class
     ### in such a way that the KSWCF is K_2 K_1 = K_1 ... K_2
     ### i.e. Arg(Z_1) < Arg(Z_2)
     parents = intersection.parents
-    gamma_1 = array(parents[0].charge(intersection.index_1))
-    gamma_2 = array(parents[1].charge(intersection.index_2))
+    gamma_1 = array(parents[0].charge(intersection.indices[0]))
+    gamma_2 = array(parents[1].charge(intersection.indices[1]))
     m = gamma_1.dot(pairing_matrix.dot(gamma_2))
 
     if m < 0:
-        print "NEGATIVE intersection pairing for intersection %s" % \
+        print "\nNEGATIVE intersection pairing for intersection %s!\n" % \
+                                                   intersection.identifier
+    elif m > 2:
+        print "\nWILD intersection pairing for intersection %s!\n" % \
                                                    intersection.identifier
     else:
         print "Positive intersection pairing for intersection %s" % \
                                                    intersection.identifier
+
+
 
 
 
@@ -233,8 +246,8 @@ def check_c_c_numerics(kwall):
 def check_marginal_stability_condition(intersection):
     kwall_1 = intersection.parents[0]
     kwall_2 = intersection.parents[1]
-    index_1 = intersection.index_1
-    index_2 = intersection.index_2
+    index_1 = intersection.indices[0]
+    index_2 = intersection.indices[1]
     locus = intersection.locus
 
     Z_1 = kwall_1.central_charge[index_1]
@@ -353,6 +366,20 @@ def prim_kwall_info(kwall, a, b):
                         format_cplx(ref_period),
                         gamma_u_0
                         )
+
+def kwall_period_continuity(kwall, n):
+    """
+    Checks if the periods along a kwall evolve continuously
+    """
+    periods = kwall.periods
+    for i in range(len(periods)-1):
+        eta_i = periods[i]
+        eta_f = periods[i+1]
+        delta_eta = eta_f - eta_i
+        if abs(delta_eta / eta_i) > PERIOD_DISCONTINUITY_TOLERANCE:
+            print "Kwall number %s, identifier %s, has a discontinuity "\
+                + "between steps [%s, %s]: going from \n%s \nto \n%s" %\
+                (n, kwall.identifier, i, i+1, periods[i], periods[i+1])
 
 
 
