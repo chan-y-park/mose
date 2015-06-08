@@ -59,7 +59,7 @@ from misc import period_A, period_B, real_part, rotate_poly, get_real_part
 
 NEGLIGIBLE_BOUND = 0.1**12
 
-U_PLANE_ROTATION_STEPS = 2
+U_PLANE_ROTATION_STEPS = 6
 
 ### Parameter for rotating the u-plane.
 ### Let d_min be the minimal distance |u_i - u_j|
