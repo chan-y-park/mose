@@ -114,6 +114,7 @@ class KWallNetwork:
                 omega_1 = parents[0].degeneracy
                 omega_2 = parents[1].degeneracy
                 u_0 = intersection.locus
+                print "intersection at %s" % u_0
                 phase = intersection.phase
                 progeny = progeny_2(
                     [[gamma_1, omega_1], [gamma_2, omega_2]],
