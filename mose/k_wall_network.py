@@ -106,7 +106,7 @@ class KWallNetwork:
             for intersection in new_intersections:
                 ### The parents are sorted by the IntersectionPoint class
                 ### in such a way that the KSWCF is K_2 K_1 = K_1 ... K_2
-                ### i.e. Arg(Z_1) < Arg(Z_2)
+                ### i.e. Arg(Z_1) < Arg(Z_2) on the LHS
                 parents = intersection.parents
                 gamma_1 = parents[0].charge(intersection.index_1)
                 gamma_2 = parents[1].charge(intersection.index_2)

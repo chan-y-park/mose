@@ -192,7 +192,7 @@ def save(config, data, k_wall_network_plot=None, ms_wall_plot=None,
     if data_dir is None:
         # Prepares the folder where to save data.
         current_dir = os.getcwd()
-        data_dir = os.path.join(current_dir, 'data', formatted_date_time())
+        data_dir = os.path.join(current_dir, 'results', formatted_date_time())
     # If the directory does not exist, create it
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)

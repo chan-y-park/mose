@@ -85,7 +85,7 @@ class EllipticFibration:
                                                 numpy.poly1d(r_g_coeffs) \
                                                 ))
 
-            branch_point_loci = list(self.w_model.get_D().r)
+            branch_point_loci = list(self.w_model.get_discriminant_locus())
 
             branch_point_monodromies = [
                 wss.monodromy_at_point_wmodel(i, self.w_model) 

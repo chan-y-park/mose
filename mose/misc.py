@@ -1,3 +1,5 @@
+
+
 import logging
 import numpy
 import datetime
@@ -110,8 +112,8 @@ def order_roots(roots, segment, sign, theta):
         f1, f2 = twins
         eta_u1 = (sign) * 4.0 * ((e3 - f1) ** (-0.5)) * \
                                     mp.ellipk( ((f2 - f1) / (e3 - f1)) )
-        phase_1 = cmath.phase( \
-                cmath.exp(1j * (theta + cmath.pi - cmath.phase(eta_u1))) / \
+        phase_1 = phase( \
+                cmath.exp(1j * (theta + cmath.pi - phase(eta_u1))) / \
                 (u1 - u0) \
                 )
 
@@ -119,8 +121,8 @@ def order_roots(roots, segment, sign, theta):
         f1, f2 = twins[::-1]
         eta_u1 = (sign) * 4.0 * ((e3 - f1) ** (-0.5)) * \
                                     mp.ellipk( ((f2 - f1) / (e3 - f1)) )
-        phase_2 = cmath.phase( \
-                cmath.exp(1j * (theta + cmath.pi - cmath.phase(eta_u1))) / \
+        phase_2 = phase( \
+                cmath.exp(1j * (theta + cmath.pi - phase(eta_u1))) / \
                 (u1 - u0) \
                 )
 
@@ -236,61 +238,74 @@ def periods_relative_sign(p_1, p_2):
 
     return sign
 
-def check_marginal_stability_condition(intersection):
-    ### Enable the code below, once the computation of 
-    ### central charges is implemented.
-
-    kwall_1 = intersection.parents[0]
-    kwall_2 = intersection.parents[1]
-    index_1 = intersection.index_1
-    index_2 = intersection.index_2
-    locus = intersection.locus
-
-    Z_1 = kwall_1.central_charge[index_1]
-    Z_2 = kwall_2.central_charge[index_2]
-
-    ### DEFINE THIS NUMERICAL CONSTANT ELSEWHERE !!!
-    ###
-    if -1.0 * pi / 10 < phase(Z_1 / Z_2) < pi / 10 :
-        logging.debug('\nOK: the central charges of kwalls {} do align\
-               \nat their intersection u = {}. \
-               \nIn fact, they are:\
-               \nZ_1 = {}\nZ_2 = {}\n'\
-               .format([kwall_1, kwall_2], locus, Z_1, Z_2))
-
-    else:
-        ### the phase discrepancy is too large to be on a MS wall
-        logging.debug('\nWARNING: the central charges of kwalls {} don-t align\
-               \nat their intersection u = {}. \
-               \nIn fact, they are:\
-               \nZ_1 = {}\nZ_2 = {}\n'\
-               .format([kwall_1, kwall_2], locus, Z_1, Z_2))
-    
-    pass
-
 
 
 def sort_parent_kwalls(parents, indices):
-    ### Enable the code below, once the computation of 
-    ### central charges is implemented.
-
+    """
+    This function sorts the kwalls that intersect on a 
+    wall of marginal stability.
+    The sorting is determined by the central charges of the 
+    kwalls in the chamber of origin.
+    The output is [kwall_a, kwall_b], where Arg(Z_a) > Arg(Z_b).
+    """
     kwall_1 = parents[0]
     kwall_2 = parents[1]
-    ### will check central charges slightly before the walls intersect
-    index_1 = max(indices[0] - 10, 0)
-    index_2 = max(indices[1] - 10, 0)
+    index_1 = indices[0]
+    index_2 = indices[1]
 
+    ### determine which kwall comes "from the left"
+    ### and which "from the right" at the intersection point
+    ### meaning that (l_kwall, r_kwall) ~ (x, y)
+    ### where the orientation is understood as given by tangent vectors
+    du_1 = complexify(kwall_1.coordinates[index_1+1]) - \
+                complexify(kwall_1.coordinates[index_1])
+    du_2 = complexify(kwall_2.coordinates[index_2+1]) - \
+                complexify(kwall_2.coordinates[index_2])
+
+    eta_1 = kwall_1.periods[index_1]
+    eta_2 = kwall_2.periods[index_2]
     Z_1 = kwall_1.central_charge[index_1]
     Z_2 = kwall_2.central_charge[index_2]
 
-    if phase(Z_1 / Z_2) > 0:
-        ### the phase of Z_1 is greater than the phase of Z_2
-        return [kwall_1, kwall_2]
+    if phase(du_2 / du_1) > 0:
+        kwall_l = kwall_1
+        kwall_r = kwall_2
+        du_l = du_1
+        du_r = du_2
+        eta_l = eta_1
+        eta_r = eta_2
+        Z_l = Z_1
+        Z_r = Z_2
+    else:
+        kwall_l = kwall_2
+        kwall_r = kwall_1
+        du_l = du_2
+        du_r = du_1
+        eta_l = eta_2
+        eta_r = eta_1
+        Z_l = Z_2
+        Z_r = Z_1
+
+    ### Now, since dZ/du = eta, we can pick du = -(du_l + du_r)
+    ### which points backwards toward the chamber from which the 
+    ### two kwalls are coming.
+    ### Then we compute Z_prime_l = Z_l + du * eta_l
+    ### and similar for Z_prime_r.
+    ### This gives the central charges a the SAME point, off the 
+    ### MS wall, and within the "originating" chamber, we can 
+    ### then use those to sort the kwalls.
+
+    du = -(du_1 + du_2)
+    Z_prime_l = Z_l + du * eta_l
+    Z_prime_r = Z_r + du * eta_r
+
+    if phase(Z_prime_l / Z_prime_r) > 0:
+        ### the phase of Z_prime_l is greater than the phase of Z_prime_r
+        return [kwall_l, kwall_r]
     else:
         ### the phase of Z_1 is smaller than the phase of Z_2
-        return [kwall_2, kwall_1]
+        return [kwall_r, kwall_l]
 
-    # return parents
 
 
 def data_plot(cmplx_list, title):
@@ -365,12 +380,15 @@ def path_derivative(u, u_i, u_f):
             return 0
 
     elif u_i.real < u_f.real and u_i.imag > u_f.imag:
-        if u.real < u_f.real:
-            return epsilon * (u_f.real - u.real)
-        elif u.imag > u_f.imag:
-            return -1 * epsilon * 1j * (u.imag - u_f.imag)
-        else: 
-            return 0
+        # if u.real < u_f.real:
+        #     return epsilon * (u_f.real - u.real)
+        # elif u.imag > u_f.imag:
+        #     return -1 * epsilon * 1j * (u.imag - u_f.imag)
+        # else: 
+        #     return 0
+        raise ValueError('The basepoint of the fibration should have \
+                        \n a smaller imaginary part than all of the \
+                        \n discriminant loci.')
 
     if u_i.real > u_f.real and u_i.imag < u_f.imag:
         if u.real > u_f.real:
@@ -381,12 +399,15 @@ def path_derivative(u, u_i, u_f):
             return 0
 
     if u_i.real > u_f.real and u_i.imag > u_f.imag:
-        if u.real > u_f.real:
-            return -1 * epsilon * (u.real - u_f.real)
-        elif u.imag > u_f.imag:
-            return -1 * epsilon * 1j * (u.imag - u_f.imag)
-        else: 
-            return 0   
+        # if u.real > u_f.real:
+        #     return -1 * epsilon * (u.real - u_f.real)
+        # elif u.imag > u_f.imag:
+        #     return -1 * epsilon * 1j * (u.imag - u_f.imag)
+        # else: 
+        #     return 0   
+        raise ValueError('The basepoint of the fibration should have \
+                        \n a smaller imaginary part than all of the \
+                        \n discriminant loci.')
 
 
 def path_derivative_alt(u, u_i, u_f):
@@ -419,34 +440,40 @@ def path_derivative_alt(u, u_i, u_f):
     epsilon = 0.01
 
     if u_i.real < u_f.real and u_i.imag < u_f.imag:
-        if u.imag < u_f.imag:
+        # if u.imag < u_f.imag:
+        #     return epsilon * 1j * (u_f.imag - u.imag + epsilon)
+        # elif u.real < u_f.real:
+        #     return epsilon * (u_f.real - u.real + epsilon)
+        # else: 
+        #     return 'stop'
+        raise ValueError('The basepoint of the fibration should have \
+                        \n a smaller imaginary part than all of the \
+                        \n discriminant loci.')
+
+    elif u_i.real < u_f.real and u_i.imag > u_f.imag:
+        if u.imag > u_f.imag:
             ### The last factor is meant to make it slow down
             ### as it approaches the right 'height' (imaginary part)
             ### but the '+epsilon' is needed, otherwise it will go 
             ### to zero, and will not make the turn to continue evolving
             ### towards u_f.
             ### The same reasonning applies everywhere else in this function.
-            return epsilon * 1j * (u_f.imag - u.imag + epsilon)
-        elif u.real < u_f.real:
-            return epsilon * (u_f.real - u.real + epsilon)
-        else: 
-            return 'stop'
-
-    elif u_i.real < u_f.real and u_i.imag > u_f.imag:
-        if u.imag > u_f.imag:
-            return epsilon * (-1j) * (u.imag - u_f.imag+ epsilon)
+            return epsilon * (-1j) * (u.imag - u_f.imag + epsilon)
         elif u.real < u_f.real:
             return epsilon * (u_f.real - u.real + epsilon)
         else: 
             return 'stop'
 
     if u_i.real > u_f.real and u_i.imag < u_f.imag:
-        if u.imag < u_f.imag:
-            return epsilon * 1j * (u_f.imag - u.imag + epsilon)
-        elif u.real > u_f.real:
-            return -1 * epsilon * (u.real - u_f.real + epsilon)
-        else: 
-            return 'stop'
+        # if u.imag < u_f.imag:
+        #     return epsilon * 1j * (u_f.imag - u.imag + epsilon)
+        # elif u.real > u_f.real:
+        #     return -1 * epsilon * (u.real - u_f.real + epsilon)
+        # else: 
+        #     return 'stop'
+        raise ValueError('The basepoint of the fibration should have \
+                        \n a smaller imaginary part than all of the \
+                        \n discriminant loci.')
 
     if u_i.real > u_f.real and u_i.imag > u_f.imag:
         if u.imag > u_f.imag:
@@ -455,5 +482,6 @@ def path_derivative_alt(u, u_i, u_f):
             return -1 * epsilon * (u.real - u_f.real + epsilon)
         else: 
             return 'stop'   
+        
 
 

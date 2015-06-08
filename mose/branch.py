@@ -264,6 +264,19 @@ class Hair:
 
         matrix = self.fibration.pf_matrix
 
+        ### Here we define a condition which affects whether to integrate 
+        ### the differential equation or not.
+        ### The precise condition depends on whether the W-model basepoint
+        ### sits to the right or left of a discriminant locus
+        if y_0[0].real > self.base_point.real:
+            def range_condition(u):
+                ### as long as u is to the RIGHT of the basepoint, keep going
+                return u.real > self.base_point.real
+        else:
+            def range_condition(u):
+                ### as long as u is to the LEFT of the basepoint, keep going
+                return u.real < self.base_point.real
+
         step = 0
         i_0 = len(self.coordinates)
         u = y_0[0]
@@ -273,7 +286,7 @@ class Hair:
         elif i_0 > 0:
             self.coordinates.resize((i_0 + ode_num_steps, 2))
             self.periods.resize(i_0 + ode_num_steps)
-        while ode.successful() and u.real > self.base_point.real \
+        while ode.successful() and range_condition(u) \
                 and step < ode_num_steps and self.growth_control != 'stop':
             ### checking if we reached the basepoint, in that case 
             ### then ode.y would be ['stop','stop','stop']
@@ -348,6 +361,12 @@ def reference_period(branch_point):
 
     ### the pinching-cycle period at the starting point, 
     eta_gamma_0 = charge[0] * eta_0 + charge[1] * beta_0
+
+    logging.debug('\
+                    \nThe charge is: {}\
+                    \nThe A-period is: {}\
+                    \nThe B-period is: {}\
+                    '.format(charge, eta_0, beta_0))
     
     return eta_gamma_0
 
