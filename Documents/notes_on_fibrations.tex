@@ -33,12 +33,12 @@ From section 2 of 9706145 (Bilal-Ferrari)
 \be
 	y^{2} = x^{2}(x-u) + {m \Lambda^{3}\over 4} x - {\Lambda^{6}\over 64}
 \ee
-rescaling $y$ by a factor of $2$, and shifting $z \to z + u/3$ brings this into Weierstrass normal form
+shifting $z = x + u/3$ brings this into Weierstrass normal form
 \be
 \begin{split}
-	y^{2} & = 4z^{3} - g_{2}(u) z - g_{3}(u) \\
-	g_{2}(u) & = -\Lambda ^3 m+\frac{4 u^2}{3}\\
-	g_{3}(u) & = \frac{\Lambda ^6}{16}-\frac{ \Lambda ^3 m u}{3} +\frac{8 u^3}{27}
+	y^{2} & = z^{3} + f(u) z + g(u) \\
+	f(u) & = {\Lambda ^3 m\over 4} - \frac{u^2}{3}\\
+	g(u) & = -\frac{\Lambda ^6}{64}+\frac{ \Lambda ^3 m u}{12} -\frac{2 u^3}{27}
 \end{split}
 \ee
 which is the form appearing in the code.
@@ -62,6 +62,47 @@ shifting $z \to z - 2m / 3\Lambda$ brings this into Weierstrass normal form
 \ee
 which is the form appearing in the code.
 \end{comment}
+
+
+
+
+\section{$SU(2)$ $N_{f}=2$}
+
+From section 2 of 9706145 (Bilal-Ferrari)
+\be
+	y^{2} = x^{2}(x-u) - \frac{\Lambda^{4}}{64}(x-u) + \frac{\Lambda^{2}}{4}m_{1}m_{2}x - \frac{\Lambda^{4}}{64}(m_{1}^{2}+m_{2}^{2})
+\ee
+shifting $z = x + u/3$ brings this into Weierstrass normal form
+\be
+\begin{split}
+	y^{2} & = z^{3} + f(u) z + g(u) \\
+	f(u) & = -\frac{\Lambda ^4}{64}+\frac{1}{4} \Lambda ^2 m_1 m_2-\frac{u^2}{3}\\
+	g(u) & = \frac{1}{12} \Lambda ^2 m_1 m_2 u-\frac{2 u^3}{27}+\frac{\Lambda ^4 u}{96} -\frac{1}{64} \Lambda ^4 \left(m_1^2+m_2^2\right)
+\end{split}
+\ee
+
+
+
+
+
+\section{$SU(2)$ $N_{f}=3$}
+
+From section 2 of 9706145 (Bilal-Ferrari)
+\be
+\begin{split}
+	y^{2} &= x^{2}(x-u) - \frac{\Lambda^{2}}{64}(x-u)^{2} -  \frac{\Lambda^{2}}{64}(x-u)(m_{1}^{2}+m_{2}^{2}+m_{3}^{2})  \\
+	& + \frac{\Lambda}{4}m_{1}m_{2}m_{3}x - \frac{\Lambda^{2}}{64}(m_{1}^{2}m_{2}^{2} + m_{2}^{2}m_{3}^{2} + m_{3}^{2}m_{1}^{2})
+\end{split}
+\ee
+shifting $z = x + u/3$ brings this into Weierstrass normal form
+\be
+\begin{split}
+	y^{2} & = z^{3} + f(u) z + g(u) \\
+	f(u) & = -\frac{\Lambda ^4}{12288}-\frac{1}{64} \Lambda ^2 \left(m_1^2+m_2^2+m_3^2\right)+\frac{1}{4} \Lambda  m_1 m_2 m_3-\frac{u^2}{3}+\frac{\Lambda ^2 u}{48} \\
+	g(u) & = -\frac{1}{27} \left(2 u^3\right)-\frac{5 \Lambda ^2 u^2}{576}+\frac{\Lambda ^4 u}{9216}-\frac{\Lambda ^6}{3538944}+\frac{1}{12} \Lambda  m_1 m_2 m_3 u+\frac{1}{768} \Lambda ^3 m_1 m_2 m_3\\
+	 & +\frac{1}{96} \Lambda ^2 \left(m_1^2+m_2^2+m_3^2\right) u-\frac{\Lambda ^4 \left(m_1^2+m_2^2+m_3^2\right)}{12288}-\frac{1}{64} \Lambda ^2 \left(m_2^2 m_1^2+ m_{3}^{2}m_1^2+m_2^2 m_3^2\right)
+\end{split}
+\ee
 
 
 \end{document}  
