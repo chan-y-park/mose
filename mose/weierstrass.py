@@ -471,9 +471,9 @@ def monodromy(G):
     """
     def letter_to_matrix(g):
         if g == 'X':
-            return np.matrix([[-1,0],[-1,-1]])
+            return np.matrix([[1,0],[1,1]])
         elif g == 'x':
-            return np.matrix([[-1,0],[1,-1]])
+            return np.matrix([[1,0],[-1,1]])
         elif g == 'Y':
             return np.matrix([[1,-1],[0,1]])
         elif g == 'y':
@@ -588,21 +588,23 @@ def monodromy_at_point_via_path(init_root, d, f, g, path_data, w_model,\
         
     if control_var == 'fine':
         mon_matrix = np.dot(MM,invert_monodromy(init_MM))
-        # return mon_matrix
+        return mon_matrix
 
-        ### Is the following approach conceptually wrong?
+        ### The following script was needed when we
+        ### had monodromies with negative eigenvalues
+        ### keep for now.
         ###
-        ### Now we make sure to return a monodromy
-        ### matrix whose eigenvalue is +1, not -1
-        ### this would otherwise cause trouble
-        ### with kwalls undergoing the wrong monodromy, 
-        ### then intersecting each other with negative
-        ### pairing.
-        eigen_vals = list(LA.eig(mon_matrix)[0])
-        if eigen_vals[0] >= 0 and eigen_vals[1] >= 0:
-            return mon_matrix
-        else:
-            return (-1 * mon_matrix)
+        # ### Now we make sure to return a monodromy
+        # ### matrix whose eigenvalue is +1, not -1
+        # ### this would otherwise cause trouble
+        # ### with kwalls undergoing the wrong monodromy, 
+        # ### then intersecting each other with negative
+        # ### pairing.
+        # eigen_vals = list(LA.eig(mon_matrix)[0])
+        # if eigen_vals[0] >= 0 and eigen_vals[1] >= 0:
+        #     return mon_matrix
+        # else:
+        #     return (-1 * mon_matrix)
 
     elif control_var == 'rotate':
         ### Here we trigger a rotation of the x-plane
