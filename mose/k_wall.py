@@ -17,7 +17,7 @@ from scipy import interpolate
 
 from branch import BranchPoint, minimum_distance
 from misc import complexify, sort_by_abs, left_right, clock, order_roots, \
-                periods_relative_sign, data_plot
+                periods_relative_sign, data_plot, int_sign
 from monodromy import charge_monodromy
 
 class KWall(object):
@@ -25,7 +25,7 @@ class KWall(object):
     The K-wall class.
 
     Attributes: coordinates, periods, degeneracy, phase, charge, 
-    parents, boundary_condition, count (shared), singular.
+    parents, boundary_condition, singular.
     Methods: evolve, terminate (?).
     Arguments of the instance: (initial_charge, degeneracy, phase, 
     parents, boundary_condition)
@@ -33,7 +33,7 @@ class KWall(object):
 
     def __init__(
         self, initial_charge=None, degeneracy=None, phase=None, parents=None,
-        fibration=None, color='b', label=None,
+        fibration=None, color='b', label=None, identifier=None,
         #network=None,
     ):
         self.initial_charge = initial_charge
@@ -54,6 +54,7 @@ class KWall(object):
         self.cuts_intersections = []
         self.splittings = None
         self.local_charge = None
+        self.identifier = identifier
 
     # def __str__(self):
     #     return ('KWall info: initial charge {}, '
@@ -157,7 +158,7 @@ trajectory!" % (sp[0], sp[-1])
 
        logging.debug(\
        '\nK-wall {}\nintersects the following cuts at the points\n{}\n'\
-       .format(self, intersections))
+       .format(self.identifier, intersections))
 
        # now define the lis of splitting points (for convenience) ad the 
        # list of local charges
@@ -231,7 +232,7 @@ class PrimaryKWall(KWall):
     """
     def __init__(
         self, initial_charge=None, degeneracy=None, phase=None, parents=None,
-        fibration=None, initial_condition=None, color='k', label=None,
+        fibration=None, initial_condition=None, color='k', identifier=None,
         #network=None,
     ):
         if not (isinstance(parents[0], BranchPoint)):
@@ -240,14 +241,11 @@ class PrimaryKWall(KWall):
         super(PrimaryKWall, self).__init__(
             initial_charge=initial_charge, degeneracy=degeneracy,
             phase=phase, parents=parents, fibration=fibration, color=color,
-            label=label,
+            identifier=identifier,
             #network,
         )
         self.initial_point = self.parents[0]
-
-        ### This is the period corresponding to the 'positive charge'
-        ### which is passed as 'initial_charge'
-        self.reference_initial_period = self.parents[0].positive_period
+        self.identifier = identifier
         
         #self.network = network
 
@@ -295,9 +293,18 @@ class PrimaryKWall(KWall):
         ### The 'sign' variable fixes both the charge and the period 
         ### of the K-wall, relative to those of the discriminant locus 
         ### from which it emanates.
-        eta_0 = sign * self.parents[0].hair.periods[0]
+        ### The following period and charge are compatible:
+        positive_period = self.parents[0].positive_period
+        positive_charge = self.parents[0].charge
+        
+        eta_0 = sign * positive_period
+        ### The following sign will need to be used in the initial evolution
+        ### of primary kwalls: it is the sign relating the actual period
+        ### of the kwall (given by eta_0) to the elliptic-K-function
+        ### period.
+        ellipk_sign = int_sign((eta_0 / ellipk_period).real)
         self.initial_charge = list(int(round(sign)) \
-                                    * array(self.parents[0].charge))
+                                    * array(positive_charge))
         
 
         # The initial evolution of primary kwalls is handled with an
@@ -328,7 +335,7 @@ class PrimaryKWall(KWall):
             # print "ROOTS %s" % roots
 
             segment = [u0, u1]
-            try_step = order_roots(roots, segment, sign, theta)
+            try_step = order_roots(roots, segment, ellipk_sign, theta)
             # check if root tracking is no longer valid
             if try_step == 0: 
                 break
@@ -365,7 +372,7 @@ class DescendantKWall(KWall):
     """
     def __init__(self, initial_charge=None, degeneracy=None, phase=None,
                  parents=None, fibration=None, intersection=None, 
-                 charge_wrt_parents=None, color='b', label=None):
+                 charge_wrt_parents=None, color='b', identifier=None):
         """
         intersection: must be an instance of the IntersecionPoint class.
         charge_wrt_parents: must be the charge relative to 
@@ -377,8 +384,9 @@ class DescendantKWall(KWall):
         super(DescendantKWall, self).__init__(
             initial_charge=initial_charge, degeneracy=degeneracy, 
             phase=phase, parents=parents, fibration=fibration, color=color,
-            label=label
+            identifier=identifier
         )
+        self.identifier = identifier
         self.initial_point = intersection
         self.charge_wrt_parents = charge_wrt_parents
         #self.network = parents[0].network
@@ -403,12 +411,12 @@ class DescendantKWall(KWall):
         ### steps of a kwall have same position and periods
         n_trials = 3
 
-        if intersection.index_1 > n_trials:
-            index_1 = intersection.index_1
+        if intersection.indices[0] > n_trials:
+            index_1 = intersection.indices[0]
         else:
             index_1 = n_trials ## since we need to use 'index_1 - 1 ' later on
-        if intersection.index_2 > n_trials:
-            index_2 = intersection.index_2
+        if intersection.indices[1] > n_trials:
+            index_2 = intersection.indices[1]
         else:
             index_2 = n_trials ## since we need to use 'index_2 - 1 ' later on
         path_1 = map(complexify, parents[0].coordinates)

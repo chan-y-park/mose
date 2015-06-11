@@ -48,15 +48,26 @@ import logging
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import numpy as np
+from numpy import linalg as LA
 from scipy.integrate import odeint
 # from scipy.special import ellipk
 from sympy.mpmath import ellipk
 from itertools import combinations
-from misc import period_A, period_B
+from misc import period_A, period_B, real_part, rotate_poly, get_real_part
 
 
 
 NEGLIGIBLE_BOUND = 0.1**12
+
+U_PLANE_ROTATION_STEPS = 6
+
+### Parameter for rotating the u-plane.
+### Let d_min be the minimal distance |u_i - u_j|
+### between discriminant loci.
+### Then the u-plane will be rotated if the minimal
+### separation between the REAL PARTS of any two loci
+### is less than d_min * MINIMUM_DISCRIMINANT_LOCUS_SEPARATION
+MINIMUM_DISCRIMINANT_LOCUS_SEPARATION = 0.1
 
 #### Classes of Weierstrass Models ####
 
@@ -90,11 +101,38 @@ class WeierstrassModel:
     """
             
     def __init__(self,fcoeff,gcoeff):
-        def real_part(x,y):
-            if x.real>y.real:
-                return 1
-            else: return -1
+        self.u_rot_phase = None
+        self.d_min_real = 0.0
+        self.d_min = 1.0
+        self.f = None
+        self.g = None
+        self.D = None
+        self.disc_locus = None
+        u_rot_counter = 0
+
+        while self.d_min_real \
+                        < MINIMUM_DISCRIMINANT_LOCUS_SEPARATION * self.d_min \
+                and u_rot_counter < U_PLANE_ROTATION_STEPS:
             
+            rot_angle = cmath.pi * u_rot_counter / U_PLANE_ROTATION_STEPS
+            self.u_rot_phase = np.exp(1j * rot_angle)
+            new_fcoeff = rotate_poly(fcoeff, self.u_rot_phase)
+            new_gcoeff = rotate_poly(gcoeff, self.u_rot_phase)
+
+            if u_rot_counter > 0:
+                logging.info(('\n**************************'
+                            +'\nBranch cuts are too close.'
+                            +' Will rotate the u-plane by an angle {}\n'
+                            +'**************************\n').format(rot_angle))
+            
+            self.initialize_w_model(new_fcoeff, new_gcoeff)
+            u_rot_counter += 1
+
+        self.num = len(self.disc_locus)
+        self.lowest_y_coord = min(self.disc_locus.imag)        
+
+
+    def initialize_w_model(self, fcoeff, gcoeff):
         self.f = np.poly1d(fcoeff)
         self.g = np.poly1d(gcoeff)
         self.D = 4*self.f**3+27*self.g**2
@@ -105,8 +143,16 @@ class WeierstrassModel:
                 self.D = np.poly1d(self.D.c[i:])
                 break
         self.disc_locus = np.array(sorted(self.D.r,cmp=real_part))
-        self.num = len(self.disc_locus)
-        self.lowest_y_coord = min(self.disc_locus.imag)        
+
+        distance_half_matrix = [[self.disc_locus[i] - self.disc_locus[j] \
+                                for i,x in enumerate(self.disc_locus[:j])] 
+                                        for j,y in enumerate(self.disc_locus)]
+        distances = [item for sublist in distance_half_matrix \
+                                                        for item in sublist]
+
+        self.d_min = min(map(abs, distances))
+        self.d_min_real = min(map(abs, map(get_real_part, distances)))
+    
                         
     def get_f(self):
         return self.f
@@ -179,10 +225,6 @@ class WeierstrassModelWithPaths(WeierstrassModel):
     """
             
     def __init__(self,fcoeff,gcoeff,path_data=None):
-        def real_part(x,y):
-            if x.real>y.real:
-                return 1
-            else: return -1
 
         WeierstrassModel.__init__(self,fcoeff,gcoeff)
         if path_data == None:
@@ -216,64 +258,6 @@ class WeierstrassModelWithPaths(WeierstrassModel):
                         
     def get_init_rts(self):
         return self.init_rts      
-
-    ### The following function has been replaced by a more careful
-    ### method for computing initial periods
-    ###
-    # def compute_initial_periods(self):
-    #     ### Potential numerical trouble with uncontrollable branch cuts here
-    #     ### Better switch to numerical integration instead?
-    #     """
-    #     Computing periods and their derivatives at the 
-    #     base point (called init_p in the __init__ method above).
-
-    #     Let the three roots e_1, e_2, e_3 be ordered with
-    #     Re(e_1) < Re(e_2) < Re(e_3), then we call gamma_1
-    #     the cycle stretching from e_2 to e_3, and 
-    #     gamma_2 the cycle stretching from e_1 to e_2.
-    #     We have <gamma_1, gamma_2> = 1 in this way.
-
-    #     Using elliptic functions we compute the period of dx/y 
-    #     along gama_1 and call that eta_0, similarly we denote the
-    #     period along gamma_2 by beta_0.
-    #     We also compute their derivatives.
-    #     """
-
-    #     def real_part(x,y):
-    #         if x.real>y.real:
-    #             return 1
-    #         else: return -1
-
-    #     u_0 = self.path_data[1]
-    #     init_poly_0 = np.poly1d([1,0,self.f(u_0),self.g(u_0)])
-    #     rts_0 = sorted(init_poly_0.r,cmp=real_part)
-    #     e1_0, e2_0, e3_0 = [complex(rts_0[0]),\
-    #                         complex(rts_0[1]),\
-    #                         complex(rts_0[2])
-    #                         ]
-
-    #     u_1 = self.path_data[1] + 0.01
-    #     init_poly_1 = np.poly1d([1,0,self.f(u_1),self.g(u_1)])
-    #     rts_1 = sorted(init_poly_1.r,cmp=real_part)
-    #     e1_1, e2_1, e3_1 = [complex(rts_1[0]),\
-    #                         complex(rts_1[1]),\
-    #                         complex(rts_1[2])
-    #                         ]
-
-    #     eta_0 = complex((4.0 / cmath.sqrt(e3_0 - e1_0)) * \
-    #                             ellipk((e3_0 - e2_0) / (e3_0 - e1_0)))
-    #     beta_0 = complex((4.0 / cmath.sqrt(e3_0 - e1_0)) * \
-    #                             ellipk((e2_0 - e1_0) / (e3_0 - e1_0)))
-
-    #     eta_1 = complex((4.0 / cmath.sqrt(e3_1 - e1_1)) * \
-    #                             ellipk((e3_1 - e2_1) / (e3_1 - e1_1)))
-    #     beta_1 = complex((4.0 / cmath.sqrt(e3_0 - e1_0)) * \
-    #                             ellipk((e2_1 - e1_1) / (e3_1 - e1_1)))
-
-    #     eta_prime_0 = (eta_1 - eta_0) / (u_1 - u_0)
-    #     beta_prime_0 = (beta_1 - beta_0) / (u_1 - u_0)
-
-    #     return [eta_0, eta_prime_0, beta_0, beta_prime_0]
   
     def compute_initial_periods(self):
         """
@@ -292,11 +276,6 @@ class WeierstrassModelWithPaths(WeierstrassModel):
         period along gamma_2 by beta_0.
         We also compute their derivatives.
         """
-
-        def real_part(x,y):
-            if x.real>y.real:
-                return 1
-            else: return -1
 
         u_0 = self.path_data[1]
         init_poly_0 = np.poly1d([1,0,self.f(u_0),self.g(u_0)])
@@ -401,7 +380,7 @@ def sample_path_data(dLoc):
     initPoint = 1j*(min_y-5*spacing)+(dLoc[0].real-2*spacing)
     
     ### A manual choice
-    # initPoint = 2.0-0.6j
+    # initPoint = 4.0-1.0j
 
     ### Another possible automatized choice of the basepoint
     ###
@@ -492,9 +471,9 @@ def monodromy(G):
     """
     def letter_to_matrix(g):
         if g == 'X':
-            return np.matrix([[-1,0],[-1,-1]])
+            return np.matrix([[1,0],[1,1]])
         elif g == 'x':
-            return np.matrix([[-1,0],[1,-1]])
+            return np.matrix([[1,0],[-1,1]])
         elif g == 'Y':
             return np.matrix([[1,-1],[0,1]])
         elif g == 'y':
@@ -565,11 +544,6 @@ def monodromy_at_point_via_path(init_root, d, f, g, path_data, w_model,\
     the path constructed using path_data
     """
 
-    def real_part(x,y):
-            if x.real>y.real:
-                return 1
-            else: return -1
-
     total_path = construct_path(d,path_data)
     initial_path = total_path[:3]
     circ_path = total_path[2:]
@@ -613,7 +587,24 @@ def monodromy_at_point_via_path(init_root, d, f, g, path_data, w_model,\
                 init_root = ev_result[1]
         
     if control_var == 'fine':
-        return np.dot(MM,invert_monodromy(init_MM))
+        mon_matrix = np.dot(MM,invert_monodromy(init_MM))
+        return mon_matrix
+
+        ### The following script was needed when we
+        ### had monodromies with negative eigenvalues
+        ### keep for now.
+        ###
+        # ### Now we make sure to return a monodromy
+        # ### matrix whose eigenvalue is +1, not -1
+        # ### this would otherwise cause trouble
+        # ### with kwalls undergoing the wrong monodromy, 
+        # ### then intersecting each other with negative
+        # ### pairing.
+        # eigen_vals = list(LA.eig(mon_matrix)[0])
+        # if eigen_vals[0] >= 0 and eigen_vals[1] >= 0:
+        #     return mon_matrix
+        # else:
+        #     return (-1 * mon_matrix)
 
     elif control_var == 'rotate':
         ### Here we trigger a rotation of the x-plane
@@ -1143,21 +1134,22 @@ if __name__=="__main__":
     #wmodel=WeierstrassProto([-1.0],[rot**2*1.0,0,0])
     
 
-    dnum=0
-    animate_roots_and_angles_path(wmodel,dnum,4,3,\
-                                 timesteps=5000,steps=120,\
-                                 path=None,breaks=None)
+    # dnum=0
+    # animate_roots_and_angles_path(wmodel,dnum,4,3,\
+    #                              timesteps=5000,steps=120,\
+    #                              path=None,breaks=None)
 
     mon1 = monodromy_at_point_wmodel(0,wmodel,5000,5000,option='p')
 
-    mon2 = monodromy_at_point_wmodel(1,wmodel,5000,5000,option='p')
+    # mon2 = monodromy_at_point_wmodel(1,wmodel,5000,5000,option='p')
 
     print('\nMonodromy at locus 1: ')
     print(str(mon1))
     
-    print('\nMonodromy at point 2: ')
-    print(str(mon2))
+    # print('\nMonodromy at point 2: ')
+    # print(str(mon2))
 
-    from elliptic_fibration import monodromy_eigencharge as ME
-    print ME(mon1)
-    print ME(mon2)
+    # from elliptic_fibration import monodromy_eigencharge as ME
+    # print ME(mon1)
+    # print ME(mon2)
+

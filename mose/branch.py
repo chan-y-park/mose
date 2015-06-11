@@ -85,7 +85,7 @@ class BranchPoint:
         d_eta_by_d_u = [(self.hair.periods[i+1] - self.hair.periods[i]) \
                     / (complexify(self.hair.coordinates[i+1]) \
                     - complexify(self.hair.coordinates[i])) \
-                    for i in range(len(self.hair.coordinates)-1)]
+                    for i in range(len(self.hair.coordinates) - 1)]
         
         ### If the level is '10' it means it's 'debug'
         ### hence we will display this nice plot

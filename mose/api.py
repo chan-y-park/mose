@@ -21,6 +21,7 @@ from marginal_stability_wall import build_ms_walls
 from plotting import KWallNetworkPlot
 #from plotting import MSWallPlot
 from misc import formatted_date_time
+from diagnostics import diagnose_kwall_network
 
 def set_logging(level):
     if level == 'debug':
@@ -105,6 +106,9 @@ def analysis(config, phase=None,):
 
     return data
 
+def run_diagnostics(kwn):
+    diagnose_kwall_network(kwn)
+    
 
 def load_config(config_file=None):
     config = MoseConfig()

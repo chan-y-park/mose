@@ -37,6 +37,13 @@ PERIOD_TOLERANCE = 0.01
 
 #------------------------------------------------------------------------
 
+### Defines the tolerance for the discontinuity of the periods
+### along a kwall. 
+### It is the maximum allowed value of abs((eta_i+1 - eta_i)/ eta_i)
+PERIOD_DISCONTINUITY_TOLERANCE = 0.1
+
+#------------------------------------------------------------------------
+
 import logging
 import math
 import cmath
@@ -78,32 +85,43 @@ def diagnose_kwall_network(kwn):
     for i in kwn.intersections:
         check_marginal_stability_condition(i)
 
-    print "\n\n\t3) Checking positivity of DSZ pairings at intersections:\n"
+    print "\n\n\t3) Checking DSZ pairings at intersections:\n"
     pairing_matrix = array(kwn.fibration.dsz_matrix)
     for i in kwn.intersections:
-        check_dsz_positivity(i, pairing_matrix)
-
-    # print "\n\n\t4) Checking numerics of holomorphic periods:\n"
-    # for k in kwn.k_walls:
-    #     check_evolved_period(kwn, k)
+        check_dsz_pairing(i, pairing_matrix)
 
 
+    print "\n\n\t4) Checking assignments of positive periods:\n"
+    check_positive_periods(kwn)
+        
 
-def check_dsz_positivity(intersection, pairing_matrix):
+    print "\n\n\t5) Checking discontinuities of holomorphic periods:\n"
+    for n, k in enumerate(kwn.k_walls):
+        kwall_period_continuity(k, n)
+    print "\nDone.\n"
+
+
+
+def check_dsz_pairing(intersection, pairing_matrix):
     ### The parents are sorted by the IntersectionPoint class
     ### in such a way that the KSWCF is K_2 K_1 = K_1 ... K_2
     ### i.e. Arg(Z_1) < Arg(Z_2)
     parents = intersection.parents
-    gamma_1 = array(parents[0].charge(intersection.index_1))
-    gamma_2 = array(parents[1].charge(intersection.index_2))
+    gamma_1 = array(parents[0].charge(intersection.indices[0]))
+    gamma_2 = array(parents[1].charge(intersection.indices[1]))
     m = gamma_1.dot(pairing_matrix.dot(gamma_2))
 
     if m < 0:
-        print "NEGATIVE intersection pairing for intersection %s" % \
-                                                                intersection
+        print "\nNEGATIVE intersection pairing for intersection %s!\n" % \
+                                                   intersection.identifier
+    elif m > 2:
+        print "\nWILD intersection pairing for intersection %s!\n" % \
+                                                   intersection.identifier
     else:
         print "Positive intersection pairing for intersection %s" % \
-                                                                intersection
+                                                   intersection.identifier
+
+
 
 
 
@@ -220,16 +238,16 @@ def check_c_c_numerics(kwall):
                                                     kwall.central_charge[-1])
 
     if discrepancy < C_C_TOLERANCE:
-        print "Central charge numerics for kwall %s\n is OK to %s accuracy\n" \
-                                                    % (kwall, C_C_TOLERANCE)
+        print "Central charge numerics for kwall %s\nis OK to %s accuracy\n" \
+                                            % (kwall.identifier, C_C_TOLERANCE)
 
 
 
 def check_marginal_stability_condition(intersection):
     kwall_1 = intersection.parents[0]
     kwall_2 = intersection.parents[1]
-    index_1 = intersection.index_1
-    index_2 = intersection.index_2
+    index_1 = intersection.indices[0]
+    index_2 = intersection.indices[1]
     locus = intersection.locus
 
     Z_1 = kwall_1.central_charge[index_1]
@@ -249,7 +267,8 @@ def check_marginal_stability_condition(intersection):
                \nat their intersection u = {}. \
                \nIn fact, they are:\
                \nZ_1 = {}\nZ_2 = {}\n'\
-               .format([kwall_1, kwall_2], locus, Z_1, Z_2))
+               .format([kwall_1.identifier, kwall_2.identifier], \
+                        locus, Z_1, Z_2))
 
     else:
         ### the phase discrepancy is too large to be on a MS wall
@@ -262,6 +281,106 @@ def check_marginal_stability_condition(intersection):
                \nat their intersection u = {}. \
                \nIn fact, they are:\
                \nZ_1 = {}\nZ_2 = {}\n'\
-               .format([kwall_1, kwall_2], locus, Z_1, Z_2))
+               .format([kwall_1.identifier, kwall_2.identifier], \
+                locus, Z_1, Z_2))
     
     pass
+
+
+def check_positive_periods(kwn):
+    kwalls = kwn.k_walls
+    prim_kwalls = []
+    for k in kwalls:
+        if k.__class__.__name__ == 'PrimaryKWall':
+            prim_kwalls.append(k)
+    bpts = kwn.fibration.branch_points
+    
+    # Notation: using "eta" for the period of (1,0), using "beta" for (0,1)
+    period_data = kwn.fibration.w_model.compute_initial_periods()
+    eta_0 = period_data[0]
+    beta_0 = period_data[1]
+
+    print "\nFundamental periods at the basepoint b_i of the W-model"
+    print "The A-period : %s" % eta_0
+    print "The B-period : %s" % beta_0
+
+    print "\nList of primary kwall data:"
+    print "k_wall\tu_0\t\teta(u_0)\teta(b_i)\tgamma(u_0).(A, B)\tgamma(u_0)"
+    for k in prim_kwalls:
+        print prim_kwall_info(k, eta_0, beta_0)
+
+    print "\nWill now show the plots of the parallel transport of the periods\
+        \nat branch points to the basepoint b_i"
+    for b in bpts:
+        data_plot(b.hair.periods,"eta along hair path")
+
+    # print "\nA list of kwalls, their initial charges, and their initial periods."
+    # for k in kwalls:
+    #     print [k.identifier, k.initial_charge, k.periods[0]]
+
+    # print "\nA list of branch-points\
+    #     \ncharges, hair base periods, hair tip periods, positive periods."
+    # for b in bpts:
+    #     print [b.charge, b.hair.periods[0], b.hair.periods[-1], \
+    #                                                         b.positive_period] 
+
+    # print "\nA list of branch-points: their positive charges, hair-tip positive \
+    #     \n periods and the corresponding reference periods."
+    # for b in bpts:
+    #     positive_charge = b.charge
+    #     ref_period = positive_charge[0] * eta_0 + positive_charge[1] * beta_0
+    #     sign = b.positive_period / b.hair.periods[0]
+    #     hair_tip_positive_period = b.hair.periods[-1] * sign
+    #     print [b.genealogy, positive_charge, hair_tip_positive_period, \
+    #                                                             ref_period]
+
+
+
+def format_cplx(z):
+    """
+    formats complex numbers into strings with 2 decimal digits
+    """
+    return "{0.real:.2f} + {0.imag:.2f}j".format(z)
+
+def prim_kwall_info(kwall, a, b):
+    """
+    Returns the info to be printed about a kwall.
+    a, b are the A-period and B-period at the basepoint of the W-model.
+    """
+    label = kwall.identifier
+    u_0 = complexify(kwall.coordinates[0])
+    gamma_u_0 = kwall.charge(0)
+    eta_u_0 = kwall.periods[0]
+    bpt = kwall.parents[0]
+    ### determine the relative sign of the kwall's periods
+    ### wrt the bpt's hair periods
+    sign = bpt.hair.periods[0] / eta_u_0
+    eta_b_i = sign * bpt.hair.periods[-1]
+    ref_period = gamma_u_0[0] * a + gamma_u_0[1] * b
+
+    return "{}\t{}\t{}\t{}\t{}\t\t{}"\
+                .format(label, 
+                        format_cplx(u_0), 
+                        format_cplx(eta_u_0), 
+                        format_cplx(eta_b_i), 
+                        format_cplx(ref_period),
+                        gamma_u_0
+                        )
+
+def kwall_period_continuity(kwall, n):
+    """
+    Checks if the periods along a kwall evolve continuously
+    """
+    periods = kwall.periods
+    for i in range(len(periods)-1):
+        eta_i = periods[i]
+        eta_f = periods[i+1]
+        delta_eta = eta_f - eta_i
+        if abs(delta_eta / eta_i) > PERIOD_DISCONTINUITY_TOLERANCE:
+            print "Kwall number %s, identifier %s, has a discontinuity "\
+                + "between steps [%s, %s]: going from \n%s \nto \n%s" %\
+                (n, kwall.identifier, i, i+1, periods[i], periods[i+1])
+
+
+
+

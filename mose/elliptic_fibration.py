@@ -1,8 +1,6 @@
 import logging
 import math
 import cmath
-import string
-import random
 import pdb
 import sympy
 import numpy
@@ -26,13 +24,11 @@ from cmath import exp, pi
 from numpy import array, linspace
 from numpy.linalg import det
 from operator import itemgetter
-from misc import path_derivative, data_plot, complexify
+from misc import path_derivative, data_plot, complexify, id_generator, \
+                    rotate_poly
 
 
 NEGLIGIBLE_BOUND = 0.1**12
-
-def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
-    return ''.join(random.choice(chars) for _ in range(size))
 
 class EllipticFibration:
     def __init__(self, w_f, w_g, params, branch_point_charges=None):
@@ -47,6 +43,8 @@ class EllipticFibration:
         self.f_coeffs = map(complex, sympy.Poly(self.num_f, u).all_coeffs())
         self.g_coeffs = map(complex, sympy.Poly(self.num_g, u).all_coeffs())
 
+        ### rotation of the u-plane
+        self.u_rot_phase = 0
 
         # We will work with the convention that the DSZ matrix is fixed to be
         # the following. Must keep this attribute of the class, as it will be 
@@ -78,11 +76,15 @@ class EllipticFibration:
             self.w_model = wss.WeierstrassModelWithPaths(r_f_coeffs, \
                                                                 r_g_coeffs)
 
+            self.u_rot_phase = self.w_model.u_rot_phase
+            new_r_f_coeffs = rotate_poly(r_f_coeffs, self.u_rot_phase)
+            new_r_g_coeffs = rotate_poly(r_g_coeffs, self.u_rot_phase)
+
             logging.info('I have rotated the x-plane {} times so far.'\
                                                                     .format(i))
             logging.info('\nf = \n{}\n\ng = \n{}\n'.format(\
-                                                numpy.poly1d(r_f_coeffs), \
-                                                numpy.poly1d(r_g_coeffs) \
+                                                numpy.poly1d(new_r_f_coeffs), \
+                                                numpy.poly1d(new_r_g_coeffs) \
                                                 ))
 
             branch_point_loci = list(self.w_model.get_discriminant_locus())
@@ -112,10 +114,12 @@ class EllipticFibration:
                     *************************************\n')
         
         ### Now we update the f,g of the fibration class:
-        self.sym_f = sympy.sympify(w_f) / (phase ** 2)
-        self.num_f = self.sym_f.subs(self.params)
+        ### we must take into account both the x-plane rotation
+        ### and the u-plane rotation.
+        self.sym_f = (sympy.sympify(w_f) / (phase ** 2))
+        self.num_f = self.sym_f.subs(self.params).subs(u, u * self.u_rot_phase)
         self.sym_g = sympy.sympify(w_g) / (phase ** 3)
-        self.num_g = self.sym_g.subs(self.params)
+        self.num_g = self.sym_g.subs(self.params).subs(u, u * self.u_rot_phase)
         self.f_coeffs = map(complex, sympy.Poly(self.num_f, u).all_coeffs())
         self.g_coeffs = map(complex, sympy.Poly(self.num_g, u).all_coeffs())
 

@@ -12,7 +12,8 @@ import pdb
 
 from config import MoseConfig
 from gui import open_gui
-from api import (set_logging, analysis, save, load, load_config, make_plots,)
+from api import (set_logging, analysis, save, load, load_config, make_plots,
+                run_diagnostics)
 
 
 shortopts = 'c:g:hl:p:'
@@ -98,7 +99,8 @@ def run_with_optlist(optlist):
         data = analysis(config, phase=opts['phase'],)
 
     if (
-        (opts['show-plot'] or opts['save-data']) is True
+        opts['show-plot'] is True
+        # (opts['show-plot'] or opts['save-data']) is True
         #or (opts['save-data-at'] is not None)
     ):
         k_wall_network_plot, ms_wall_plot = make_plots(

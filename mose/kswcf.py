@@ -152,7 +152,7 @@ def progeny_2(data, dsz, ks_filtration_degree):
     logging.info('computing the progeny of : %s and %s', gamma_1, gamma_2)
 
     pairing_matrix = array(dsz) ### turning the list into a matrix of numpy
-    m = gamma_1.dot(pairing_matrix.dot(gamma_2))
+    m = gamma_2.dot(pairing_matrix.dot(gamma_1))
     logging.info('intersection pairing : %s', m)
 
     if m == 0:
