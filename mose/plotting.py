@@ -182,8 +182,6 @@ class NetworkPlotTk(KWallNetworkPlotBase):
     ):
         super(NetworkPlotTk, self).__init__(
             matplotlib_figure=matplotlib.figure.Figure(),
-            plot_joints=plot_joints,
-            plot_data_points=plot_data_points,
         )
 
         if master is None:

@@ -16,7 +16,7 @@ from elliptic_fibration import EllipticFibration
 from k_wall_network import KWallNetwork, construct_k_wall_networks
 from k_wall import KWall
 from marginal_stability_wall import build_ms_walls
-from plotting import KWallNetworkPlot, KWallNetworkPlotTk
+from plotting import NetworkPlot, NetworkPlotTk
 from plotting import MSWallPlot
 from misc import formatted_date_time
 from diagnostics import diagnose_kwall_network
