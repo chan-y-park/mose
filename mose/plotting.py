@@ -25,35 +25,45 @@ class KWallNetworkPlotBase(NetworkPlotBase):
         self,
         k_wall_network, 
         plot_range=[[-5, 5], [-5, 5]], 
+        plot_joints=False,
+        plot_data_points=False,
     ):
         [[x_min, x_max], [y_min, y_max]] = plot_range
-        branch_points = []
-        joints = []
         labels = {'branch_points': [], 'joints': [], 'walls': []}
+
+        branch_points = []
         for i, bp in enumerate(k_wall_network.fibration.branch_points):
             branch_points.append([bp.locus.real, bp.locus.imag])
             labels['branch_points'].append("branch point #{}\nM = {}\
                 \ncharge = {}".format(i, bp.monodromy_matrix, bp.charge))
+
+        joints = []
         for i, ip in enumerate(k_wall_network.intersections):
             joints.append([ip.locus.real, ip.locus.imag])
             labels['joints'].append("intersection point #{}".format(i))
+
+        walls = []
         for i, k_wall in enumerate(k_wall_network.k_walls):
+            xs = k_wall.get_xs()
+            ys = k_wall.get_ys()
+
             k_wall_label = "K-wall #" + str(i) \
                         + "\nDegeneracy: " + str(k_wall.degeneracy) \
                         + "\nIdentifier: " + str(k_wall.identifier)
-            num_segments = len(k_wall.splittings)
+            num_segments = len(k_wall.splittings) + 1
 
-            if num_segments == 0:
-                single_label = k_wall_label + \
-                    "\nLocal charge: {}".format(k_wall.initial_charge)
-                labels['walls'].append(single_label) 
-            elif num_segments > 0:
-                seg_labels = []
-                for j in range(num_segments+1):
-                    seg_labels.append(k_wall_label + 
-                        "\nLocal charge: {}".format(k_wall.local_charge[j])
-                    )
-                labels['walls'].append(seg_labels) 
+            x_segments = numpy.split(xs, k_wall.splittings)
+            y_segments = numpy.split(ys, k_wall.splittings)
+            
+            segments = []
+            seg_labels = []
+            for j in range(num_segments):
+                segments.append((x_segments[j], y_segments[j]))
+                seg_labels.append(k_wall_label + 
+                    "\nLocal charge: {}".format(k_wall.local_charge[j])
+                )
+            walls.append(segments)
+            labels['walls'].append(seg_labels) 
             # else:
             #     labels['walls'].append(k_wall_label)
             # labels['walls'].append("K-wall #{}".format(i))
@@ -63,31 +73,38 @@ class KWallNetworkPlotBase(NetworkPlotBase):
             phase=k_wall_network.phase,
             branch_points=branch_points,
             joints=joints,
-            walls=k_wall_network.k_walls,
+            walls=walls,
             labels=labels,
             plot_range=[x_min, x_max, y_min, y_max],
+            plot_joints=plot_joints,
+            plot_data_points=plot_data_points,
         )
 
 
-
-class KWallNetworkPlot(KWallNetworkPlotBase):
+class NetworkPlot(KWallNetworkPlotBase):
+    """
+    This class implements UIs using matplotlib widgets
+    so that it can be backend-independent. 
+    
+    The content of this class is independent of the parent class.
+    It only depends on the grandparent class, which should be
+    'NetworkPlotBase'. Therefore this class can inherit any class
+    whose parent is 'NetworkPlotBase'; just change the name of the
+    parent in the definition of this class.
+    """
     def __init__(
         self, 
         title=None,
-        plot_joints=False,
-        plot_data_points=False,
     ):
-        super(KWallNetworkPlot, self).__init__(
+        super(NetworkPlot, self).__init__(
             matplotlib_figure=pyplot.figure(title),
-            plot_joints=plot_joints,
-            plot_data_points=plot_data_points,
         )
 
         self.axes_button_prev = None
         self.axes_button_next = None
         self.index_text = None
 
-    def save(self, plot_dir, file_prefix='k_wall_network_'):
+    def save(self, plot_dir, file_prefix=''):
         # TODO: change the current figure to plot_id.
         digits = len(str(len(self.plots)-1))
         for i, axes in enumerate(self.plots):
@@ -99,7 +116,7 @@ class KWallNetworkPlot(KWallNetworkPlotBase):
 
 
     def change_current_plot(self, new_plot_idx):
-        super(KWallNetworkPlot, self).change_current_plot(new_plot_idx)
+        super(NetworkPlot, self).change_current_plot(new_plot_idx)
         if self.index_text is not None:
             self.index_text.set_text(
                 "{}/{}".format(self.current_plot_idx, len(self.plots)-1)
@@ -108,11 +125,11 @@ class KWallNetworkPlot(KWallNetworkPlotBase):
 
 
     def show_prev_plot(self, event):
-        super(KWallNetworkPlot, self).show_prev_plot(event)
+        super(NetworkPlot, self).show_prev_plot(event)
 
 
     def show_next_plot(self, event):
-        super(KWallNetworkPlot, self).show_next_plot(event)
+        super(NetworkPlot, self).show_next_plot(event)
 
 
     def show(self):
@@ -149,14 +166,21 @@ class KWallNetworkPlot(KWallNetworkPlotBase):
         self.figure.show()
 
 
-class KWallNetworkPlotTk(KWallNetworkPlotBase):
+class NetworkPlotTk(KWallNetworkPlotBase):
+    """
+    This class implements UIs using Tkinter. 
+    
+    The content of this class is independent of the parent class.
+    It only depends on the grandparent class, which should be
+    'NetworkPlotBase'. Therefore this class can inherit any class
+    whose parent is 'NetworkPlotBase'; just change the name of the
+    parent in the definition of this class.
+    """
     def __init__(self, 
         master=None,
         title=None,
-        plot_joints=False,
-        plot_data_points=False,
     ):
-        super(KWallNetworkPlotTk, self).__init__(
+        super(NetworkPlotTk, self).__init__(
             matplotlib_figure=matplotlib.figure.Figure(),
             plot_joints=plot_joints,
             plot_data_points=plot_data_points,

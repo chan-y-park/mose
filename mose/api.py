@@ -201,7 +201,7 @@ def save(config, data, k_wall_network_plot=None, ms_wall_plot=None,
     save_config(config, file_dir=data_dir)
     save_data(config, data, data_dir=data_dir)
     if k_wall_network_plot is not None:
-        k_wall_network_plot.save(data_dir)
+        k_wall_network_plot.save(data_dir, file_prefix='k_wall_network_')
     if ms_wall_plot is not None:
         ms_wall_plot.save(data_dir)
 
@@ -209,11 +209,11 @@ def save(config, data, k_wall_network_plot=None, ms_wall_plot=None,
 def make_plots(config, data, show_plot=True, master=None):
     k_wall_network_plot_title = 'K-wall Network'
     if matplotlib.rcParams['backend'] == 'TkAgg':
-        k_wall_network_plot = KWallNetworkPlotTk(
+        k_wall_network_plot = NetworkPlotTk(
             title=k_wall_network_plot_title,
         )
     else:
-        k_wall_network_plot = KWallNetworkPlot(
+        k_wall_network_plot = NetworkPlot(
             title=k_wall_network_plot_title,
         )
 
@@ -244,4 +244,4 @@ def make_plots(config, data, show_plot=True, master=None):
             raw_input('Press any key to continue...')
         except NameError:
             pass
-    return (k_wall_network_plot, None)
+    return (k_wall_network_plot, ms_wall_plot)

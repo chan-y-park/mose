@@ -4,8 +4,10 @@ IntersectionPoint class.
 
 Uses general-purpose module, intersection.py
 """
+import ctypes
 import logging
 import cmath
+#from itertools import combinations, chain
 from itertools import combinations
 from misc import dsz_pairing, complexify, sort_parent_kwalls, id_generator
 from intersection import NoIntersection, find_intersection_of_segments
@@ -83,9 +85,56 @@ def remove_duplicate_intersection(new_ilist, old_ilist):
             if new_intersection == intersection:
                 new_ilist.remove(new_intersection)
 
-def find_new_intersections(kwalls, new_kwalls, intersections, hit_table, 
-                            dsz_matrix):
-    """Find new wall-wall intersections"""
+def find_new_intersections_using_cgal(
+    k_walls, new_k_walls, intersections, dsz_matrix
+):
+    """
+    Find new wall-wall intersections using CGAL 2d curve intersection.
+    This function compares each K-walls pairwise, thereby having
+    O(n^2) performance in theory.
+    """
+    new_ints = []
+
+    # Load CGAL shared library.
+    libcgal_intersection = numpy.ctypeslib.load_library(
+        'libcgal_intersection', './cgal_intersection'
+    )
+    # Prepare types for CGAL library.
+    array_2d_float = numpy.ctypeslib.ndpointer(
+        dtype=float,
+        ndim=2,
+        flags='C_CONTIGUOUS, ALIGNED',
+    )
+
+    for i, new_k_wall in enumerate(new_k_walls):
+        # KWall.coordinates is a N-by-2 numpy array with dtype=float.
+        segment_1 = numpy.ctypeslib.as_ctypes(new_k_wall.coordinates)
+
+        other_new_k_walls = [k_wall for k_wall in k_walls[i+1:]]
+
+        for k_wall in chain(k_walls, other_new_k_walls):
+            segment_2 = numpy.ctypeslib.as_ctypes(k_wall.coordinates)
+
+ 
+
+def find_new_intersections_using_cgal_2(
+    k_walls, new_k_walls, intersections, dsz_matrix
+):
+    """
+    Find new wall-wall intersections using CGAL 2d curve intersection.
+    This function prepares K-wall data as a single array,
+    thereby utilizing the full performace of CGAL in theory.
+    """
+    # Prepare types for CGAL library.
+    c_float_p = ctypes.POINTER(ctypes.c_float)
+
+
+def find_new_intersections_using_hit_table(
+    kwalls, new_kwalls, intersections, hit_table, dsz_matrix
+):
+    """
+    Find new wall-wall intersections using HitTable.
+    """
 
     new_ints = []
     i_0 = len(kwalls)

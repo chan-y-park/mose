@@ -55,6 +55,8 @@ class KWall(object):
         self.splittings = None
         self.local_charge = None
         self.identifier = identifier
+        # self.coordinates is a N-by-2 numpy array with dtype=float.
+        self.coordinate = None
 
     # def __str__(self):
     #     return ('KWall info: initial charge {}, '

@@ -4,14 +4,7 @@ import mpldatacursor
 from math import pi
 
 class NetworkPlotBase(object):
-    def __init__(self, 
-        matplotlib_figure=None,
-        plot_joints=False,
-        plot_data_points=False,
-    ):
-        self.plot_joints = plot_joints
-        self.plot_data_points = plot_data_points
-
+    def __init__(self, matplotlib_figure=None,):
         self.plots = []
         self.data_cursor = None
         self.current_plot_idx = None 
@@ -20,7 +13,8 @@ class NetworkPlotBase(object):
     
 
     def draw(self, phase=None, branch_points=None, joints=None, walls=None,
-             labels=None, plot_range=[-5, 5, -5, 5]):
+             labels=None, plot_range=[-5, 5, -5, 5], plot_joints=False,
+             plot_data_points=False,):
         """
         branch_points = [[bpx, bpy], ...]
         joints = [[jpx, jpy], ...]
@@ -43,46 +37,30 @@ class NetworkPlotBase(object):
 
         axes.set_title('phase = ({:.4f})pi'.format(phase/pi))
 
+        # Plot wall segments.
         for i, wall in enumerate(walls):
-            xs = wall.get_xs()
-            ys = wall.get_ys()
+            for j, segment in enumerate(wall):
+                seg_xs, seg_ys = segment
 
-            if(self.plot_data_points is True):
-                axes.plot(xs, ys, 'o', color='k')
+                if plot_data_points is True:
+                    axes.plot(xs, ys, 'o', color='k')
 
-            if len(wall.splittings) > 0:
-                # The wall is segmented by the splittings.
-                segments = [t for t in wall.splittings]
-                segments.append(len(xs))
-                t_i = 0
-                for j in range(len(segments)):
-                    t_f = segments[j] 
-                    seg_xs = xs[t_i:t_f]
-                    seg_ys = ys[t_i:t_f]
-
-                    axes.plot(seg_xs, seg_ys, '-',
-                              #color='b',
-                              label=labels['walls'][i][j],)
-                    t_i = t_f
-            else:
-                # The wall has no splitting.
-                axes.plot(xs, ys, '-',
+                axes.plot(seg_xs, seg_ys, '-',
                           #color='b',
-                          label=labels['walls'][i],)
-        # Plot branch points
+                          label=labels['walls'][i][j],)
+
+        # Plot branch points.
         for i, bp in enumerate(branch_points):
             bpx, bpy = bp
             axes.plot(bpx, bpy, 'x', markeredgewidth=2, markersize=8, 
                       color='k', label=labels['branch_points'][i],)
-        # End of plotting branch points
    
-        # Plot joints
-        if(self.plot_joints is True):
+        # Plot joints.
+        if plot_joints is True:
             for i, jp in enumerate(joints):
                 jpx, jpy = jp
                 axes.plot(jpx, jpy, '+', markeredgewidth=2,
                           markersize=8, color='k', label=labels['joints'][i],)
-        # End of plotting joints
 
         axes.set_visible(False)
         self.plots.append(axes)
