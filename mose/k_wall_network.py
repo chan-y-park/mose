@@ -6,8 +6,9 @@ from multiprocessing.managers import BaseManager
 from numpy import array
 from elliptic_fibration import EllipticFibration
 from k_wall import PrimaryKWall, DescendantKWall
-from intersection import HitTable
-from intersection_point import find_new_intersections
+from hit_table import HitTable
+from intersection_point import find_new_intersection_points
+from intersection_point import find_new_intersections_using_hit_table
 from misc import complexify, cut_singular_k_wall, id_generator
 from kswcf import progeny_2
 from k_wall import KWall
@@ -15,10 +16,15 @@ from k_wall import KWall
 
 
 class KWallNetwork:
-    def __init__(self, phase, fibration, config):
+    def __init__(self, phase, fibration, config, use_hit_table=False):
         self.phase = phase
         self.fibration = fibration
-        self.hit_table = HitTable(config['intersection search']['bin_size'])
+        if use_hit_table is True:
+            self.hit_table = HitTable(
+                config['intersection search']['bin_size']
+            )
+        else:
+            self.hit_table = None
         self.k_walls = []
         self.intersections = []
 
@@ -93,10 +99,16 @@ class KWallNetwork:
         for i in range(n_iterations):
             logging.info('Iteration #%d', i+1)
             logging.debug('len(k_walls) = %d', len(self.k_walls))
-            new_intersections = find_new_intersections(
-                self.k_walls, new_k_walls, self.intersections,
-                self.hit_table, self.fibration.dsz_matrix,
-            )
+            if self.hit_table is None:
+                new_intersections = find_new_intersection_points(
+                    self.k_walls, new_k_walls, self.intersections,
+                    self.fibration.dsz_matrix,
+                )
+            else:
+                new_intersections = find_new_intersections_using_hit_table(
+                    self.k_walls, new_k_walls, self.intersections,
+                    self.hit_table, self.fibration.dsz_matrix,
+                )
             self.intersections += new_intersections
             self.k_walls += new_k_walls
             new_k_walls = []
