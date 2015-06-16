@@ -50,15 +50,14 @@ class KWallNetworkPlotBase(NetworkPlotBase):
             k_wall_label = "K-wall #" + str(i) \
                         + "\nDegeneracy: " + str(k_wall.degeneracy) \
                         + "\nIdentifier: " + str(k_wall.identifier)
-            num_segments = len(k_wall.splittings) + 1
+            split = [0] + k_wall.splittings + [len(xs)-1]
 
-            x_segments = numpy.split(xs, k_wall.splittings)
-            y_segments = numpy.split(ys, k_wall.splittings)
-            
             segments = []
             seg_labels = []
-            for j in range(num_segments):
-                segments.append((x_segments[j], y_segments[j]))
+            for j in range(len(split)-1):
+                t_i = split[j]
+                t_f = split[j+1]
+                segments.append((xs[t_i:t_f+1], ys[t_i:t_f+1]))
                 seg_labels.append(k_wall_label + 
                     "\nLocal charge: {}".format(k_wall.local_charge[j])
                 )
@@ -355,6 +354,34 @@ class MSWallPlot:
             plot_dir, file_prefix + '.png'
         )
         self.figure.savefig(plot_file_path)
+
+
+def plot_k_walls(k_walls,  plot_range=[[-5, 5], [-5, 5]],
+                 plot_data_points=False,):
+    """
+    Plot K-walls for debugging purpose.
+    """
+    [[x_min, x_max], [y_min, y_max]] = plot_range
+    pyplot.figure()
+    pyplot.xlim(x_min, x_max)
+    pyplot.ylim(y_min, y_max)
+    pyplot.axes().set_aspect('equal')
+
+    for k_wall in k_walls:
+        xs = k_wall.get_xs() 
+        ys = k_wall.get_ys() 
+        pyplot.plot(xs, ys, '-', label=k_wall.identifier)
+
+        if(plot_data_points == True):
+            pyplot.plot(xs, ys, 'o', color='k', markersize=4)
+
+    mpldatacursor.datacursor(
+        formatter='{label}'.format,
+        hover=True,
+    )
+
+    pyplot.show()
+
 
 
 def plot_coordinates(coordinates, plot_range=[[-5, 5], [-5, 5]],

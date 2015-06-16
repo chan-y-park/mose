@@ -6,6 +6,7 @@ Uses general-purpose module, intersection.py
 """
 import numpy
 import logging
+import pdb
 from itertools import chain
 from misc import sort_parent_kwalls, id_generator
 from misc import dsz_pairing
@@ -13,6 +14,7 @@ from genealogy import build_genealogy_tree
 from intersection import (NoIntersection, find_intersection_of_segments,
                           remove_duplicate_intersection,)
 
+INTERSECTION_ACCURACY = 1e-1
 
 class IntersectionPoint:
     """The IntersectionPoint class.
@@ -106,25 +108,24 @@ def find_new_intersection_points(
         xs_1 = k_wall_1.get_xs()
         ys_1 = k_wall_1.get_ys()
         split_1 = [0] + tps_1 + [len(xs_1)-1]
-        #x_segs_1 = numpy.split(k_wall_1.get_xs(), tps_1)
-        #y_segs_1 = numpy.split(k_wall_1.get_ys(), tps_1)
 
         for k_wall_2 in chain(prev_k_walls, new_k_walls[n+1:]):
             # Exclude some cases from being checked for 
             # intersections, see the if statements below.
-            if (dsz_pairing(k_wall_1.charge(0), k_wall_2.charge(0), 
-                            dsz_matrix) == 0 or 
+            if (
+                # XXX: need to check local charges instead of initial ones.
+                #dsz_pairing(k_wall_1.charge(0), k_wall_2.charge(0), 
+                #            dsz_matrix) == 0 or 
                 k_wall_1.parents == k_wall_2.parents or 
                 k_wall_1 in k_wall_2.parents or
-                k_wall_2 in k_wall_1.parents):
+                k_wall_2 in k_wall_1.parents
+            ):
                 continue
 
             tps_2 = get_k_wall_turning_points(k_wall_2)
             xs_2 = k_wall_2.get_xs()
             ys_2 = k_wall_2.get_ys()
             split_2 = [0] + tps_2 + [len(xs_2)-1]
-            #x_segs_2 = numpy.split(k_wall_2.get_xs(), tps_2)
-            #y_segs_2 = numpy.split(k_wall_2.get_ys(), tps_2)
 
             for i_1 in range(1, len(split_1)):
                 t_1_i = split_1[i_1-1]
@@ -142,7 +143,7 @@ def find_new_intersection_points(
 
                     try:
                         ip_x, ip_y = find_intersection_of_segments(
-                            seg_1, seg_2, 
+                            seg_1, seg_2, accuracy=INTERSECTION_ACCURACY,
                         )
                         # Find where to put the intersection point in the
                         # given segment. It should be put AFTER the index
@@ -165,6 +166,13 @@ def find_new_intersection_points(
                                         'at index_1 = %d, index_2 = %d',
                                         ip_x, ip_y, index_1, index_2)
 
+                        # Check local charges at the intersection.
+                        # XXX: What if the intersection happens 
+                        # at a location very close to a branch cut?
+                        if dsz_pairing(k_wall_1.charge(index_1),
+                                       k_wall_2.charge(index_2), 
+                                       dsz_matrix,) == 0: 
+                            continue
                         new_intersection_points.append(
                             IntersectionPoint(
                                 [complex(ip_x + 1j*ip_y), index_1, index_2],
