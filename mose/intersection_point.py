@@ -107,6 +107,8 @@ def find_new_intersection_points_using_cgal(
     This function compares each K-walls pairwise, thereby having
     O(n^2) performance in theory.
     """
+    logging.info('Using CGAL to find intersections.')
+
     new_intersection_points = []
 
     # Prepare types for CGAL library.
@@ -156,6 +158,9 @@ def find_new_intersection_points_using_cgal(
                     intersections, buffer_size,
                 )
                 if num_of_intersections > buffer_size:
+                    logging.info('Number of intersections larger than '
+                                 'the buffer size; increase its size '
+                                 'and run intersection finding again.')
                     buffer_size = num_of_intersections
                 else:
                     intersections.resize((num_of_intersections,2))
@@ -212,6 +217,8 @@ def find_new_intersection_points_using_interpolation(
     two segments of K-walls. Therefore it will fail to find more
     than one intersection per pair of segments.
     """
+    logging.info('Using NumPy interpolation to find intersections.')
+
     new_intersection_points = []
 
     for n, k_wall_1 in enumerate(new_k_walls):
@@ -309,6 +316,7 @@ def find_new_intersections_using_hit_table(
     """
     Find new wall-wall intersections using HitTable.
     """
+    logging.info('Using HitTable & NumPy interpolation to find intersections.')
 
     new_ints = []
     i_0 = len(kwalls)
