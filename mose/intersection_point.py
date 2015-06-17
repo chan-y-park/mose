@@ -93,7 +93,8 @@ def get_k_wall_turning_points(k_wall):
 def find_new_intersection_points(
     prev_k_walls, new_k_walls, prev_intersection_points, dsz_matrix
 ):
-    return find_new_intersection_points_using_interpolation(
+    #return find_new_intersection_points_using_interpolation(
+    return find_new_intersection_points_using_cgal(
         prev_k_walls, new_k_walls, prev_intersection_points, dsz_matrix
     )
 
@@ -145,7 +146,8 @@ def find_new_intersection_points_using_cgal(
                                     numpy.float64, ['A', 'C'])
 
             buffer_size = 10
-            while True:
+            intersection_search_finished = False
+            while not intersection_search_finished:
                 intersections = numpy.empty((buffer_size, 2),
                                             dtype=numpy.float64)
                 num_of_intersections = cgal_find_intersections_of_curves(
@@ -156,9 +158,45 @@ def find_new_intersection_points_using_cgal(
                 if num_of_intersections > buffer_size:
                     buffer_size = num_of_intersections
                 else:
-                    break
+                    intersections.resize((num_of_intersections,2))
+                    intersection_search_finished = True
             for ip_x, ip_y in intersections:
-                new_intersection_points.append([ip_x, ip_y])
+                # Find where to put the intersection point in the
+                # given segment. It should be put AFTER the index
+                # found below.
+                curve_1_xs = k_wall_1.get_xs()
+                x_full_1 = numpy.full(len(curve_1_xs), ip_x)
+                i_a, i_b = numpy.argsort(abs(curve_1_xs - x_full_1))[:2]
+                if i_a < i_b:
+                    index_1 = i_a
+                else:
+                    index_1 = i_b
+               
+                curve_2_xs = k_wall_2.get_xs()
+                x_full_2 = numpy.full(len(curve_2_xs), ip_x)
+                i_c, i_d = numpy.argsort(abs(curve_2_xs - x_full_2))[:2]
+                if i_c < i_d:
+                    index_2 = i_c
+                else:
+                    index_2 = i_d
+
+                logging.debug('intersection point: (%.8f, %.8f) '
+                                'at index_1 = %d, index_2 = %d',
+                                ip_x, ip_y, index_1, index_2)
+
+                # Check local charges at the intersection.
+                # XXX: What if the intersection happens 
+                # at a location very close to a branch cut?
+                if dsz_pairing(k_wall_1.charge(index_1),
+                               k_wall_2.charge(index_2), 
+                               dsz_matrix,) == 0: 
+                    continue
+                new_intersection_points.append(
+                    IntersectionPoint(
+                        [complex(ip_x + 1j*ip_y), index_1, index_2],
+                        [k_wall_1, k_wall_2],
+                    )
+                )
 
     return new_intersection_points
     
