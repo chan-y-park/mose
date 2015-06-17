@@ -93,8 +93,8 @@ def get_k_wall_turning_points(k_wall):
 def find_new_intersection_points(
     prev_k_walls, new_k_walls, prev_intersection_points, dsz_matrix
 ):
-    #return find_new_intersection_points_using_interpolation(
-    return find_new_intersection_points_using_cgal(
+    return find_new_intersection_points_using_interpolation(
+    #return find_new_intersection_points_using_cgal(
         prev_k_walls, new_k_walls, prev_intersection_points, dsz_matrix
     )
 
