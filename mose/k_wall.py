@@ -55,7 +55,7 @@ class KWall(object):
         self.splittings = None
         self.local_charge = None
         self.identifier = identifier
-        # self.coordinates is a N-by-2 numpy array with dtype=float.
+        # self.coordinates is a N-by-2 numpy array with dtype=numpy.float64.
         self.coordinate = None
 
     # def __str__(self):
@@ -202,7 +202,8 @@ trajectory!" % (sp[0], sp[-1])
         step = 0
         i_0 = len(self.coordinates)
         if i_0 == 0:
-            self.coordinates = numpy.empty((ode_num_steps, 2), dtype=float)
+            self.coordinates = numpy.empty((ode_num_steps, 2),
+                                           dtype=numpy.float64)
             self.periods = numpy.empty(ode_num_steps, complex)
         elif i_0 > 0:
             self.coordinates.resize((i_0 + ode_num_steps, 2))

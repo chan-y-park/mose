@@ -6,6 +6,7 @@ Uses general-purpose module, intersection.py
 """
 import numpy
 import logging
+import ctypes
 import pdb
 from itertools import chain
 from misc import sort_parent_kwalls, id_generator
@@ -89,8 +90,82 @@ def get_k_wall_turning_points(k_wall):
         
     return tps
 
-
 def find_new_intersection_points(
+    prev_k_walls, new_k_walls, prev_intersection_points, dsz_matrix
+):
+    return find_new_intersection_points_using_interpolation(
+        prev_k_walls, new_k_walls, prev_intersection_points, dsz_matrix
+    )
+
+
+def find_new_intersection_points_using_cgal(
+    prev_k_walls, new_k_walls, prev_intersection_points, dsz_matrix
+):
+    """
+    Find new wall-wall intersections using CGAL 2d curve intersection.
+    This function compares each K-walls pairwise, thereby having
+    O(n^2) performance in theory.
+    """
+    new_intersection_points = []
+
+    # Prepare types for CGAL library.
+    array_2d_float = numpy.ctypeslib.ndpointer(
+        dtype=numpy.float64,
+        ndim=2,
+        flags=['C_CONTIGUOUS', 'ALIGNED'],
+    )
+
+    # Load CGAL shared library.
+    libcgal_intersection = numpy.ctypeslib.load_library(
+        'libcgal_intersection', './mose/cgal_intersection/'
+    )
+    cgal_find_intersections_of_segments = (libcgal_intersection.
+                                           find_intersections_of_segments)
+    cgal_find_intersections_of_segments.restype = ctypes.c_int
+    cgal_find_intersections_of_segments.argtypes = [
+        array_2d_float, ctypes.c_long,
+        array_2d_float, ctypes.c_long,
+        array_2d_float, ctypes.c_int,
+    ]
+
+    for n, k_wall_1 in enumerate(new_k_walls):
+        # KWall.coordinates is a N-by-2 numpy array with dtype=float.
+        segment_1 = numpy.require(
+            k_wall_1.coordinates, numpy.float64, ['A', 'C']
+        )
+        for k_wall_2 in chain(prev_k_walls, new_k_walls[n+1:]):
+            if (
+                # XXX: need to check local charges instead of initial ones.
+                k_wall_1.parents == k_wall_2.parents or 
+                k_wall_1 in k_wall_2.parents or
+                k_wall_2 in k_wall_1.parents
+            ):
+                continue
+
+            segment_2 = numpy.require(
+                k_wall_2.coordinates, numpy.float64, ['A', 'C']
+            )
+
+            buffer_size = 10
+            while True:
+                intersections = numpy.empty((buffer_size, 2),
+                                            dtype=numpy.float64)
+                num_of_intersections = cgal_find_intersections_of_segments(
+                    segment_1, ctypes.c_long(len(segment_1)),
+                    segment_2, ctypes.c_long(len(segment_2)),
+                    intersections, buffer_size,
+                )
+                if num_of_intersections > buffer_size:
+                    buffer_size = num_of_intersections
+                else:
+                    break
+            for ip_x, ip_y in intersections:
+                new_intersection_points.append([ip_x, ip_y])
+
+    return new_intersection_points
+    
+
+def find_new_intersection_points_using_interpolation(
     prev_k_walls, new_k_walls, prev_intersection_points, dsz_matrix
 ):
     """
