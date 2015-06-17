@@ -119,10 +119,10 @@ def find_new_intersection_points_using_cgal(
     libcgal_intersection = numpy.ctypeslib.load_library(
         'libcgal_intersection', './mose/cgal_intersection/'
     )
-    cgal_find_intersections_of_segments = (libcgal_intersection.
-                                           find_intersections_of_segments)
-    cgal_find_intersections_of_segments.restype = ctypes.c_int
-    cgal_find_intersections_of_segments.argtypes = [
+    cgal_find_intersections_of_curves = (libcgal_intersection.
+                                         find_intersections_of_curves)
+    cgal_find_intersections_of_curves.restype = ctypes.c_int
+    cgal_find_intersections_of_curves.argtypes = [
         array_2d_float, ctypes.c_long,
         array_2d_float, ctypes.c_long,
         array_2d_float, ctypes.c_int,
@@ -130,9 +130,8 @@ def find_new_intersection_points_using_cgal(
 
     for n, k_wall_1 in enumerate(new_k_walls):
         # KWall.coordinates is a N-by-2 numpy array with dtype=float.
-        segment_1 = numpy.require(
-            k_wall_1.coordinates, numpy.float64, ['A', 'C']
-        )
+        curve_1 = numpy.require(k_wall_1.coordinates,
+                                numpy.float64, ['A', 'C'])
         for k_wall_2 in chain(prev_k_walls, new_k_walls[n+1:]):
             if (
                 # XXX: need to check local charges instead of initial ones.
@@ -142,17 +141,16 @@ def find_new_intersection_points_using_cgal(
             ):
                 continue
 
-            segment_2 = numpy.require(
-                k_wall_2.coordinates, numpy.float64, ['A', 'C']
-            )
+            curve_2 = numpy.require(k_wall_2.coordinates,
+                                    numpy.float64, ['A', 'C'])
 
             buffer_size = 10
             while True:
                 intersections = numpy.empty((buffer_size, 2),
                                             dtype=numpy.float64)
-                num_of_intersections = cgal_find_intersections_of_segments(
-                    segment_1, ctypes.c_long(len(segment_1)),
-                    segment_2, ctypes.c_long(len(segment_2)),
+                num_of_intersections = cgal_find_intersections_of_curves(
+                    curve_1, ctypes.c_long(len(curve_1)),
+                    curve_2, ctypes.c_long(len(curve_2)),
                     intersections, buffer_size,
                 )
                 if num_of_intersections > buffer_size:
