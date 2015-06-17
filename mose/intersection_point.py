@@ -4,13 +4,17 @@ IntersectionPoint class.
 
 Uses general-purpose module, intersection.py
 """
+import numpy
 import logging
-import cmath
-from itertools import combinations
-from misc import dsz_pairing, complexify, sort_parent_kwalls, id_generator
-from intersection import NoIntersection, find_intersection_of_segments
+import pdb
+from itertools import chain
+from misc import sort_parent_kwalls, id_generator
+from misc import dsz_pairing
 from genealogy import build_genealogy_tree
+from intersection import (NoIntersection, find_intersection_of_segments,
+                          remove_duplicate_intersection,)
 
+INTERSECTION_ACCURACY = 1e-1
 
 class IntersectionPoint:
     """The IntersectionPoint class.
@@ -37,8 +41,9 @@ class IntersectionPoint:
         ### Sort the parents and the corresponding indices
         ### according to how they come to the intersection
         ### as (kwall_l, kwall_r) ~ (x, y)
-        self.parents, self.indices = sort_parent_kwalls(parents, \
-                                                [index_1, index_2])
+        self.parents, self.indices = sort_parent_kwalls(
+            parents, [index_1, index_2]
+        )
 
         ### This check has been deferred to the diagnostics module
         ### and will only be performed upon specific request.
@@ -49,8 +54,8 @@ class IntersectionPoint:
 
         ### note the { } and conversion to strings, 
         ### since the charges are useful for classification purposes, mostly
-        self.degeneracies = \
-                    [self.parents[0].degeneracy, self.parents[1].degeneracy]
+        self.degeneracies = [self.parents[0].degeneracy,
+                             self.parents[1].degeneracy]
         self.genealogy = build_genealogy_tree(self)
         self.phase = self.parents[0].phase
         self.identifier = id_generator()
@@ -63,29 +68,136 @@ class IntersectionPoint:
         else:
             return False
 
-def remove_duplicate_intersection(new_ilist, old_ilist):
+
+def get_k_wall_turning_points(k_wall):
     """
-    Remove any duplicate in new_ilist1, then remove intersections 
-    of new_ilist that already exist in old_ilist
+    Return a list of indices of turning points of a K-Wall,
+    i.e. dx/dy = 0 or dy/dx = 0.
     """
-    temp_ilist = new_ilist 
+    tps = []
 
-    for intersection1, intersection2 in combinations(temp_ilist, 2):
-        if intersection1 == intersection2:
-            new_ilist.remove(intersection2)
-        else:
-            continue
+    xs = k_wall.get_xs()
+    ys = k_wall.get_ys()
 
-    temp_ilist = new_ilist 
+    if len(xs) < 3:
+        return tps
 
-    for new_intersection in temp_ilist:
-        for intersection in old_ilist:
-            if new_intersection == intersection:
-                new_ilist.remove(new_intersection)
+    for t in range(1, len(xs)-1):
+        if ((xs[t] - xs[t-1]) * (xs[t+1] - xs[t]) < 0 or
+            (ys[t] - ys[t-1]) * (ys[t+1] - ys[t]) < 0):
+            tps.append(t)
+        
+    return tps
 
-def find_new_intersections(kwalls, new_kwalls, intersections, hit_table, 
-                            dsz_matrix):
-    """Find new wall-wall intersections"""
+
+def find_new_intersection_points(
+    prev_k_walls, new_k_walls, prev_intersection_points, dsz_matrix
+):
+    """
+    Find new wall-wall intersections using interpolations.
+
+    This first gets segments of a K-wall by cutting it at its
+    turning points, and then find a SINGLE intersection between
+    two segments of K-walls. Therefore it will fail to find more
+    than one intersection per pair of segments.
+    """
+    new_intersection_points = []
+
+    for n, k_wall_1 in enumerate(new_k_walls):
+        tps_1 = get_k_wall_turning_points(k_wall_1)
+        xs_1 = k_wall_1.get_xs()
+        ys_1 = k_wall_1.get_ys()
+        split_1 = [0] + tps_1 + [len(xs_1)-1]
+
+        for k_wall_2 in chain(prev_k_walls, new_k_walls[n+1:]):
+            # Exclude some cases from being checked for 
+            # intersections, see the if statements below.
+            if (
+                # XXX: need to check local charges instead of initial ones.
+                #dsz_pairing(k_wall_1.charge(0), k_wall_2.charge(0), 
+                #            dsz_matrix) == 0 or 
+                k_wall_1.parents == k_wall_2.parents or 
+                k_wall_1 in k_wall_2.parents or
+                k_wall_2 in k_wall_1.parents
+            ):
+                continue
+
+            tps_2 = get_k_wall_turning_points(k_wall_2)
+            xs_2 = k_wall_2.get_xs()
+            ys_2 = k_wall_2.get_ys()
+            split_2 = [0] + tps_2 + [len(xs_2)-1]
+
+            for i_1 in range(1, len(split_1)):
+                t_1_i = split_1[i_1-1]
+                t_1_f = split_1[i_1]
+                seg_1_xs = xs_1[t_1_i:t_1_f+1] 
+                seg_1_ys = ys_1[t_1_i:t_1_f+1]
+                seg_1 = (seg_1_xs, seg_1_ys)
+
+                for i_2 in range(1, len(split_2)):
+                    t_2_i = split_2[i_2-1]
+                    t_2_f = split_2[i_2]
+                    seg_2_xs = xs_2[t_2_i:t_2_f+1] 
+                    seg_2_ys = ys_2[t_2_i:t_2_f+1]
+                    seg_2 = (seg_2_xs, seg_2_ys)
+
+                    try:
+                        ip_x, ip_y = find_intersection_of_segments(
+                            seg_1, seg_2, accuracy=INTERSECTION_ACCURACY,
+                        )
+                        # Find where to put the intersection point in the
+                        # given segment. It should be put AFTER the index
+                        # found below.
+                        x_full_1 = numpy.full((t_1_f+1-t_1_i,), ip_x)
+                        i_a, i_b = numpy.argsort(abs(seg_1_xs - x_full_1))[:2]
+                        if i_a < i_b:
+                            index_1 = t_1_i + i_a
+                        else:
+                            index_1 = t_1_i + i_b
+                       
+                        x_full_2 = numpy.full((t_2_f+1-t_2_i,), ip_x)
+                        i_c, i_d = numpy.argsort(abs(seg_2_xs - x_full_2))[:2]
+                        if i_c < i_d:
+                            index_2 = t_2_i + i_c
+                        else:
+                            index_2 = t_2_i + i_d
+
+                        logging.debug('intersection point: (%.8f, %.8f) '
+                                        'at index_1 = %d, index_2 = %d',
+                                        ip_x, ip_y, index_1, index_2)
+
+                        # Check local charges at the intersection.
+                        # XXX: What if the intersection happens 
+                        # at a location very close to a branch cut?
+                        if dsz_pairing(k_wall_1.charge(index_1),
+                                       k_wall_2.charge(index_2), 
+                                       dsz_matrix,) == 0: 
+                            continue
+                        new_intersection_points.append(
+                            IntersectionPoint(
+                                [complex(ip_x + 1j*ip_y), index_1, index_2],
+                                [k_wall_1, k_wall_2],
+                            )
+                        )
+                    except NoIntersection:
+                        pass
+
+    remove_duplicate_intersection(new_intersection_points, 
+                                  prev_intersection_points)
+
+    logging.info('Evaluating intersections of NEW Kwalls with ALL Kwalls: '
+                 'found %d of them.', len(new_intersection_points))
+
+    return new_intersection_points
+
+
+# XXX: Deprecated
+def find_new_intersections_using_hit_table(
+    kwalls, new_kwalls, intersections, hit_table, dsz_matrix
+):
+    """
+    Find new wall-wall intersections using HitTable.
+    """
 
     new_ints = []
     i_0 = len(kwalls)
@@ -137,9 +249,9 @@ def find_new_intersections(kwalls, new_kwalls, intersections, hit_table,
             list_of_intersection_points = []
 
             for t1_i, t1_f in hit_table[bin_key][i_1]:
-                segment_1 = kwall_1.coordinates[t1_i:t1_f+1]
+                segment_1 = kwall_1.coordinates[t1_i:t1_f+1].T
                 for t2_i, t2_f in hit_table[bin_key][i_2]:
-                    segment_2 = kwall_2.coordinates[t2_i:t2_f+1]
+                    segment_2 = kwall_2.coordinates[t2_i:t2_f+1].T
                     logging.debug('t1_i, t1_f = %d, %d', t1_i, t1_f) 
                     logging.debug('t2_i, t2_f = %d, %d', t2_i, t2_f) 
                     try:
@@ -147,21 +259,21 @@ def find_new_intersections(kwalls, new_kwalls, intersections, hit_table,
                     # between two segments, hoping that we divided
                     # the curves as many times as required for the
                     # assumption to hold.
-                        intersection_point = \
-                            find_intersection_of_segments(
-                                segment_1, segment_2,
-                                hit_table.get_bin_location(bin_key),
-                                hit_table._bin_size
-                            )
+                        intersection_point = find_intersection_of_segments(
+                            segment_1, segment_2,
+                            hit_table.get_bin_location(bin_key),
+                            hit_table._bin_size
+                        )
 
                         ipx, ipy = intersection_point
                         # Find where to put the intersection point in the
                         # given segment. It should be put AFTER the index
                         # found below.
                         
-                        dt_1 = \
-                            min(range(len(segment_1)), 
-                                key=lambda i: abs(segment_1[i][0]-ipx))
+                        dt_1 = min(
+                            range(len(segment_1)), 
+                            key=lambda i: abs(segment_1[i][0]-ipx)
+                        )
                         logging.debug('dt_1 = %d', dt_1)
                         if dt_1-1 >=0 and (
                             (segment_1[dt_1, 0] < ipx < segment_1[dt_1-1, 0]) 
@@ -171,9 +283,10 @@ def find_new_intersections(kwalls, new_kwalls, intersections, hit_table,
                             dt_1 -= 1
                         index_1 = t1_i + dt_1 
 
-                        dt_2 = \
-                            min(range(len(segment_2)), 
-                                key=lambda i: abs(segment_2[i][0]-ipx))
+                        dt_2 = min(
+                            range(len(segment_2)), 
+                            key=lambda i: abs(segment_2[i][0]-ipx)
+                        )
                         logging.debug('dt_2 = %d', dt_2)
                         if dt_2-1 >=0 and (
                             (segment_2[dt_2, 0] < ipx < segment_2[dt_2-1, 0]) 
@@ -193,11 +306,9 @@ def find_new_intersections(kwalls, new_kwalls, intersections, hit_table,
                     except NoIntersection:
                         pass
 
+            new_ints += [IntersectionPoint(intersection, [kwall_1, kwall_2]) 
+                         for intersection in list_of_intersection_points] 
 
-            # for ints in list_of_intersection_points:
-            #     print "%s(%s)\t%s(%s)" % (kwall_1.identifier, ints[1], kwall_2.identifier, ints[2])
-            new_ints += [IntersectionPoint(intersection, [kwall_1, kwall_2]) \
-                            for intersection in list_of_intersection_points] 
 
     remove_duplicate_intersection(new_ints, intersections)
 
