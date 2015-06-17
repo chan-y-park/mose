@@ -1,18 +1,13 @@
 // Computing intersection points among curves using the sweep line.
 #include <CGAL/Cartesian.h>
-#include <CGAL/MP_Float.h>
-#include <CGAL/Quotient.h>
 #include <CGAL/Arr_segment_traits_2.h>
-#include <CGAL/Sweep_line_2_algorithms.h>
 #include <CGAL/Arr_polyline_traits_2.h>
-#include <CGAL/Arrangement_2.h>
+#include <CGAL/Sweep_line_2_algorithms.h>
+#include <vector>
 #include <list>
 
-#include <fstream>
 #include "cgal_intersection.h"
 
-//typedef CGAL::Quotient<CGAL::MP_Float>                  Number_type;
-//typedef CGAL::Cartesian<Number_type>                    Kernel;
 typedef CGAL::Cartesian<double>                    Kernel;
 typedef CGAL::Arr_segment_traits_2<Kernel>              Segment_traits;
 typedef CGAL::Arr_polyline_traits_2<Segment_traits>     Traits;
