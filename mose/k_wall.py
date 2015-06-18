@@ -20,6 +20,11 @@ from misc import complexify, sort_by_abs, left_right, clock, order_roots, \
                 periods_relative_sign, data_plot, int_sign
 from monodromy import charge_monodromy
 
+### Distance from any discriminant locus 
+### within which a k-wall will be deemed 'singular'
+### and be cut
+DISCRIMINANT_LOCI_RADIUS = 0.01
+
 class KWall(object):
     """
     The K-wall class.
@@ -34,7 +39,7 @@ class KWall(object):
     def __init__(
         self, initial_charge=None, degeneracy=None, phase=None, parents=None,
         fibration=None, color='b', label=None, identifier=None,
-        #network=None,
+        network=None,
     ):
         self.initial_charge = initial_charge
         self.degeneracy = degeneracy
@@ -48,7 +53,7 @@ class KWall(object):
         self.pf_boundary_conditions = None 
         self.fibration = fibration
         self.color = color
-        #self.network = network
+        self.network = network
         #self.label = label
         self.singular = False
         self.cuts_intersections = []
@@ -236,7 +241,7 @@ class PrimaryKWall(KWall):
     def __init__(
         self, initial_charge=None, degeneracy=None, phase=None, parents=None,
         fibration=None, initial_condition=None, color='k', identifier=None,
-        #network=None,
+        network=None,
     ):
         if not (isinstance(parents[0], BranchPoint)):
             raise TypeError('A parent of this primary K-wall '
@@ -244,8 +249,7 @@ class PrimaryKWall(KWall):
         super(PrimaryKWall, self).__init__(
             initial_charge=initial_charge, degeneracy=degeneracy,
             phase=phase, parents=parents, fibration=fibration, color=color,
-            identifier=identifier,
-            #network,
+            identifier=identifier, network=network,
         )
         self.initial_point = self.parents[0]
         self.identifier = identifier
@@ -375,7 +379,8 @@ class DescendantKWall(KWall):
     """
     def __init__(self, initial_charge=None, degeneracy=None, phase=None,
                  parents=None, fibration=None, intersection=None, 
-                 charge_wrt_parents=None, color='b', identifier=None):
+                 charge_wrt_parents=None, color='b', identifier=None,
+                 network=None):
         """
         intersection: must be an instance of the IntersecionPoint class.
         charge_wrt_parents: must be the charge relative to 
@@ -387,7 +392,7 @@ class DescendantKWall(KWall):
         super(DescendantKWall, self).__init__(
             initial_charge=initial_charge, degeneracy=degeneracy, 
             phase=phase, parents=parents, fibration=fibration, color=color,
-            identifier=identifier
+            identifier=identifier, network=network
         )
         self.identifier = identifier
         self.initial_point = intersection
@@ -482,9 +487,13 @@ def k_wall_pf_ode_f(t, y, pf_matrix, trajectory_singularity_threshold, theta, \
     matrix = pf_matrix(u)
 
     det_pf = abs(det(matrix))
-    if det_pf > trajectory_singularity_threshold:
+    disc_loci = [bp.locus for bp in kwall.network.fibration.branch_points]
+    minimum_disc_loc_distance = min([abs(u - x) for x in disc_loci])
+    if det_pf > trajectory_singularity_threshold \
+                or minimum_disc_loc_distance < DISCRIMINANT_LOCI_RADIUS:
         kwall.singular = True
         kwall.singular_point = u
+        print "\n\n\tSINGULAR KWALL\n\n"
 
     # A confusing point to bear in mind: here we are solving the 
     # ode with respect to time t, but d_eta is understood to be 
