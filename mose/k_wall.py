@@ -487,10 +487,16 @@ def k_wall_pf_ode_f(t, y, pf_matrix, trajectory_singularity_threshold, theta, \
     matrix = pf_matrix(u)
 
     det_pf = abs(det(matrix))
-    disc_loci = [bp.locus for bp in kwall.network.fibration.branch_points]
+    if kwall.__class__.__name__ == 'PrimaryKWall':
+        parent_bp = kwall.parents[0]
+        disc_loci = [bp.locus for bp in kwall.network.fibration.branch_points if bp!=parent_bp]
+    else:
+        disc_loci = [bp.locus for bp in kwall.network.fibration.branch_points]
     minimum_disc_loc_distance = min([abs(u - x) for x in disc_loci])
     if det_pf > trajectory_singularity_threshold \
                 or minimum_disc_loc_distance < DISCRIMINANT_LOCI_RADIUS:
+        # if minimum_disc_loc_distance < DISCRIMINANT_LOCI_RADIUS:
+        #     print 'kwal too close to discrminant locus at u = %s' % u
         kwall.singular = True
         kwall.singular_point = u
 
