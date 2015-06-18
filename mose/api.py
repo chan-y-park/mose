@@ -44,7 +44,7 @@ def set_logging(level):
     ch.setFormatter(formatter)
     logger.addHandler(ch)
     # Log to a file 'log.mose.txt'
-    fh = logging.FileHandler('log.most.txt', 'w')
+    fh = logging.FileHandler('log.mose.txt', 'w')
     fh.setLevel(logging_level)
     fh.setFormatter(formatter)
     logger.addHandler(fh)
