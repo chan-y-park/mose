@@ -493,7 +493,6 @@ def k_wall_pf_ode_f(t, y, pf_matrix, trajectory_singularity_threshold, theta, \
                 or minimum_disc_loc_distance < DISCRIMINANT_LOCI_RADIUS:
         kwall.singular = True
         kwall.singular_point = u
-        print "\n\n\tSINGULAR KWALL\n\n"
 
     # A confusing point to bear in mind: here we are solving the 
     # ode with respect to time t, but d_eta is understood to be 
