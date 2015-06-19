@@ -82,7 +82,8 @@ class KWallNetwork:
                 if (not k_wall.singular):
                     primary_k_walls.append(k_wall)
                 else:
-                    cut_singular_k_wall(k_wall)
+                    ### NOT CUTTING ANY MORE
+                    # cut_singular_k_wall(k_wall)
                     primary_k_walls.append(k_wall)
                     # logging.info(
                     #     """
