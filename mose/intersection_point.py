@@ -4,6 +4,7 @@ IntersectionPoint class.
 
 Uses general-purpose module, intersection.py
 """
+import platform
 import numpy
 import logging
 import ctypes
@@ -94,9 +95,14 @@ def find_new_intersection_points(
     prev_k_walls, new_k_walls, prev_intersection_points, dsz_matrix
 ):
     try:
-        return find_new_intersection_points_using_cgal(
-            prev_k_walls, new_k_walls, prev_intersection_points, dsz_matrix
-        )
+        linux_distribution = platform.linux_distribution()[0]
+        if linux_distribution != '':
+            return find_new_intersection_points_using_cgal(
+                prev_k_walls, new_k_walls, prev_intersection_points, dsz_matrix,
+                linux_distribution=linux_distribution,
+            )
+        else:
+            raise OSError
     except OSError:
         logging.warning('CGAL not available; switch from '
                         'find_new_intersection_points_using_cgal() to '
@@ -106,17 +112,33 @@ def find_new_intersection_points(
         )
 
 def find_new_intersection_points_using_cgal(
-    prev_k_walls, new_k_walls, prev_intersection_points, dsz_matrix
+    prev_k_walls, new_k_walls, prev_intersection_points, dsz_matrix,
+    linux_distribution=None,
 ):
     """
     Find new wall-wall intersections using CGAL 2d curve intersection.
     This function compares each K-walls pairwise, thereby having
     O(n^2) performance in theory.
     """
-    logging.info('Using CGAL to find intersections.')
 
     new_intersection_points = []
 
+    lib_name = 'libcgal_intersection'
+    if linux_distribution == 'Ubuntu':
+        lib_name += '_ubuntu'
+    elif linux_distribution == 'Scientific Linux':
+        lib_name += '_het-math2'
+    else:
+        raise OSError
+
+    logging.info('Using CGAL to find intersections.')
+
+    # Load CGAL shared library.
+    libcgal_intersection = numpy.ctypeslib.load_library(
+        lib_name, './mose/cgal_intersection/'
+    )
+    cgal_find_intersections_of_curves = (libcgal_intersection.
+                                         find_intersections_of_curves)
     # Prepare types for CGAL library.
     array_2d_float = numpy.ctypeslib.ndpointer(
         dtype=numpy.float64,
@@ -124,12 +146,6 @@ def find_new_intersection_points_using_cgal(
         flags=['C_CONTIGUOUS', 'ALIGNED'],
     )
 
-    # Load CGAL shared library.
-    libcgal_intersection = numpy.ctypeslib.load_library(
-        'libcgal_intersection', './mose/cgal_intersection/'
-    )
-    cgal_find_intersections_of_curves = (libcgal_intersection.
-                                         find_intersections_of_curves)
     cgal_find_intersections_of_curves.restype = ctypes.c_int
     cgal_find_intersections_of_curves.argtypes = [
         array_2d_float, ctypes.c_long,
