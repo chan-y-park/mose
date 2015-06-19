@@ -163,7 +163,10 @@ class KWallNetwork:
                         if (not k_wall.singular):
                             new_k_walls.append(k_wall)
                         else:
-                            cut_singular_k_wall(k_wall)
+                            ### No longer cutting kwalls!
+                            ### we approximate the bad region with a straight
+                            ### line now
+                            # cut_singular_k_wall(k_wall)
                             new_k_walls.append(k_wall)
 
         ### End of iterations.
