@@ -31,7 +31,13 @@ class MarginalStabilityWall:
         self.points = all_intersections
         ### the following enhances the self.points attribute, 
         ### possibly by adding branch-points
-        self.enhance_ms_wall()     
+        
+        ### !!! NOTE -- temoporarily switched off the enhancement !!!
+        ### It is causing trouble and should be rethought very carefully!
+        ###
+        # self.enhance_ms_wall()     
+        ###
+
         ### Now we reorder the list of self.points,
         ### according to the actual shape of the wall
         self.reorganize()
@@ -41,15 +47,7 @@ class MarginalStabilityWall:
     def enhance_ms_wall(self):
         ### now we add branch-points if they belong to the MS-walls,
         ### this is determined by wether one of the parents of the MS-wall
-        ### is a primary trajectory. We get this info from the genealogy
-
-        ### The genealogy is no longer built in this way!
-        # gen = self.genealogy
-        # if gen[0].__class__.__name__ == 'BranchPoint':
-        #     self.points.append(gen[0])
-        # if gen[1].__class__.__name__ == 'BranchPoint':
-        #     self.points.append(gen[1])
-
+        ### is a primary trajectory. We get this info from the genealogy.
         ### The parent will be a primary kwall if its genealogy
         ### is directly a string, namely the identifier of the 
         ### branch point from which it sources
@@ -66,61 +64,92 @@ class MarginalStabilityWall:
         MS walls are arcs, this function reorders the intersections, 
         following the arc.
         """
-        leftmost_point = sorted(self.points, key=getkey_real)[0]
-        min_distance = min([abs(pt_1.locus - pt_2.locus) \
-                                            for pt_1 in self.points \
-                                            for pt_2 in self.points \
-                                            if pt_1 != pt_2])
-        max_distance = max([abs(pt_1.locus - pt_2.locus) \
-                                            for pt_1 in self.points \
-                                            for pt_2 in self.points \
-                                            if pt_1 != pt_2])    
-        search_range = 1.1 * max_distance
-        semi_arc_1 = []
-        semi_arc_2 = []
+        if len(self.points) <= 2:
+            pass
 
-        seen = [leftmost_point.locus]
-        
-        ### Build the first semi-arc
-        current_point = leftmost_point
-        arc_is_finished = False
-        while not arc_is_finished:
-            found_new_closest_point = False
-            epsilon = search_range
-            for pt in self.points:
-                distance = abs(pt.locus - current_point.locus)
-                if distance < epsilon and not (pt.locus in seen):
-                    found_new_closest_point = True
-                    epsilon = distance
-                    closest_point = pt
+        else:
+            points_copy = [pt for pt in self.points]
+            leftmost_point = sorted(points_copy, key=getkey_real)[0]
+            max_distance = max([abs(pt_1.locus - pt_2.locus) \
+                                                for pt_1 in self.points \
+                                                for pt_2 in self.points])    
+            search_range = 1.1 * max_distance
 
-            if found_new_closest_point == False:
-                arc_is_finished = True
+            self.semi_arc_1 = []
+            self.semi_arc_2 = []
+
+            seen = [leftmost_point.locus]
+            
+            ### Build the first semi-arc
+            current_point = leftmost_point
+            arc_is_finished = False
+            while not arc_is_finished:
+                found_new_closest_point = False
+                epsilon = search_range
+                for pt in self.points:
+                    distance = abs(pt.locus - current_point.locus)
+                    if distance < epsilon and (not (pt.locus in seen)): 
+                        ### Now we check that when we actually
+                        ### get at the end of the semi-arc 1, we don't 
+                        ### switch to the beginning of the semi-arc 2.
+                        ### The check involves comparing the distance
+                        ### pt - current_point
+                        ### with
+                        ### current_point - leftmost_locus
+                        ### The former should be smaller than the latter
+                        ### However, we must skip this check at the 
+                        ### very beginning, because in that case
+                        ### current_point = leftmost_locus!
+                        if current_point.locus != leftmost_point.locus:
+                            # print " %s this is not the leftmost point" % pt.locus
+                            if (distance <= abs(pt.locus \
+                                                    - leftmost_point.locus)):
+                                # print "but the distance to current_pt is less than to the leftmost_pt"
+                                found_new_closest_point = True
+                                epsilon = distance
+                                closest_point = pt
+                            else:
+                                pass
+                        else:
+                            found_new_closest_point = True
+                            epsilon = distance
+                            closest_point = pt
+
+                if found_new_closest_point == False:
+                    arc_is_finished = True
+                else:
+                    seen.append(closest_point.locus)
+                    self.semi_arc_1.append(closest_point)
+                    current_point = closest_point
+
+            ### Build the second semi-arc
+            current_point = leftmost_point
+            arc_is_finished = False
+            while not arc_is_finished:
+                found_new_closest_point = False
+                epsilon = search_range
+                for pt in self.points:
+                    distance = abs(pt.locus - current_point.locus)
+                    if distance < epsilon and not (pt.locus in seen):
+                        found_new_closest_point = True
+                        epsilon = distance
+                        closest_point = pt
+
+                if found_new_closest_point == False:
+                    arc_is_finished = True
+                else:
+                    seen.append(closest_point.locus)
+                    self.semi_arc_2.append(closest_point)
+                    current_point = closest_point
+
+            reorganized_points = self.semi_arc_1[::-1] + [leftmost_point] \
+                                                            + self.semi_arc_2
+            if len(reorganized_points) == len(self.points):
+                self.points = reorganized_points
+                pass
             else:
-                seen.append(closest_point.locus)
-                semi_arc_1.append(closest_point)
-
-        ### Build the second semi-arc
-        current_point = leftmost_point
-        arc_is_finished = False
-        while not arc_is_finished:
-            found_new_closest_point = False
-            epsilon = search_range
-            for pt in self.points:
-                distance = abs(pt.locus - current_point.locus)
-                if distance < epsilon and not (pt.locus in seen):
-                    found_new_closest_point = True
-                    epsilon = distance
-                    closest_point = pt
-
-            if found_new_closest_point == False:
-                arc_is_finished = True
-            else:
-                seen.append(closest_point.locus)
-                semi_arc_2.append(closest_point)
-
-        self.points = semi_arc_1[::-1] + [leftmost_point] + semi_arc_2
-        pass
+                raise ValueError('Lost some of the MS Wall points '\
+                                    + 'while reorganizing it.')
 
 
 def branch_point_with_identifier(fibration, label):
