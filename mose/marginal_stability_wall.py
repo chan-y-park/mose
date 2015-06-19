@@ -31,13 +31,7 @@ class MarginalStabilityWall:
         self.points = all_intersections
         ### the following enhances the self.points attribute, 
         ### possibly by adding branch-points
-        
-        ### !!! NOTE -- temoporarily switched off the enhancement !!!
-        ### It is causing trouble and should be rethought very carefully!
-        ###
-        # self.enhance_ms_wall()     
-        ###
-
+        self.enhance_ms_wall()     
         ### Now we reorder the list of self.points,
         ### according to the actual shape of the wall
         self.reorganize()
@@ -46,19 +40,18 @@ class MarginalStabilityWall:
 
     def enhance_ms_wall(self):
         ### now we add branch-points if they belong to the MS-walls,
-        ### this is determined by wether one of the parents of the MS-wall
-        ### is a primary trajectory. We get this info from the genealogy.
-        ### The parent will be a primary kwall if its genealogy
-        ### is directly a string, namely the identifier of the 
-        ### branch point from which it sources
-        gen = self.genealogy
-        if type(gen[0]) == str:
-            self.points.append(branch_point_with_identifier(\
-                                                    self.fibration, gen[0]))
-        if type(gen[1]) == str:
-            self.points.append(branch_point_with_identifier(\
-                                                    self.fibration, gen[1]))
+        ### this is determined by wether BOTH the parents of the MS-wall
+        ### are primary kwalls.
+        a_random_point = self.points[0]
+        kwall_0, kwall_1 = a_random_point.parents
 
+        if kwall_0.__class__.__name__ == 'PrimaryKWall' \
+                    and kwall_1.__class__.__name__ == 'PrimaryKWall':
+            branch_point_0 = kwall_0.parents[0]
+            branch_point_1 = kwall_1.parents[0]
+            self.points.append(branch_point_0)
+            self.points.append(branch_point_1)
+        
     def reorganize(self):
         """
         MS walls are arcs, this function reorders the intersections, 
@@ -73,7 +66,19 @@ class MarginalStabilityWall:
             max_distance = max([abs(pt_1.locus - pt_2.locus) \
                                                 for pt_1 in self.points \
                                                 for pt_2 in self.points])    
-            search_range = 1.1 * max_distance
+            min_distance = min([abs(pt_1.locus - pt_2.locus) \
+                                                for pt_1 in self.points \
+                                                for pt_2 in self.points \
+                                                if pt_1.locus != pt_2.locus])    
+
+            ### !!!
+            ### NEED TO FIX THIS NUMERICAL CONSTANT SOMEHOW 
+            ### IF TOO LARGE, IT WILL PRODUCE THOSE SECANTS 
+            ### IN THE INTERPOLATION OF INTERSECTION POINTS
+            ### TO MAKE A MS-WALL.
+            ### IF TOO SMALL, WE WILL LOSE POINTS ON THE MS-WALL.
+            ### !!!
+            search_range = 0.75 * max_distance
 
             self.semi_arc_1 = []
             self.semi_arc_2 = []
@@ -101,10 +106,8 @@ class MarginalStabilityWall:
                         ### very beginning, because in that case
                         ### current_point = leftmost_locus!
                         if current_point.locus != leftmost_point.locus:
-                            # print " %s this is not the leftmost point" % pt.locus
                             if (distance <= abs(pt.locus \
                                                     - leftmost_point.locus)):
-                                # print "but the distance to current_pt is less than to the leftmost_pt"
                                 found_new_closest_point = True
                                 epsilon = distance
                                 closest_point = pt
@@ -148,42 +151,20 @@ class MarginalStabilityWall:
                 self.points = reorganized_points
                 pass
             else:
+                print "\n IN WALL #%s" % self.count
+                print "\noriginal points"
+                # print self.points
+                print [x.locus for x in self.points]
+                print "\nreorganized points"
+                # print reorganized_points
+                print [x.locus for x in reorganized_points]
                 raise ValueError('Lost some of the MS Wall points '\
-                                    + 'while reorganizing it.')
-
-
-def branch_point_with_identifier(fibration, label):
-    found = False
-    for b_pt in fibration.branch_points:
-        if b_pt.genealogy == label:
-            found = True
-            return b_pt
-    if found == False:
-        raise ValueError('Problem when enhancing an MS wall: '\
-                        +'cannot find the branch point with label {}'\
-                        .format(label))
-
+                                    + 'while reorganizing it.\n' \
+                                    + 'Try increasing the search radius.')
 
 
 def getkey_real(int_point):
     return int_point.locus.real
-
-
-def opposite(data):
-    ### recall that charges of an intersection point are formatted as 
-    ### {'[1,0]','[0,-2]'}
-    ### to turn the above into a format such as
-    ### [[1,0],[0,-2]]
-    ### we do the following
-    charges = map(ast.literal_eval, list(data[0]))
-    genealogy = data[1]
-    ### formatting back to the previous convention
-    opp_charges =  set(map(str, map(list, map(lambda x: -x, \
-                                                    map(array, charges)))))
-    ### apparently, no need to take the "mirror" genealogy: makes sense!
-    # opp_genealogy = set(map(str, deep_reverse(genealogy)))
-    opp_genealogy = genealogy
-    return [opp_charges, opp_genealogy]
 
 
 def build_ms_walls(k_wall_networks):
@@ -195,8 +176,8 @@ def build_ms_walls(k_wall_networks):
     fibration = k_wall_networks[0].fibration
     for kwn in k_wall_networks:
         all_intersections += kwn.intersections
-    ### to distinguish wall types, use certain data, defined in the following
-    data = [[x.charges, x.genealogy] for x in all_intersections]
+    ### to distinguish wall types, use the genealogy data
+    data = [x.genealogy for x in all_intersections]
     seen = []
     walls = []
 
@@ -207,11 +188,9 @@ def build_ms_walls(k_wall_networks):
                 )
 
     for i in range(len(data)):
-        if not (data[i] in seen or opposite(data[i]) in seen):
+        if not data[i] in seen:
             walls.append([all_intersections[i]]) #start a new wall
             seen.append(data[i])
-        elif opposite(data[i]) in seen:
-            walls[seen.index(opposite(data[i]))].append(all_intersections[i])
         else:
             walls[seen.index(data[i])].append(all_intersections[i])
 
