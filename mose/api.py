@@ -6,6 +6,7 @@ import time
 import pickle
 import Tkinter as tk
 import tkFileDialog
+import shutil
 import pdb
 
 import matplotlib
@@ -20,6 +21,8 @@ from plotting import NetworkPlot, NetworkPlotTk
 from plotting import MSWallPlot
 from misc import formatted_date_time
 from diagnostics import diagnose_kwall_network
+
+LOGGING_FILE_NAME = 'log.mose.txt'
 
 def set_logging(level):
     if level == 'debug':
@@ -43,6 +46,11 @@ def set_logging(level):
     formatter = logging.Formatter(logging_format)
     ch.setFormatter(formatter)
     logger.addHandler(ch)
+    # Log to a file 'log.mose.txt'
+    fh = logging.FileHandler(LOGGING_FILE_NAME, 'w')
+    fh.setLevel(logging_level)
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
 
 
 def analysis(config, phase=None,):
@@ -204,6 +212,9 @@ def save(config, data, k_wall_network_plot=None, ms_wall_plot=None,
         k_wall_network_plot.save(data_dir, file_prefix='k_wall_network_')
     if ms_wall_plot is not None:
         ms_wall_plot.save(data_dir)
+    # Copy log file to data_dir
+    shutil.copyfile(LOGGING_FILE_NAME,
+                    os.path.join(data_dir, LOGGING_FILE_NAME))
 
 
 def make_plots(config, data, show_plot=True, master=None):
