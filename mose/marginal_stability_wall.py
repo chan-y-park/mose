@@ -31,12 +31,22 @@ class MarginalStabilityWall:
         self.points = all_intersections
         ### the following enhances the self.points attribute, 
         ### possibly by adding branch-points
-        self.enhance_ms_wall()     
+        self.enhance_ms_wall()
+        self.delete_duplicate_points()     
         ### Now we reorder the list of self.points,
         ### according to the actual shape of the wall
         self.reorganize()
         self.locus = [point.locus for point in self.points]
         MarginalStabilityWall.count += 1
+
+    def delete_duplicate_points(self):
+        seen = set()
+        uniq = []
+        for x in self.points:
+            if x.locus not in seen:
+                uniq.append(x)
+                seen.add(x.locus)
+        self.points = uniq
 
     def enhance_ms_wall(self):
         ### now we add branch-points if they belong to the MS-walls,
