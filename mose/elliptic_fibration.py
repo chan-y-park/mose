@@ -26,6 +26,7 @@ from numpy.linalg import det
 from operator import itemgetter
 from misc import path_derivative, data_plot, complexify, id_generator, \
                     rotate_poly, basis_e
+from zones import Zone
 
 
 NEGLIGIBLE_BOUND = 0.1**12
@@ -223,6 +224,9 @@ class EllipticFibration:
             logging.debug('\nDetermine positive period for branch point {}\n'\
                                                             .format(bp.count))
             bp.determine_positive_period(reference_period(bp))
+
+        self.zones = []
+        self.build_zones()
     
     def pf_matrix(self, z):
         f = numpy.poly1d(self.f_coeffs)
@@ -269,6 +273,46 @@ class EllipticFibration:
         for i in range(n_bp):
             flavor_charges.append(list(basis_e(i, n_bp)))
         return flavor_charges
+
+    
+    def build_zones(self):
+        for i, bp in enumerate(self.branch_points):
+            if i < len(self.branch_points)-1:
+                self.zones.append(
+                        Zone(i, self.branch_points[i], self.branch_points[i+1])
+                                )
+            elif i == len(self.branch_points) - 1:
+                ### for the last branch-point/last zone
+                self.zones.append(
+                        Zone(i, self.branch_points[i], self.branch_points[0], 
+                                                            is_last_zone=True)
+                                )
+            else:
+                raise ValueError('Counter out of bounds')
+
+        ### Now we set the neighbors
+        for i, z in enumerate(self.zones):
+            if i == 0:
+                left = self.zones[-1]
+                bottom = self.zones[-1]
+                right = self.zones[1]
+                z.set_neighbors([left, bottom, right])
+            
+            elif i == len(self.zones)-1:
+                left = self.zones[i-1]
+                all_neighbors = self.zones[:-1]
+                right = self.zones[0]
+                z.set_neighbors([left, all_neighbors, right])
+            
+            else:
+                left = self.zones[i - 1]
+                bottom = self.zones[-1]
+                right = self.zones[i + 1]
+                z.set_neighbors([left, bottom, right])
+
+
+
+
 
 
 

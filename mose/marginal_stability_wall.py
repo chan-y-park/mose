@@ -23,8 +23,13 @@ class MarginalStabilityWall:
     count = 0
 
     def __init__(self, all_intersections, fibration):
-        self.charges = all_intersections[0].charges 
-        ### warning: self.charges is given in the format {'[-1, 2]', '[1, 0]'}
+        ### !!! CONCEPTUALLY WRONG !!! 
+        ### An MS wall doenst have a single pair of charges, 
+        ### but rather several pairs, related by monodromies!
+        ### Improve this piece of data.!
+        self.gauge_charges = all_intersections[0].gauge_charges 
+        self.flavor_charges = all_intersections[0].flavor_charges 
+
         self.degeneracies = all_intersections[0].degeneracies
         self.genealogy = all_intersections[0].genealogy
         self.fibration = fibration
@@ -180,7 +185,7 @@ def getkey_real(int_point):
 def build_ms_walls(k_wall_networks):
     """
     This function creates MS walls, by sifting through all the intersections.
-    These are clustered accoding to the genealogies and their charges.
+    These are clustered accoding to a certain choice of data.
     """
     all_intersections = []
     fibration = k_wall_networks[0].fibration
