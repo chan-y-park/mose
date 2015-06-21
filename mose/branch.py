@@ -20,10 +20,8 @@ from misc import complexify, sort_by_abs, left_right, clock, order_roots, \
 from monodromy import charge_monodromy
 
 class BranchPoint:
-    """The BranchPoint class.
-
-    Attributes: locus, charge
-    Arguments: locus, charge
+    """
+    The BranchPoint class.
     """
 
     count = 0
@@ -32,11 +30,13 @@ class BranchPoint:
         self, 
         locus=None,
         positive_charge=None,
+        flavor_charge=None,
         monodromy_matrix=None,
         identifier=None,
         fibration=None
     ):
-        self.charge = positive_charge
+        self.gauge_charge = positive_charge
+        self.flavor_charge = flavor_charge
         self.positive_period = None
         self.locus = locus
         self.count = BranchPoint.count
@@ -53,10 +53,6 @@ class BranchPoint:
         
         self.monodromy_matrix = monodromy_matrix
         BranchPoint.count += 1
-
-    def __str__(self):
-        return 'Branch point info: charge %s, locus %s ' % \
-            (self.charge, self.locus)
 
     def grow_hair(self):
         logging.debug('\nprimary growth\n')
@@ -343,7 +339,7 @@ def reference_period(branch_point):
         \n******************************************\n'.format(\
                                                         branch_point.count))
 
-    charge = branch_point.charge
+    charge = branch_point.gauge_charge
     fibration = branch_point.fibration
     w_model = fibration.w_model
     

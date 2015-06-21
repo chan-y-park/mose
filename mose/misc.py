@@ -551,5 +551,14 @@ def rotate_poly(poly_coeffs, phase):
                                             for i,x in enumerate(poly_coeffs)]
 
 
+def basis_e(i, d):
+    return numpy.array([kr_delta(j, i) for j in range(d)])
+
+
+def kr_delta(i, j):
+    if i == j:
+        return 1
+    else:
+        return 0
 
 

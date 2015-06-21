@@ -82,7 +82,8 @@ class KWallNetwork:
                 if (not k_wall.singular):
                     primary_k_walls.append(k_wall)
                 else:
-                    cut_singular_k_wall(k_wall)
+                    ### NOT CUTTING ANY MORE
+                    # cut_singular_k_wall(k_wall)
                     primary_k_walls.append(k_wall)
                     # logging.info(
                     #     """
@@ -124,6 +125,8 @@ class KWallNetwork:
                 parents = intersection.parents
                 gamma_1 = parents[0].charge(intersection.indices[0])
                 gamma_2 = parents[1].charge(intersection.indices[1])
+                gamma_f_1 = parents[0].flavor_charge(intersection.indices[0])
+                gamma_f_2 = parents[1].flavor_charge(intersection.indices[1])
                 omega_1 = parents[0].degeneracy
                 omega_2 = parents[1].degeneracy
                 u_0 = intersection.locus
@@ -143,8 +146,13 @@ class KWallNetwork:
                         actual_charge = list(
                             charge[0]*array(gamma_1) + charge[1]*array(gamma_2)
                         )
+                        actual_flavor_charge = list(
+                                                charge[0] * array(gamma_f_1) 
+                                                + charge[1] * array(gamma_f_2)
+                        )
                         k_wall = DescendantKWall(
                             initial_charge=actual_charge,
+                            initial_flavor_charge=actual_flavor_charge,
                             degeneracy=degeneracy,
                             phase=phase,
                             parents=parents,
@@ -163,7 +171,10 @@ class KWallNetwork:
                         if (not k_wall.singular):
                             new_k_walls.append(k_wall)
                         else:
-                            cut_singular_k_wall(k_wall)
+                            ### No longer cutting kwalls!
+                            ### we approximate the bad region with a straight
+                            ### line now
+                            # cut_singular_k_wall(k_wall)
                             new_k_walls.append(k_wall)
 
         ### End of iterations.

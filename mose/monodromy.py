@@ -17,3 +17,10 @@ def charge_monodromy(charge, branch_point, direction):
 		monodromy_matrix = \
 						np.linalg.inv(np.array(branch_point.monodromy_matrix))
 		return map(int, map(round, np.dot(charge, monodromy_matrix)))
+
+
+### !!!!	 UPDATE THE FOLLOWING 	!!!!
+###
+def flavor_charge_monodromy(gauge_charge, 
+                                    flavor_charge, branch_point, direction):
+	return flavor_charge
