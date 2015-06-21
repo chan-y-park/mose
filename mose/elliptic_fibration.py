@@ -25,13 +25,13 @@ from numpy import array, linspace
 from numpy.linalg import det
 from operator import itemgetter
 from misc import path_derivative, data_plot, complexify, id_generator, \
-                    rotate_poly
+                    rotate_poly, basis_e
 
 
 NEGLIGIBLE_BOUND = 0.1**12
 
 class EllipticFibration:
-    def __init__(self, w_f, w_g, params, branch_point_charges=None):
+    def __init__(self, w_f, w_g, params):
         self.params = params
 
         self.sym_f = sympy.sympify(w_f)
@@ -89,7 +89,7 @@ class EllipticFibration:
 
             branch_point_loci = list(self.w_model.get_discriminant_locus())
 
-            branch_point_monodromies = [
+            branch_point_gauge_monodromies = [
                 wss.monodromy_at_point_wmodel(i, self.w_model) 
                 for i in range(len(branch_point_loci))
             ]
@@ -123,9 +123,12 @@ class EllipticFibration:
         self.f_coeffs = map(complex, sympy.Poly(self.num_f, u).all_coeffs())
         self.g_coeffs = map(complex, sympy.Poly(self.num_g, u).all_coeffs())
 
-        branch_point_charges = [
-            monodromy_eigencharge(m) for m in branch_point_monodromies
+        branch_point_gauge_charges = [
+            monodromy_eigencharge(m) for m in branch_point_gauge_monodromies
         ]
+
+        branch_point_flavor_charges = self.determine_flavor_charges(\
+                                                            branch_point_loci)
 
         ### Here we determine the functional expressions for the e_i
         ### these will be used both in hair evolution and in primary kwall
@@ -140,21 +143,21 @@ class EllipticFibration:
         ### with automatic computation of discriminant charges from weierstrass 
         ### module.
         ###
-        # if branch_point_charges is None:
+        # if branch_point_gauge_charges is None:
         #     # Calculate branch point charges using weierstrss.py
-        #     branch_point_monodromies = [
+        #     branch_point_gauge_monodromies = [
         #         wss.monodromy_at_point_wmodel(i, self.w_model) 
         #         for i in range(len(branch_point_loci))
         #     ]
             
-        #     branch_point_charges = [
-        #         monodromy_eigencharge(m) for m in branch_point_monodromies
+        #     branch_point_gauge_charges = [
+        #         monodromy_eigencharge(m) for m in branch_point_gauge_monodromies
         #     ]
         # ### ONCE THE WEIERSTRASS MODULE WORKS RELIABLY, NEED TO REMOVE THE 
         # ### 'IF' STRUCTURE, THE FOLLOWING PART WON'T BE NEEDED.
         # else:
         #     # THIS IS A TEMPORARY DUMMY ASSIGNMENT
-        #     branch_point_monodromies = [
+        #     branch_point_gauge_monodromies = [
         #         [[1, -2],[0, 1]] for i in range(len(branch_point_loci))
         #     ]
         ###
@@ -175,14 +178,16 @@ class EllipticFibration:
                 \n--------------------\
                 \nLocus: {}\
                 \nMonodromy: {}\
-                \nCharge: {}\
+                \nGauge Charge: {}\
+                \nFlavor Charge: {}\
                 \nInternal label: {}\
                 \n'\
                 .format(
                     i,
                     branch_point_loci[i],
-                    numpy.array(branch_point_monodromies[i]).tolist(),
-                    branch_point_charges[i],
+                    numpy.array(branch_point_gauge_monodromies[i]).tolist(),
+                    branch_point_gauge_charges[i],
+                    branch_point_flavor_charges[i],
                     bp_identifiers[i],
                 )
             )
@@ -191,8 +196,9 @@ class EllipticFibration:
         self.branch_points = [
             BranchPoint(
                 locus=branch_point_loci[i],
-                positive_charge=branch_point_charges[i], 
-                monodromy_matrix=branch_point_monodromies[i],
+                positive_charge=branch_point_gauge_charges[i], 
+                flavor_charge=branch_point_flavor_charges[i], 
+                monodromy_matrix=branch_point_gauge_monodromies[i],
                 identifier=bp_identifiers[i],
                 fibration = self,
             )
@@ -249,6 +255,20 @@ class EllipticFibration:
             / (48.0 * g(z) * f_p(z) - 32.0 * f(z) * g_p(z))
         
         return [[0, 1], [M10(z), M11(z)]]
+
+    
+    def determine_flavor_charges(self, branch_point_loci):
+        ### This is just a dummy assignment of flavor charges
+        ### it is completely wrong, starting with the fact that
+        ### we are taking the flavor lattice to hve dimension 
+        ### f + r + 1 = f + 2 instead of just f.
+
+        n_bp = len(branch_point_loci)
+        # flavor_rank = n_bp - 2
+        flavor_charges = []
+        for i in range(n_bp):
+            flavor_charges.append(list(basis_e(i, n_bp)))
+        return flavor_charges
 
 
 

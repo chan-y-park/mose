@@ -35,7 +35,9 @@ class KWallNetworkPlotBase(NetworkPlotBase):
         for i, bp in enumerate(k_wall_network.fibration.branch_points):
             branch_points.append([bp.locus.real, bp.locus.imag])
             labels['branch_points'].append("branch point #{}\nM = {}\
-                \ncharge = {}".format(i, bp.monodromy_matrix, bp.charge))
+                \ngauge charge = {}\nflavor charge = {}"\
+                .format(i, bp.monodromy_matrix, bp.gauge_charge, \
+                                                        bp.flavor_charge))
 
         joints = []
         for i, ip in enumerate(k_wall_network.intersections):
@@ -59,8 +61,8 @@ class KWallNetworkPlotBase(NetworkPlotBase):
                 t_f = split[j+1]
                 segments.append((xs[t_i:t_f+1], ys[t_i:t_f+1]))
                 seg_labels.append(k_wall_label + 
-                    "\nLocal charge: {}".format(k_wall.local_charge[j])
-                )
+                "\nLocal gauge charge: {}\nLocal flavor charge: {}"\
+                .format(k_wall.local_charge[j], k_wall.local_flavor_charge[j]))
             walls.append(segments)
             labels['walls'].append(seg_labels) 
             # else:

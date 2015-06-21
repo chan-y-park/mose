@@ -79,11 +79,7 @@ def analysis(config, phase=None,):
     fibration = EllipticFibration(
         config['fibration']['f'],
         config['fibration']['g'],
-        config['fibration parameters'],
-        ### Enable the following line to switch-off automatic monodromy
-        ### determination via weierstrass.py, and use instead the 
-        ### parameters given by hand in the config file
-        # branch_point_charges=config['charge']['fixed_charges'],
+        config['fibration parameters']
     )
 
     #KWall.count = 0
