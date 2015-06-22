@@ -79,18 +79,26 @@ class KWallNetwork:
                     ode_size_of_step,   
                     ode_num_steps,
                 )
-                if (not k_wall.singular):
-                    primary_k_walls.append(k_wall)
-                else:
-                    cut_singular_k_wall(k_wall)
-                    primary_k_walls.append(k_wall)
-                    # logging.info(
-                    #     """
-                    #     **************
-                    #     SINGULAR K-WALL! WILL BE DROPPED.
-                    #     **************
-                    #     """
-                    # )
+
+                ### Comment the following to disable
+                ### cutting kwalls near discriminant loci
+                # if (not k_wall.singular):
+                #     primary_k_walls.append(k_wall)
+                # else:
+                #     cut_singular_k_wall(k_wall)
+                #     primary_k_walls.append(k_wall)
+                #     # logging.info(
+                #     #     """
+                #     #     **************
+                #     #     SINGULAR K-WALL! WILL BE DROPPED.
+                #     #     **************
+                #     #     """
+                #     # )
+                
+                ### Comment the following if you wish to
+                ### cut singular kwalls
+                primary_k_walls.append(k_wall)
+
 
         #############################
         # Now grow descendant k-walls.
@@ -167,11 +175,17 @@ class KWallNetwork:
                             ode_size_of_step,   
                             ode_num_steps,
                         )
-                        if (not k_wall.singular):
-                            new_k_walls.append(k_wall)
-                        else:
-                            cut_singular_k_wall(k_wall)
-                            new_k_walls.append(k_wall)
+                        ### Comment the following to disable
+                        ### cutting kwalls near discriminant loci
+                        # if (not k_wall.singular):
+                        #     new_k_walls.append(k_wall)
+                        # else:
+                        #     cut_singular_k_wall(k_wall)
+                        #     new_k_walls.append(k_wall)
+
+                        ### Comment the following if you wish to
+                        ### cut singular kwalls
+                        new_k_walls.append(k_wall)
 
         ### End of iterations.
         self.k_walls += new_k_walls
