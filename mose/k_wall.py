@@ -530,29 +530,46 @@ def k_wall_pf_ode_f(t, y, pf_matrix, trajectory_singularity_threshold, theta, \
             kwall.singular = True
             kwall.singular_point = u
 
-    if det_pf > trajectory_singularity_threshold \
-                or minimum_disc_loc_distance < DISCRIMINANT_LOCI_RADIUS:
-        # A confusing point to bear in mind: here we are solving the 
-        # ode with respect to time t, but d_eta is understood to be 
-        # (d eta / d u), with its own  appropriate b.c. and so on!
-        ### NOTE THE FOLLOWING TWO OPTIONS FOR DERIVATIVE OF u
-        u_1 = exp( 1j * ( theta + pi ) ) / eta
-        # u_1 = exp( 1j * ( theta + pi - cmath.phase( eta ) ) )
-        eta_1 = 0.0
-        d_eta_1 = 0.0
-        c_c_1 = u_1 * eta
-        return  array([u_1, eta_1, d_eta_1, c_c_1])
 
-    else:
-        # A confusing point to bear in mind: here we are solving the 
-        # ode with respect to time t, but d_eta is understood to be 
-        # (d eta / d u), with its own  appropriate b.c. and so on!
-        ### NOTE THE FOLLOWING TWO OPTIONS FOR DERIVATIVE OF u
-        u_1 = exp( 1j * ( theta + pi ) ) / eta
-        # u_1 = exp( 1j * ( theta + pi - cmath.phase( eta ) ) )
-        eta_1 = u_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
-        d_eta_1 = u_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
-        c_c_1 = u_1 * eta
-        return  array([u_1, eta_1, d_eta_1, c_c_1])
+    ### THE FOLLOWING IS FOR USING THE STRAIGHT-TYPE OF EVOLUTION
+    ### NEAR A DSCRIMINANT LOCUS
+    # if det_pf > trajectory_singularity_threshold \
+    #             or minimum_disc_loc_distance < DISCRIMINANT_LOCI_RADIUS:
+    #     # A confusing point to bear in mind: here we are solving the 
+    #     # ode with respect to time t, but d_eta is understood to be 
+    #     # (d eta / d u), with its own  appropriate b.c. and so on!
+    #     ### NOTE THE FOLLOWING TWO OPTIONS FOR DERIVATIVE OF u
+    #     u_1 = exp( 1j * ( theta + pi ) ) / eta
+    #     # u_1 = exp( 1j * ( theta + pi - cmath.phase( eta ) ) )
+    #     eta_1 = 0.0
+    #     d_eta_1 = 0.0
+    #     c_c_1 = u_1 * eta
+    #     return  array([u_1, eta_1, d_eta_1, c_c_1])
+
+    # else:
+    #     # A confusing point to bear in mind: here we are solving the 
+    #     # ode with respect to time t, but d_eta is understood to be 
+    #     # (d eta / d u), with its own  appropriate b.c. and so on!
+    #     ### NOTE THE FOLLOWING TWO OPTIONS FOR DERIVATIVE OF u
+    #     u_1 = exp( 1j * ( theta + pi ) ) / eta
+    #     # u_1 = exp( 1j * ( theta + pi - cmath.phase( eta ) ) )
+    #     eta_1 = u_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
+    #     d_eta_1 = u_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
+    #     c_c_1 = u_1 * eta
+    #     return  array([u_1, eta_1, d_eta_1, c_c_1])
+
+    ### USE THE FOLLOWING WITH THE PRESCRIPTION FOR
+    ### CUTTING KWALLS INSTEAD (TO BE ENABLES IN THE KWALL-NETWORK MODULE)
+    
+    # A confusing point to bear in mind: here we are solving the 
+    # ode with respect to time t, but d_eta is understood to be 
+    # (d eta / d u), with its own  appropriate b.c. and so on!
+    ### NOTE THE FOLLOWING TWO OPTIONS FOR DERIVATIVE OF u
+    u_1 = exp( 1j * ( theta + pi ) ) / eta
+    # u_1 = exp( 1j * ( theta + pi - cmath.phase( eta ) ) )
+    eta_1 = u_1 * (matrix[0][0] * eta + matrix[0][1] * d_eta)
+    d_eta_1 = u_1 * (matrix[1][0] * eta + matrix[1][1] * d_eta)
+    c_c_1 = u_1 * eta
+    return  array([u_1, eta_1, d_eta_1, c_c_1])
 
 
