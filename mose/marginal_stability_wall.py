@@ -2,6 +2,7 @@ import logging
 import ast
 from misc import deep_reverse
 from numpy import array
+from zones import orbit_is_contained
 
 class MarginalStabilityWall:
     """
@@ -191,8 +192,14 @@ def build_ms_walls(k_wall_networks):
     fibration = k_wall_networks[0].fibration
     for kwn in k_wall_networks:
         all_intersections += kwn.intersections
-    ### to distinguish wall types, use the genealogy data
-    data = [x.genealogy for x in all_intersections]
+    
+    ### OLD METHOD, USED THE GENEALOGY
+    # ### to distinguish wall types, use the genealogy data
+    # data = [x.genealogy for x in all_intersections]
+
+    ### NEW METHOD: CHARGE ORBITS
+    data = [x.charge_orbit for x in all_intersections]
+
     seen = []
     walls = []
 
@@ -203,11 +210,14 @@ def build_ms_walls(k_wall_networks):
                 )
 
     for i in range(len(data)):
-        if not data[i] in seen:
+        i_th_charge_orbit = data[i]
+        check = orbit_is_contained(seen, i_th_charge_orbit)
+        if check == False:
             walls.append([all_intersections[i]]) #start a new wall
-            seen.append(data[i])
+            seen.append(i_th_charge_orbit)
         else:
-            walls[seen.index(data[i])].append(all_intersections[i])
+            index = check
+            walls[index].append(all_intersections[i])
 
 
     return [MarginalStabilityWall(x, fibration) for x in walls]

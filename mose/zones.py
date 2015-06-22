@@ -237,8 +237,6 @@ def charges_in_neighboring_zones(depth, current_zone, gauge_charges,
 
 
 
-
-
 def determine_zone(u, zones):
 	found_zone = False
 	for z in zones[:-1]:
@@ -252,7 +250,23 @@ def determine_zone(u, zones):
 		return zones[-1]
 	
 
+def orbits_coincide(charge_orbit_1, charge_orbit_2):
+	answer = False
+	for x in charge_orbit_1:
+		for y in charge_orbit_2:
+			if x == y:
+				answer = True
 
+	return answer
+
+def orbit_is_contained(orbit_list, orbit):
+	answer = False
+	for i, orbit_i in enumerate(orbit_list):
+		if orbits_coincide(orbit, orbit_i):
+			answer = i
+			break
+
+	return answer
 
 
 
