@@ -23,7 +23,7 @@ from monodromy import charge_monodromy, flavor_charge_monodromy
 ### Distance from any discriminant locus 
 ### within which a k-wall will be deemed 'singular'
 ### and be cut
-DISCRIMINANT_LOCI_RADIUS = 0.03
+DISCRIMINANT_LOCI_RADIUS = 0.005
 
 class KWall(object):
     """
