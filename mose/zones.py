@@ -276,5 +276,12 @@ def orbit_is_contained(orbit_list, orbit):
 	return answer
 
 
+def unite_orbits(orbit_1, orbit_2):
+	all_charges = orbit_1 + orbit_2
+	all_charges.sort()
+	unique_charges = list(all_charges for all_charges,_ \
+											in itertools.groupby(all_charges))
+	return unique_charges
+
 
 
