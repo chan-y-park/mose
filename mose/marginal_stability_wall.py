@@ -86,7 +86,120 @@ class MarginalStabilityWall:
             branch_point_1 = kwall_1.parents[0]
             self.points.append(branch_point_0)
             self.points.append(branch_point_1)
-        
+    
+    ### OLD METHOD: This starts from the leftmost point (smallest Real part)
+    ### of the intersection points of the MS wall, then tracks the 
+    ### upper and lower arcs separately, by looking repeatedly for the 
+    ### nearest neighbor, within a certain radius that we specify.
+    # def reorganize(self):
+    #     """
+    #     MS walls are arcs, this function reorders the intersections, 
+    #     following the arc.
+    #     """
+    #     if len(self.points) <= 2:
+    #         pass
+
+    #     else:
+    #         points_copy = [pt for pt in self.points]
+    #         leftmost_point = sorted(points_copy, key=getkey_real)[0]
+    #         max_distance = max([abs(pt_1.locus - pt_2.locus) \
+    #                                             for pt_1 in self.points \
+    #                                             for pt_2 in self.points])    
+    #         min_distance = min([abs(pt_1.locus - pt_2.locus) \
+    #                                             for pt_1 in self.points \
+    #                                             for pt_2 in self.points \
+    #                                             if pt_1.locus != pt_2.locus])    
+
+    #         search_range = SEARCH_RANGE_RATIO * max_distance
+
+    #         self.semi_arc_1 = []
+    #         self.semi_arc_2 = []
+
+    #         seen = [leftmost_point.locus]
+            
+    #         ### Build the first semi-arc
+    #         current_point = leftmost_point
+    #         arc_is_finished = False
+    #         while not arc_is_finished:
+    #             found_new_closest_point = False
+    #             epsilon = search_range
+    #             for pt in self.points:
+    #                 distance = abs(pt.locus - current_point.locus)
+    #                 if distance < epsilon and (not (pt.locus in seen)): 
+    #                     ### Now we check that when we actually
+    #                     ### get at the end of the semi-arc 1, we don't 
+    #                     ### switch to the beginning of the semi-arc 2.
+    #                     ### The check involves comparing the distance
+    #                     ### pt - current_point
+    #                     ### with
+    #                     ### current_point - leftmost_locus
+    #                     ### The former should be smaller than the latter
+    #                     ### However, we must skip this check at the 
+    #                     ### very beginning, because in that case
+    #                     ### current_point = leftmost_locus!
+    #                     if current_point.locus != leftmost_point.locus:
+    #                         if (distance <= abs(pt.locus \
+    #                                                 - leftmost_point.locus)):
+    #                             found_new_closest_point = True
+    #                             epsilon = distance
+    #                             closest_point = pt
+    #                         else:
+    #                             pass
+    #                     else:
+    #                         found_new_closest_point = True
+    #                         epsilon = distance
+    #                         closest_point = pt
+
+    #             if found_new_closest_point == False:
+    #                 arc_is_finished = True
+    #             else:
+    #                 seen.append(closest_point.locus)
+    #                 self.semi_arc_1.append(closest_point)
+    #                 current_point = closest_point
+
+    #         ### Build the second semi-arc
+    #         current_point = leftmost_point
+    #         arc_is_finished = False
+    #         while not arc_is_finished:
+    #             found_new_closest_point = False
+    #             epsilon = search_range
+    #             for pt in self.points:
+    #                 distance = abs(pt.locus - current_point.locus)
+    #                 if distance < epsilon and not (pt.locus in seen):
+    #                     found_new_closest_point = True
+    #                     epsilon = distance
+    #                     closest_point = pt
+
+    #             if found_new_closest_point == False:
+    #                 arc_is_finished = True
+    #             else:
+    #                 seen.append(closest_point.locus)
+    #                 self.semi_arc_2.append(closest_point)
+    #                 current_point = closest_point
+
+    #         reorganized_points = self.semi_arc_1[::-1] + [leftmost_point] \
+    #                                                         + self.semi_arc_2
+    #         if len(reorganized_points) == len(self.points):
+    #             self.points = reorganized_points
+    #             pass
+    #         else:
+    #             print "\n IN WALL #%s" % self.count
+    #             print "\noriginal points"
+    #             # print self.points
+    #             print [x.locus for x in self.points]
+    #             print "\nreorganized points"
+    #             # print reorganized_points
+    #             print [x.locus for x in reorganized_points]
+    #             logging.info('Lost some of the MS Wall points '\
+    #                                 + 'while reorganizing it.\n' \
+    #                                 + 'Try increasing the search radius.')
+    
+
+    ### NEW METHOD: This starts from the leftmost point (smallest Real part)
+    ### of the intersection points of the MS wall, then tracks the 
+    ### upper and lower arcs separately. This is done by splitting the points
+    ### into those that lie above/below the leftmost point, and then 
+    ### sorting them by their position's Real part.
     def reorganize(self):
         """
         MS walls are arcs, this function reorders the intersections, 
@@ -98,83 +211,18 @@ class MarginalStabilityWall:
         else:
             points_copy = [pt for pt in self.points]
             leftmost_point = sorted(points_copy, key=getkey_real)[0]
-            max_distance = max([abs(pt_1.locus - pt_2.locus) \
-                                                for pt_1 in self.points \
-                                                for pt_2 in self.points])    
-            min_distance = min([abs(pt_1.locus - pt_2.locus) \
-                                                for pt_1 in self.points \
-                                                for pt_2 in self.points \
-                                                if pt_1.locus != pt_2.locus])    
-
-            search_range = SEARCH_RANGE_RATIO * max_distance
-
-            self.semi_arc_1 = []
-            self.semi_arc_2 = []
-
-            seen = [leftmost_point.locus]
             
-            ### Build the first semi-arc
-            current_point = leftmost_point
-            arc_is_finished = False
-            while not arc_is_finished:
-                found_new_closest_point = False
-                epsilon = search_range
-                for pt in self.points:
-                    distance = abs(pt.locus - current_point.locus)
-                    if distance < epsilon and (not (pt.locus in seen)): 
-                        ### Now we check that when we actually
-                        ### get at the end of the semi-arc 1, we don't 
-                        ### switch to the beginning of the semi-arc 2.
-                        ### The check involves comparing the distance
-                        ### pt - current_point
-                        ### with
-                        ### current_point - leftmost_locus
-                        ### The former should be smaller than the latter
-                        ### However, we must skip this check at the 
-                        ### very beginning, because in that case
-                        ### current_point = leftmost_locus!
-                        if current_point.locus != leftmost_point.locus:
-                            if (distance <= abs(pt.locus \
-                                                    - leftmost_point.locus)):
-                                found_new_closest_point = True
-                                epsilon = distance
-                                closest_point = pt
-                            else:
-                                pass
-                        else:
-                            found_new_closest_point = True
-                            epsilon = distance
-                            closest_point = pt
+            upper_points = [pt for pt in points_copy \
+                                if pt.locus.imag > leftmost_point.locus.imag]
 
-                if found_new_closest_point == False:
-                    arc_is_finished = True
-                else:
-                    seen.append(closest_point.locus)
-                    self.semi_arc_1.append(closest_point)
-                    current_point = closest_point
+            lower_points = [pt for pt in points_copy \
+                                if pt.locus.imag < leftmost_point.locus.imag]
 
-            ### Build the second semi-arc
-            current_point = leftmost_point
-            arc_is_finished = False
-            while not arc_is_finished:
-                found_new_closest_point = False
-                epsilon = search_range
-                for pt in self.points:
-                    distance = abs(pt.locus - current_point.locus)
-                    if distance < epsilon and not (pt.locus in seen):
-                        found_new_closest_point = True
-                        epsilon = distance
-                        closest_point = pt
+            upper_arc = sorted(upper_points, key=getkey_real)
+            lower_arc = sorted(lower_points, key=getkey_real)
 
-                if found_new_closest_point == False:
-                    arc_is_finished = True
-                else:
-                    seen.append(closest_point.locus)
-                    self.semi_arc_2.append(closest_point)
-                    current_point = closest_point
-
-            reorganized_points = self.semi_arc_1[::-1] + [leftmost_point] \
-                                                            + self.semi_arc_2
+            reorganized_points = upper_arc[::-1] + [leftmost_point] \
+                                                            + lower_arc
             if len(reorganized_points) == len(self.points):
                 self.points = reorganized_points
                 pass
