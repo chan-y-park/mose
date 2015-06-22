@@ -279,7 +279,7 @@ class MarginalStabilityWall:
             pass
 
         else:
-            basepoint = sum[pt.leftmost_locus for pt in self.points] \
+            basepoint = sum([pt.locus for pt in self.points]) \
                                                             / len(self.points)
             
             phase_sorted_pts = [x[0] for x in sorted(
@@ -291,16 +291,15 @@ class MarginalStabilityWall:
 
             ### If the gap lies across the negative real axis, then 
             ### our points are already sorted correctly
-            if:
-                gap_start == len(phase_sorted_pts) and gap_end == 0:
+            if gap_start == len(phase_sorted_pts) and gap_end == 0:
                 self.points = phase_sorted_pts
 
             ### Otherwise we need to cut-and-paste
             else:
                 ### recall that the phase is defined between -pi and pi,
                 ### so we should cut and paste accordingly
-                reorganized_points = phase_sorted_pts[gap_end, -1] \
-                                                + phase_sorted_pts[0:gap_start+1]
+                reorganized_points = phase_sorted_pts[gap_end : -1] \
+                                                + phase_sorted_pts[0 : gap_start+1]
 
                 if len(reorganized_points) == len(self.points):
                     self.points = reorganized_points
@@ -340,6 +339,7 @@ def find_phase_gap(phase_sorted_pts, basepoint):
             phase_gap = delta_angle
             gap_start = i - 1
             gap_end = i
+    
 
     return gap_start, gap_end
 
@@ -391,7 +391,6 @@ def build_ms_walls(k_wall_networks):
     fibration = k_wall_networks[0].fibration
     for kwn in k_wall_networks:
         all_intersections += kwn.intersections
-    
     ### OLD METHOD, USED THE GENEALOGY
     # ### to distinguish wall types, use the genealogy data
     # data = [x.genealogy for x in all_intersections]
@@ -407,7 +406,6 @@ def build_ms_walls(k_wall_networks):
                     'Building MS walls\n'
                     '-----------------'
                 )
-
     for i in range(len(data)):
         i_th_charge_orbit = data[i]
         check = orbit_is_contained(seen, i_th_charge_orbit)
