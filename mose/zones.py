@@ -275,12 +275,6 @@ def orbit_is_contained(orbit_list, orbit):
 
 	return answer
 
-def opposite_charge(charge):
-	"""
-	charges are given as lists, to get the opposite
-	we turn them into array, multiply by -1 and transform
-	back into a list
-	"""
 
 
 
