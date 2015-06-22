@@ -15,6 +15,7 @@ from misc import dsz_pairing
 from genealogy import build_genealogy_tree
 from intersection import (NoIntersection, find_intersection_of_segments,
                           remove_duplicate_intersection,)
+from zones import build_charge_orbit, determine_zone
 
 INTERSECTION_ACCURACY = 1e-1
 
@@ -47,20 +48,28 @@ class IntersectionPoint:
             parents, [index_1, index_2]
         )
 
+        self.fibration = self.parents[0].fibration
+
         ### This check has been deferred to the diagnostics module
         ### and will only be performed upon specific request.
         # check_marginal_stability_condition(self)
 
-        self.charges = {str(self.parents[0].charge(self.indices[0])),
-                        str(self.parents[1].charge(self.indices[1]))}
-
-        ### note the { } and conversion to strings, 
-        ### since the charges are useful for classification purposes, mostly
         self.degeneracies = [self.parents[0].degeneracy,
                              self.parents[1].degeneracy]
         self.genealogy = build_genealogy_tree(self)
         self.phase = self.parents[0].phase
         self.identifier = id_generator()
+
+
+        self.gauge_charges = [self.parents[0].charge(self.indices[0]),
+                                    self.parents[1].charge(self.indices[1])]
+        self.flavor_charges = [self.parents[0].flavor_charge(self.indices[0]),
+                                self.parents[1].flavor_charge(self.indices[1])]
+
+        self.zone = determine_zone(self.locus, self.fibration.zones)
+        self.charge_orbit = build_charge_orbit(self, self.fibration.zones)
+
+
 
     def __eq__(self, other):
         if (self.parents == other.parents and
