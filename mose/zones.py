@@ -224,10 +224,10 @@ def charges_in_neighboring_zones(depth, current_zone, gauge_charges,
 		### Now we add the nagatives
 		all_negatives = []
 		for gauge_charges, flavor_charges in all_new_charges:
-			all_negatives.append(
+			all_negatives.append([
 					[list(-1 * numpy.array(gamma)) for gamma in gauge_charges],
 					[list(-1 * numpy.array(gamma)) for gamma in flavor_charges]
-					)
+					])
 		
 		all_new_charges = all_new_charges + all_negatives
 
@@ -267,7 +267,7 @@ def orbits_coincide(charge_orbit_1, charge_orbit_2):
 	return answer
 
 def orbit_is_contained(orbit_list, orbit):
-	answer = False
+	answer = 'not contained'
 	for i, orbit_i in enumerate(orbit_list):
 		if orbits_coincide(orbit, orbit_i):
 			answer = i
@@ -275,12 +275,6 @@ def orbit_is_contained(orbit_list, orbit):
 
 	return answer
 
-def opposite_charge(charge):
-	"""
-	charges are given as lists, to get the opposite
-	we turn them into array, multiply by -1 and transform
-	back into a list
-	"""
 
 
 

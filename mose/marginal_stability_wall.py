@@ -35,13 +35,13 @@ class MarginalStabilityWall:
         self.genealogy = all_intersections[0].genealogy
         self.fibration = fibration
         self.points = all_intersections
-        ### the following enhances the self.points attribute, 
-        ### possibly by adding branch-points
-        self.enhance_ms_wall()
         self.delete_duplicate_points()     
         ### Now we reorder the list of self.points,
         ### according to the actual shape of the wall
         self.reorganize()
+        ### the following enhances the self.points attribute, 
+        ### possibly by adding branch-points
+        self.enhance_ms_wall()
         self.locus = [point.locus for point in self.points]
         MarginalStabilityWall.count += 1
 
@@ -212,7 +212,7 @@ def build_ms_walls(k_wall_networks):
     for i in range(len(data)):
         i_th_charge_orbit = data[i]
         check = orbit_is_contained(seen, i_th_charge_orbit)
-        if check == False:
+        if check == 'not contained':
             walls.append([all_intersections[i]]) #start a new wall
             seen.append(i_th_charge_orbit)
         else:
