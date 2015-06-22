@@ -3,6 +3,7 @@ import ast
 from misc import deep_reverse
 from numpy import array
 from zones import orbit_is_contained, unite_orbits
+from cmath import phase, pi
 
 
 ### IF TOO LARGE, IT WILL PRODUCE THOSE SECANTS 
@@ -183,6 +184,7 @@ class MarginalStabilityWall:
     #             self.points = reorganized_points
     #             pass
     #         else:
+    #             self.points = reorganized_points
     #             print "\n IN WALL #%s" % self.count
     #             print "\noriginal points"
     #             # print self.points
@@ -194,12 +196,80 @@ class MarginalStabilityWall:
     #                                 + 'while reorganizing it.\n' \
     #                                 + 'Try increasing the search radius.')
     
+    ### INCOMPLETE
+    # ### NEW METHOD: This splits the MS wall into several arcs, splitting
+    # ### the MS wall at turning points (dx/dt=0 or dy/dt=0); then it tracks 
+    # ### sorts the points in each arc separately. 
+    # ### The sorting is done by simply sorting the points in each arc 
+    # ### by their real part, or imaginary part.
 
-    ### NEW METHOD: This starts from the leftmost point (smallest Real part)
-    ### of the intersection points of the MS wall, then tracks the 
-    ### upper and lower arcs separately. This is done by splitting the points
-    ### into those that lie above/below the leftmost point, and then 
-    ### sorting them by their position's Real part.
+    # def reorganize(self):
+    #     """
+    #     MS walls are arcs, this function reorders the intersections, 
+    #     following the arc.
+    #     """
+    #     if len(self.points) <= 2:
+    #         pass
+
+    #     else:
+    #         all_arcs = []
+    #         points_copy = [pt for pt in self.points]
+    #         leftmost_point = sorted(points_copy, key=getkey_real)[0]
+
+    #         ### Now decide whether to go clockqise or counterclockwise
+    #         ### this step is necessary, because it may happen
+    #         ### that the leftmost point is one tip of the MS wall.
+    #         closest_to_leftmost = sorted(
+    #                         [[pt, abs(pt.locus - leftmost_point.locus)] \
+    #                         for points_copy if pt.locus!=leftmost_point.locus], 
+    #                         key=getkey_second
+    #                         )[0][0]
+    #         delta_y = closest_to_leftmost.locus.imag 
+    #                                             - leftmost_point.locus.imag
+    #         if delta_y > 0:
+    #             direction = 'cw'
+    #             sector = 'NW'
+    #         elif delta_y < 0:
+    #             direction = 'ccw'
+    #             sector = 'SW'
+    #         elif delta_y == 0:
+    #             raise ValueError('cannot detemine the direction to take ' \
+    #                             + 'in sorting the MS wall')
+
+    #         remaining_points = [pt for pt in self.points]
+    #         while len(remaining_points) > 0:
+    #             arc, remaining_points = build_arc(remaining_points, sector)
+    #             all_arcs.append(arc)
+
+    #         ### CAN'T START FROM THE LEFTMOST POINT
+    #         ### NEED TO FIND THE ENDPOINT, SOMEHOW
+    #         .....
+
+    #         reorganized_points = []
+    #         for arc in all_arcs:
+    #             reorganized_points = reorganized_points + arc
+
+    #         if len(reorganized_points) == len(self.points):
+    #             self.points = reorganized_points
+    #             pass
+    #         else:
+    #             print "\n IN WALL #%s" % self.count
+    #             print "\noriginal points"
+    #             # print self.points
+    #             print [x.locus for x in self.points]
+    #             print "\nreorganized points"
+    #             # print reorganized_points
+    #             print [x.locus for x in reorganized_points]
+    #             logging.info('Lost some of the MS Wall points '\
+    #                                 + 'while reorganizing it.')
+
+    ### NEW METHOD: an MS wall is assumed to have the shape of an arc, 
+    ### we fix a point somewhere in the middle of it, and sort 
+    ### all the intersection points accordint to the phase of the 
+    ### radius connecting them to the basepoint.
+    ### Then, we figure out where are the endpoints and reorganize 
+    ### accordingly.
+
     def reorganize(self):
         """
         MS walls are arcs, this function reorders the intersections, 
@@ -209,38 +279,107 @@ class MarginalStabilityWall:
             pass
 
         else:
-            points_copy = [pt for pt in self.points]
-            leftmost_point = sorted(points_copy, key=getkey_real)[0]
+            basepoint = sum[pt.leftmost_locus for pt in self.points] \
+                                                            / len(self.points)
             
-            upper_points = [pt for pt in points_copy \
-                                if pt.locus.imag > leftmost_point.locus.imag]
+            phase_sorted_pts = [x[0] for x in sorted(
+                                    [[pt, phase(pt.locus - basepoint)] \
+                                    for pt in self.points], key=getkey_second)
+                                ]
 
-            lower_points = [pt for pt in points_copy \
-                                if pt.locus.imag < leftmost_point.locus.imag]
+            gap_start, gap_end = find_phase_gap(phase_sorted_pts, basepoint)
 
-            upper_arc = sorted(upper_points, key=getkey_real)
-            lower_arc = sorted(lower_points, key=getkey_real)
+            ### If the gap lies across the negative real axis, then 
+            ### our points are already sorted correctly
+            if:
+                gap_start == len(phase_sorted_pts) and gap_end == 0:
+                self.points = phase_sorted_pts
 
-            reorganized_points = upper_arc[::-1] + [leftmost_point] \
-                                                            + lower_arc
-            if len(reorganized_points) == len(self.points):
-                self.points = reorganized_points
-                pass
+            ### Otherwise we need to cut-and-paste
             else:
-                print "\n IN WALL #%s" % self.count
-                print "\noriginal points"
-                # print self.points
-                print [x.locus for x in self.points]
-                print "\nreorganized points"
-                # print reorganized_points
-                print [x.locus for x in reorganized_points]
-                logging.info('Lost some of the MS Wall points '\
-                                    + 'while reorganizing it.\n' \
-                                    + 'Try increasing the search radius.')
+                ### recall that the phase is defined between -pi and pi,
+                ### so we should cut and paste accordingly
+                reorganized_points = phase_sorted_pts[gap_end, -1] \
+                                                + phase_sorted_pts[0:gap_start+1]
+
+                if len(reorganized_points) == len(self.points):
+                    self.points = reorganized_points
+                    pass
+                else:
+                    self.points = reorganized_points
+                    print "\n IN WALL #%s" % self.count
+                    print "\noriginal points"
+                    # print self.points
+                    print [x.locus for x in self.points]
+                    print "\nreorganized points"
+                    # print reorganized_points
+                    print [x.locus for x in reorganized_points]
+                    logging.info('Lost some of the MS Wall points '\
+                                        + 'while reorganizing it.')
+
+
+def find_phase_gap(phase_sorted_pts, basepoint):
+    ### we compute first the phase gap between the
+    ### points across the negative real axis
+    pt_0 = phase_sorted_pts[0]
+    pt_1 = phase_sorted_pts[-1]
+    phase_gap = 2.0 * pi + phase(pt_0.locus - basepoint) \
+                                                - phase(pt_1.locus - basepoint)
+    gap_start = len(phase_sorted_pts)
+    gap_end = 0
+
+    ### Then we study angle differences between consecutive 
+    ### intersection points, and check if any of these
+    ### is larger than the above phase-gap.
+    angle = phase(pt_0.locus - basepoint)
+    for i, pt in enumerate(phase_sorted_pts):
+        new_angle = phase(pt.locus - basepoint)
+        delta_angle = new_angle - angle
+        angle = new_angle
+        if delta_angle > phase_gap:
+            phase_gap = delta_angle
+            gap_start = i - 1
+            gap_end = i
+
+    return gap_start, gap_end
+
+
+
+# def following_sector(direction, sector):
+#     if direction == 'cw':
+#         if sector == 'NW':
+#             return 'NE'
+#         elif sector == 'NE':
+#             return 'SE'
+#         elif sector == 'SE':
+#             return 'SW'
+#         elif sector == 'SW':
+#             return 'NW'
+#         else:
+#             raise ValueError('Invalid sector name.')
+
+#     elif direction == 'ccw':
+#         if sector == 'NW':
+#             return 'SW'
+#         elif sector == 'SW':
+#             return 'SE'
+#         elif sector == 'SE':
+#             return 'NE'
+#         elif sector == 'NE':
+#             return 'NW'
+#         else:
+#             raise ValueError('Invalid sector name.')
+
+#     else:
+#         raise ValueError('Invalid direction name.')
 
 
 def getkey_real(int_point):
     return int_point.locus.real
+
+
+def getkey_second(x):
+    return x[1]
 
 
 def build_ms_walls(k_wall_networks):
