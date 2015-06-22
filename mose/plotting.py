@@ -314,6 +314,9 @@ class MSWallPlot:
         # Range on the plane to search for intersections
         [[x_min, x_max], [y_min, y_max]] = plot_range
 
+        # Every MSWall has the same fibration.
+        fibration = ms_walls[0].fibration
+
         rect = [0.125, 0.15, 0.8, 0.75]
         axes = self.figure.add_axes(
             rect,
@@ -326,6 +329,7 @@ class MSWallPlot:
         #count = 0
         #colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
 
+
         # Plot intersection points
         for i, wall in enumerate(ms_walls):
             label = "MS wall #{}".format(i)
@@ -337,6 +341,20 @@ class MSWallPlot:
             axes.plot(xs, ys, '-', markersize=4, label=label)
             axes.plot(xs, ys, 'o', markersize=4, label=label)
 
+        # Plot discriminant loci.
+        for i, dp in enumerate(fibration.branch_points):
+            label = (
+                'branch point #{}\n'
+                'M = {}\n'
+                'gauge charge = {}\n'
+                'flavor charge = {}'
+            ).format(
+                i, dp.monodromy_matrix, dp.gauge_charge, dp.flavor_charge
+            )
+            axes.plot(dp.locus.real, dp.locus.imag, 'x', 
+                      markeredgewidth=2, markersize=8, 
+                      color='k', label=label,)
+ 
         data_cursor = mpldatacursor.datacursor(
             axes=axes,
             formatter='{label}'.format,
