@@ -18,7 +18,7 @@ from scipy import interpolate
 from branch import BranchPoint, minimum_distance
 from misc import complexify, sort_by_abs, left_right, clock, order_roots, \
                 periods_relative_sign, data_plot, int_sign
-from monodromy import charge_monodromy
+from monodromy import charge_monodromy, flavor_charge_monodromy
 
 ### Distance from any discriminant locus 
 ### within which a k-wall will be deemed 'singular'

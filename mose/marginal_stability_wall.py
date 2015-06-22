@@ -94,7 +94,7 @@ class MarginalStabilityWall:
             ### TO MAKE A MS-WALL.
             ### IF TOO SMALL, WE WILL LOSE POINTS ON THE MS-WALL.
             ### !!!
-            search_range = 0.75 * max_distance
+            search_range = 0.3 * max_distance
 
             self.semi_arc_1 = []
             self.semi_arc_2 = []
