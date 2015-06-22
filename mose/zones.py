@@ -1,5 +1,6 @@
 from monodromy import charge_monodromy, flavor_charge_monodromy
 import itertools
+import numpy
 
 ### How many times we expect an MS wall to jump from a zone to another one
 CHARGE_ORBIT_DEPTH = 3
@@ -157,14 +158,8 @@ def charges_in_neighboring_zones(depth, current_zone, gauge_charges,
 		]
 
 	new_charges = [
-						[
-							'gauge charges' , gauge_charges_to_the_left, 
-							'flavor charges' , flavor_charges_to_the_left
-						],
-						[
-							'gauge charges' , gauge_charges_to_the_right, 
-							'flavor charges' , flavor_charges_to_the_right
-						],
+					[gauge_charges_to_the_left, flavor_charges_to_the_left],
+					[gauge_charges_to_the_right, flavor_charges_to_the_right]
 					]
 
 	if depth == 0:
@@ -226,6 +221,17 @@ def charges_in_neighboring_zones(depth, current_zone, gauge_charges,
 												zones
 												)
 
+		### Now we add the nagatives
+		all_negatives = []
+		for gauge_charges, flavor_charges in all_new_charges:
+			all_negatives.append(
+					[list(-1 * numpy.array(gamma)) for gamma in gauge_charges],
+					[list(-1 * numpy.array(gamma)) for gamma in flavor_charges]
+					)
+		
+		all_new_charges = all_new_charges + all_negatives
+
+
 		### Now we remove the duplicates
 		all_new_charges.sort()
 		unique_new_charges = \
@@ -256,6 +262,7 @@ def orbits_coincide(charge_orbit_1, charge_orbit_2):
 		for y in charge_orbit_2:
 			if x == y:
 				answer = True
+				break
 
 	return answer
 
@@ -268,6 +275,12 @@ def orbit_is_contained(orbit_list, orbit):
 
 	return answer
 
+def opposite_charge(charge):
+	"""
+	charges are given as lists, to get the opposite
+	we turn them into array, multiply by -1 and transform
+	back into a list
+	"""
 
 
 
