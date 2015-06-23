@@ -24,11 +24,10 @@ class KWallNetworkPlotBase(NetworkPlotBase):
     def draw(
         self,
         k_wall_network, 
-        plot_range=[[-5, 5], [-5, 5]], 
+        plot_range=None, 
         plot_joints=False,
         plot_data_points=False,
     ):
-        [[x_min, x_max], [y_min, y_max]] = plot_range
         labels = {'branch_points': [], 'joints': [], 'walls': []}
 
         branch_points = []
@@ -65,10 +64,6 @@ class KWallNetworkPlotBase(NetworkPlotBase):
                 .format(k_wall.local_charge[j], k_wall.local_flavor_charge[j]))
             walls.append(segments)
             labels['walls'].append(seg_labels) 
-            # else:
-            #     labels['walls'].append(k_wall_label)
-            # labels['walls'].append("K-wall #{}".format(i))
-
 
         super(KWallNetworkPlotBase, self).draw(
             phase=k_wall_network.phase,
@@ -76,7 +71,7 @@ class KWallNetworkPlotBase(NetworkPlotBase):
             joints=joints,
             walls=walls,
             labels=labels,
-            plot_range=[x_min, x_max, y_min, y_max],
+            plot_range=plot_range,
             plot_joints=plot_joints,
             plot_data_points=plot_data_points,
         )
@@ -317,14 +312,8 @@ class MSWallPlot:
     def draw(
         self,
         ms_walls,
-        plot_range=[[-5,5],[-5,5]]
+        plot_range=None
     ):
-        """
-        Plots MS walls.
-        """
-        # Range on the plane to search for intersections
-        [[x_min, x_max], [y_min, y_max]] = plot_range
-
         # Every MSWall has the same fibration.
         fibration = ms_walls[0].fibration
 
@@ -332,15 +321,15 @@ class MSWallPlot:
         axes = self.figure.add_axes(
             rect,
             label='ms_walls',    
-            xlim=(x_min, x_max),
-            ylim=(y_min, y_max),
             aspect='equal',
         )
 
-        #count = 0
-        #colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k', 'w']
-
-
+        if plot_range is not None:
+            [[x_min, x_max], [y_min, y_max]] = plot_range
+            axes.set_xlim(x_min, x_max)
+            axes.set_ylim(y_min, y_max)
+        else:
+            axes.autoscale(enable=True, axis='both', tight=None)
         # Plot intersection points
         for i, wall in enumerate(ms_walls):
             label = "MS wall #{}".format(i)
@@ -387,7 +376,7 @@ class MSWallPlot:
         self.figure.savefig(plot_file_path)
 
 
-def plot_k_walls(k_walls,  plot_range=[[-5, 5], [-5, 5]],
+def plot_k_walls(k_walls, plot_range=[[-5, 5], [-5, 5]],
                  plot_data_points=False,):
     """
     Plot K-walls for debugging purpose.
