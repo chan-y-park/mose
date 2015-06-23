@@ -1,3 +1,21 @@
+#--------------------------------------------------------
+### Temporary knobs to try different combinations
+### of the available algorithms
+
+ENHANCE_MS_WALLS = False
+
+# If false, will use charge orbits
+SORT_BY_GENEALOGY = True
+
+# If false, will use straight approximation
+CUT_K_WALLS = True
+
+# If false, will sort by nearest neighbor
+SWEEP_SORT_MS_WALLS = True
+
+#--------------------------------------------------------
+
+
 import logging
 import os
 import sys
@@ -24,22 +42,7 @@ from diagnostics import diagnose_kwall_network
 
 LOGGING_FILE_NAME = 'log.mose.txt'
 
-#--------------------------------------------------------
-### Temporary knobs to try different combinations
-### of the available algorithms
 
-ENHANCE_MS_WALLS = False
-
-# If false, will use charge orbits
-SORT_BY_GENEALOGY = True
-
-# If false, will use straight approximation
-CUT_K_WALLS = True
-
-# If false, will sort by nearest neighbor
-SWEEP_SORT_MS_WALLS = True
-
-#--------------------------------------------------------
 
 def set_logging(level):
     if level == 'debug':
