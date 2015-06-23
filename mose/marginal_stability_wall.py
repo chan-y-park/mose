@@ -12,6 +12,10 @@ from cmath import phase, pi
 ### IF TOO SMALL, WE WILL LOSE POINTS ON THE MS-WALL.
 SEARCH_RANGE_RATIO = 0.15 
 
+### Temporary knobs to try different combinations
+### of the available algorithms
+from api import ENHANCE_MS_WALLS, SORT_BY_GENEALOGY, SWEEP_SORT_MS_WALLS
+
 class MarginalStabilityWall:
     """
     Th MS wall class.
@@ -57,13 +61,21 @@ class MarginalStabilityWall:
         self.points = all_intersections
         self.delete_duplicate_points()     
         
-        ### the following enhances the self.points attribute, 
-        ### possibly by adding branch-points
-        self.enhance_ms_wall()
+        if ENHANCE_MS_WALLS == True:
+            ### the following enhances the self.points attribute, 
+            ### possibly by adding branch-points
+            self.enhance_ms_wall()
+        else:
+            pass
 
-        ### Now we reorder the list of self.points,
-        ### according to the actual shape of the wall
-        self.reorganize()
+        if SWEEP_SORT_MS_WALLS == True:
+            ### Now we reorder the list of self.points,
+            ### according to the actual shape of the wall
+            self.reorganize_sweep_sorting()
+        else:
+            ### Now we reorder the list of self.points,
+            ### according to the actual shape of the wall
+            self.reorganize_by_nearest_neighbor()
         
         self.locus = [point.locus for point in self.points]
         MarginalStabilityWall.count += 1
@@ -95,109 +107,109 @@ class MarginalStabilityWall:
     ### of the intersection points of the MS wall, then tracks the 
     ### upper and lower arcs separately, by looking repeatedly for the 
     ### nearest neighbor, within a certain radius that we specify.
-    # def reorganize(self):
-    #     """
-    #     MS walls are arcs, this function reorders the intersections, 
-    #     following the arc.
-    #     """
-    #     if len(self.points) <= 2:
-    #         pass
+    def reorganize_by_nearest_neighbor(self):
+        """
+        MS walls are arcs, this function reorders the intersections, 
+        following the arc.
+        """
+        if len(self.points) <= 2:
+            pass
 
-    #     else:
-    #         points_copy = [pt for pt in self.points]
-    #         leftmost_point = sorted(points_copy, key=getkey_real)[0]
-    #         max_distance = max([abs(pt_1.locus - pt_2.locus) \
-    #                                             for pt_1 in self.points \
-    #                                             for pt_2 in self.points])    
-    #         min_distance = min([abs(pt_1.locus - pt_2.locus) \
-    #                                             for pt_1 in self.points \
-    #                                             for pt_2 in self.points \
-    #                                             if pt_1.locus != pt_2.locus])    
+        else:
+            points_copy = [pt for pt in self.points]
+            leftmost_point = sorted(points_copy, key=getkey_real)[0]
+            max_distance = max([abs(pt_1.locus - pt_2.locus) \
+                                                for pt_1 in self.points \
+                                                for pt_2 in self.points])    
+            min_distance = min([abs(pt_1.locus - pt_2.locus) \
+                                                for pt_1 in self.points \
+                                                for pt_2 in self.points \
+                                                if pt_1.locus != pt_2.locus])    
 
-    #         search_range = SEARCH_RANGE_RATIO * max_distance
+            search_range = SEARCH_RANGE_RATIO * max_distance
 
-    #         self.semi_arc_1 = []
-    #         self.semi_arc_2 = []
+            self.semi_arc_1 = []
+            self.semi_arc_2 = []
 
-    #         seen = [leftmost_point.locus]
+            seen = [leftmost_point.locus]
             
-    #         ### Build the first semi-arc
-    #         current_point = leftmost_point
-    #         arc_is_finished = False
-    #         while not arc_is_finished:
-    #             found_new_closest_point = False
-    #             epsilon = search_range
-    #             for pt in self.points:
-    #                 distance = abs(pt.locus - current_point.locus)
-    #                 if distance < epsilon and (not (pt.locus in seen)): 
-    #                     ### Now we check that when we actually
-    #                     ### get at the end of the semi-arc 1, we don't 
-    #                     ### switch to the beginning of the semi-arc 2.
-    #                     ### The check involves comparing the distance
-    #                     ### pt - current_point
-    #                     ### with
-    #                     ### current_point - leftmost_locus
-    #                     ### The former should be smaller than the latter
-    #                     ### However, we must skip this check at the 
-    #                     ### very beginning, because in that case
-    #                     ### current_point = leftmost_locus!
-    #                     if current_point.locus != leftmost_point.locus:
-    #                         if (distance <= abs(pt.locus \
-    #                                                 - leftmost_point.locus)):
-    #                             found_new_closest_point = True
-    #                             epsilon = distance
-    #                             closest_point = pt
-    #                         else:
-    #                             pass
-    #                     else:
-    #                         found_new_closest_point = True
-    #                         epsilon = distance
-    #                         closest_point = pt
+            ### Build the first semi-arc
+            current_point = leftmost_point
+            arc_is_finished = False
+            while not arc_is_finished:
+                found_new_closest_point = False
+                epsilon = search_range
+                for pt in self.points:
+                    distance = abs(pt.locus - current_point.locus)
+                    if distance < epsilon and (not (pt.locus in seen)): 
+                        ### Now we check that when we actually
+                        ### get at the end of the semi-arc 1, we don't 
+                        ### switch to the beginning of the semi-arc 2.
+                        ### The check involves comparing the distance
+                        ### pt - current_point
+                        ### with
+                        ### current_point - leftmost_locus
+                        ### The former should be smaller than the latter
+                        ### However, we must skip this check at the 
+                        ### very beginning, because in that case
+                        ### current_point = leftmost_locus!
+                        if current_point.locus != leftmost_point.locus:
+                            if (distance <= abs(pt.locus \
+                                                    - leftmost_point.locus)):
+                                found_new_closest_point = True
+                                epsilon = distance
+                                closest_point = pt
+                            else:
+                                pass
+                        else:
+                            found_new_closest_point = True
+                            epsilon = distance
+                            closest_point = pt
 
-    #             if found_new_closest_point == False:
-    #                 arc_is_finished = True
-    #             else:
-    #                 seen.append(closest_point.locus)
-    #                 self.semi_arc_1.append(closest_point)
-    #                 current_point = closest_point
+                if found_new_closest_point == False:
+                    arc_is_finished = True
+                else:
+                    seen.append(closest_point.locus)
+                    self.semi_arc_1.append(closest_point)
+                    current_point = closest_point
 
-    #         ### Build the second semi-arc
-    #         current_point = leftmost_point
-    #         arc_is_finished = False
-    #         while not arc_is_finished:
-    #             found_new_closest_point = False
-    #             epsilon = search_range
-    #             for pt in self.points:
-    #                 distance = abs(pt.locus - current_point.locus)
-    #                 if distance < epsilon and not (pt.locus in seen):
-    #                     found_new_closest_point = True
-    #                     epsilon = distance
-    #                     closest_point = pt
+            ### Build the second semi-arc
+            current_point = leftmost_point
+            arc_is_finished = False
+            while not arc_is_finished:
+                found_new_closest_point = False
+                epsilon = search_range
+                for pt in self.points:
+                    distance = abs(pt.locus - current_point.locus)
+                    if distance < epsilon and not (pt.locus in seen):
+                        found_new_closest_point = True
+                        epsilon = distance
+                        closest_point = pt
 
-    #             if found_new_closest_point == False:
-    #                 arc_is_finished = True
-    #             else:
-    #                 seen.append(closest_point.locus)
-    #                 self.semi_arc_2.append(closest_point)
-    #                 current_point = closest_point
+                if found_new_closest_point == False:
+                    arc_is_finished = True
+                else:
+                    seen.append(closest_point.locus)
+                    self.semi_arc_2.append(closest_point)
+                    current_point = closest_point
 
-    #         reorganized_points = self.semi_arc_1[::-1] + [leftmost_point] \
-    #                                                         + self.semi_arc_2
-    #         if len(reorganized_points) == len(self.points):
-    #             self.points = reorganized_points
-    #             pass
-    #         else:
-    #             self.points = reorganized_points
-    #             print "\n IN WALL #%s" % self.count
-    #             print "\noriginal points"
-    #             # print self.points
-    #             print [x.locus for x in self.points]
-    #             print "\nreorganized points"
-    #             # print reorganized_points
-    #             print [x.locus for x in reorganized_points]
-    #             logging.info('Lost some of the MS Wall points '\
-    #                                 + 'while reorganizing it.\n' \
-    #                                 + 'Try increasing the search radius.')
+            reorganized_points = self.semi_arc_1[::-1] + [leftmost_point] \
+                                                            + self.semi_arc_2
+            if len(reorganized_points) == len(self.points):
+                self.points = reorganized_points
+                pass
+            else:
+                self.points = reorganized_points
+                print "\n IN WALL #%s" % self.count
+                print "\noriginal points"
+                # print self.points
+                print [x.locus for x in self.points]
+                print "\nreorganized points"
+                # print reorganized_points
+                print [x.locus for x in reorganized_points]
+                logging.info('Lost some of the MS Wall points '\
+                                    + 'while reorganizing it.\n' \
+                                    + 'Try increasing the search radius.')
     
 
     ### NEW METHOD: an MS wall is assumed to have the shape of an arc, 
@@ -207,7 +219,7 @@ class MarginalStabilityWall:
     ### Then, we figure out where are the endpoints and reorganize 
     ### accordingly.
 
-    def reorganize(self):
+    def reorganize_sweep_sorting(self):
         """
         MS walls are arcs, this function reorders the intersections, 
         following the arc.
@@ -296,35 +308,57 @@ def build_ms_walls(k_wall_networks):
     fibration = k_wall_networks[0].fibration
     for kwn in k_wall_networks:
         all_intersections += kwn.intersections
+    
+    if SORT_BY_GENEALOGY == True:
     ### OLD METHOD, USED THE GENEALOGY
-    # ### to distinguish wall types, use the genealogy data
-    # data = [x.genealogy for x in all_intersections]
+        ### to distinguish wall types, use the genealogy data
+        data = [x.genealogy for x in all_intersections]
 
-    ### NEW METHOD: CHARGE ORBITS
-    data = [x.charge_orbit for x in all_intersections]
+        seen = []
+        walls = []
 
-    seen = []
-    walls = []
+        logging.info(
+                        '-----------------\n'
+                        'Building MS walls\n'
+                        '-----------------'
+                    )
+        for i in range(len(data)):
+            check = data[i] in seen
+            if check == False:
+                walls.append([all_intersections[i]]) #start a new wall
+                seen.append(data[i])
+            else:
+                ### we add this intersection point to the corresponding
+                ### marginal stability wall
+                walls[seen.index(data[i])].append(all_intersections[i])
+    
 
-    logging.info(
-                    '-----------------\n'
-                    'Building MS walls\n'
-                    '-----------------'
-                )
-    for i in range(len(data)):
-        i_th_charge_orbit = data[i]
-        check = orbit_is_contained(seen, i_th_charge_orbit)
-        if check == 'not contained':
-            walls.append([all_intersections[i]]) #start a new wall
-            seen.append(i_th_charge_orbit)
-        else:
-            index = check
-            ### we possibly enlarge the reference 'seen' orbit 
-            ### by taking the union with this one
-            seen[index] = unite_orbits(seen[index], i_th_charge_orbit)
-            ### then we add this intersection point to the corresponding
-            ### marginal stability wall
-            walls[index].append(all_intersections[i])
+    else:
+        ### NEW METHOD: CHARGE ORBITS
+        data = [x.charge_orbit for x in all_intersections]
+
+        seen = []
+        walls = []
+
+        logging.info(
+                        '-----------------\n'
+                        'Building MS walls\n'
+                        '-----------------'
+                    )
+        for i in range(len(data)):
+            i_th_charge_orbit = data[i]
+            check = orbit_is_contained(seen, i_th_charge_orbit)
+            if check == 'not contained':
+                walls.append([all_intersections[i]]) #start a new wall
+                seen.append(i_th_charge_orbit)
+            else:
+                index = check
+                ### we possibly enlarge the reference 'seen' orbit 
+                ### by taking the union with this one
+                seen[index] = unite_orbits(seen[index], i_th_charge_orbit)
+                ### then we add this intersection point to the corresponding
+                ### marginal stability wall
+                walls[index].append(all_intersections[i])
 
     ### MS walls need to have a charge orbit assigned to them
     ### the i-th 'seen' orbit corresponds by construction to the 
