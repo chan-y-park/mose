@@ -100,7 +100,6 @@ def get_k_wall_turning_points(k_wall):
         
     return tps
 
-# XXX: Turning off CGAL until the segmentation fault error is sorted out.
 #def find_new_intersection_points(
 #    prev_k_walls, new_k_walls, prev_intersection_points, dsz_matrix
 #):
