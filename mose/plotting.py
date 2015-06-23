@@ -136,7 +136,6 @@ class NetworkPlot(KWallNetworkPlotBase):
             )
 
 
-
     def show_prev_plot(self, event):
         super(NetworkPlot, self).show_prev_plot(event)
 
