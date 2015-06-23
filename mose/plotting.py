@@ -82,6 +82,18 @@ class KWallNetworkPlotBase(NetworkPlotBase):
         )
 
 
+    def save(self, plot_dir, file_prefix='k_wall_network_'):
+        # TODO: change the current figure to plot_id.
+        digits = len(str(len(self.plots)-1))
+        for i, axes in enumerate(self.plots):
+            self.change_current_plot(i)
+            plot_file_path = os.path.join(
+                plot_dir, file_prefix + str(i).zfill(digits) + '.png'
+            )
+            self.figure.savefig(plot_file_path)
+
+
+
 class NetworkPlot(KWallNetworkPlotBase):
     """
     This class implements UIs using matplotlib widgets
@@ -105,15 +117,15 @@ class NetworkPlot(KWallNetworkPlotBase):
         self.axes_button_next = None
         self.index_text = None
 
-    def save(self, plot_dir, file_prefix=''):
-        # TODO: change the current figure to plot_id.
-        digits = len(str(len(self.plots)-1))
-        for i, axes in enumerate(self.plots):
-            self.change_current_plot(i)
-            plot_file_path = os.path.join(
-                plot_dir, file_prefix + str(i).zfill(digits) + '.png'
-            )
-            self.figure.savefig(plot_file_path)
+#    def save(self, plot_dir, file_prefix=''):
+#        # TODO: change the current figure to plot_id.
+#        digits = len(str(len(self.plots)-1))
+#        for i, axes in enumerate(self.plots):
+#            self.change_current_plot(i)
+#            plot_file_path = os.path.join(
+#                plot_dir, file_prefix + str(i).zfill(digits) + '.png'
+#            )
+#            self.figure.savefig(plot_file_path)
 
 
     def change_current_plot(self, new_plot_idx):
