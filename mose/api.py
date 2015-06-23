@@ -1,3 +1,21 @@
+#--------------------------------------------------------
+### Temporary knobs to try different combinations
+### of the available algorithms
+
+ENHANCE_MS_WALLS = False
+
+# If false, will use charge orbits
+SORT_BY_GENEALOGY = True
+
+# If false, will use straight approximation
+CUT_K_WALLS = True
+
+# If false, will sort by nearest neighbor
+SWEEP_SORT_MS_WALLS = True
+
+#--------------------------------------------------------
+
+
 import logging
 import os
 import sys
@@ -23,6 +41,8 @@ from misc import formatted_date_time
 from diagnostics import diagnose_kwall_network
 
 LOGGING_FILE_NAME = 'log.mose.txt'
+
+
 
 def set_logging(level):
     if level == 'debug':
@@ -245,10 +265,14 @@ def make_plots(config, data, show_plot=True, master=None):
         k_wall_network_plot.show()
         if ms_wall_plot is not None:
             ms_wall_plot.show()
-
-    if master is None:
         try:
             raw_input('Press any key to continue...')
         except NameError:
             pass
+
+#    if master is None:
+#        try:
+#            raw_input('Press any key to continue...')
+#        except NameError:
+#            pass
     return (k_wall_network_plot, ms_wall_plot)
