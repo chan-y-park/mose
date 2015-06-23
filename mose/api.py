@@ -128,6 +128,63 @@ def analysis(config, phase=None,):
 
     return data
 
+
+def analysis_with_parameters(config, phase=None, parameters=None):
+    data = {
+        'k_wall_networks': None,
+        'ms_walls': None,
+        'single_network': None,
+        'multiple_networks': None,
+    }
+    if phase is not None:
+        data['single_network'] = True
+        data['multiple_networks'] = False
+    else:
+        data['single_network'] = False 
+        data['multiple_networks'] = True
+
+    start_time = time.time()
+    logging.info('start cpu time: %s', start_time)
+
+    trajectory_singularity_threshold = (
+            config['ODE']['trajectory_singularity_threshold']
+        )
+    ode_size_of_step = config['ODE']['size_of_step']
+    ode_num_steps = config['ODE']['num_steps']
+
+    fibration = EllipticFibration(
+        config['fibration']['f'],
+        config['fibration']['g'],
+        parameters
+    )
+
+    #KWall.count = 0
+    #KWallNetwork.count = 0
+
+    if data['single_network'] is True:
+        kwn = KWallNetwork(phase, fibration, config)
+        kwn.grow(config)
+        data['k_wall_networks'] = [kwn]
+
+        end_time = time.time()
+        logging.info('end time: %s', end_time)
+        logging.info('elapsed time: %s', end_time - start_time)
+
+    elif data['multiple_networks'] is True:
+        k_wall_networks = construct_k_wall_networks(
+            fibration, config
+        )
+        data['k_wall_networks'] = k_wall_networks
+        ms_walls = build_ms_walls(k_wall_networks)
+        data['ms_walls'] = ms_walls
+
+        end_time = time.time()
+        logging.info('end cpu time: %.8f', end_time)
+        logging.info('elapsed cpu time: %.8f', end_time - start_time)
+
+    return data
+
+
 def run_diagnostics(kwn):
     diagnose_kwall_network(kwn)
     
