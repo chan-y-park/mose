@@ -13,6 +13,9 @@ from misc import complexify, cut_singular_k_wall, id_generator
 from kswcf import progeny_2
 from k_wall import KWall
 
+### Temporary knobs to try different combinations
+### of the available algorithms
+from api import CUT_K_WALLS
 
 
 class KWallNetwork:
@@ -80,24 +83,21 @@ class KWallNetwork:
                     ode_num_steps,
                 )
 
-                ### Comment the following to disable
-                ### cutting kwalls near discriminant loci
-                # if (not k_wall.singular):
-                #     primary_k_walls.append(k_wall)
-                # else:
-                #     cut_singular_k_wall(k_wall)
-                #     primary_k_walls.append(k_wall)
-                #     # logging.info(
-                #     #     """
-                #     #     **************
-                #     #     SINGULAR K-WALL! WILL BE DROPPED.
-                #     #     **************
-                #     #     """
-                #     # )
-                
-                ### Comment the following if you wish to
-                ### cut singular kwalls
-                primary_k_walls.append(k_wall)
+                if CUT_K_WALLS == True:
+                    if (not k_wall.singular):
+                        primary_k_walls.append(k_wall)
+                    else:
+                        cut_singular_k_wall(k_wall)
+                        primary_k_walls.append(k_wall)
+                        # logging.info(
+                        #     """
+                        #     **************
+                        #     SINGULAR K-WALL! WILL BE DROPPED.
+                        #     **************
+                        #     """
+                        # )
+                else:
+                    primary_k_walls.append(k_wall)
 
 
         #############################
@@ -175,17 +175,15 @@ class KWallNetwork:
                             ode_size_of_step,   
                             ode_num_steps,
                         )
-                        ### Comment the following to disable
-                        ### cutting kwalls near discriminant loci
-                        # if (not k_wall.singular):
-                        #     new_k_walls.append(k_wall)
-                        # else:
-                        #     cut_singular_k_wall(k_wall)
-                        #     new_k_walls.append(k_wall)
 
-                        ### Comment the following if you wish to
-                        ### cut singular kwalls
-                        new_k_walls.append(k_wall)
+                        if CUT_K_WALLS == True:
+                            if (not k_wall.singular):
+                                new_k_walls.append(k_wall)
+                            else:
+                                cut_singular_k_wall(k_wall)
+                                new_k_walls.append(k_wall)
+                        else:
+                            new_k_walls.append(k_wall)
 
         ### End of iterations.
         self.k_walls += new_k_walls
