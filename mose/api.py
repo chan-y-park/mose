@@ -233,7 +233,8 @@ def save(config, data, k_wall_network_plot=None, ms_wall_plot=None,
                     os.path.join(data_dir, LOGGING_FILE_NAME))
 
 
-def make_plots(config, data, show_plot=True, master=None):
+def make_plots(config, data, show_plot=True, master=None,
+               k_wall_network_plot_range=None, ms_wall_plot_range=None):
     k_wall_network_plot_title = 'K-wall Network'
     if matplotlib.rcParams['backend'] == 'TkAgg':
         k_wall_network_plot = NetworkPlotTk(
@@ -248,15 +249,18 @@ def make_plots(config, data, show_plot=True, master=None):
     for k_wall_network in data['k_wall_networks']:
         k_wall_network_plot.draw(
             k_wall_network,
-            plot_range=config['plotting']['range'], 
+            #plot_range=config['plotting']['range'], 
+            plot_range=k_wall_network_plot_range, 
         )
+        k_wall_network_plot.autoscale()
 
     if data['multiple_networks'] is True:
         ms_wall_plot = MSWallPlot()
         # Draw MS walls and save the plot.
         ms_wall_plot.draw(
             data['ms_walls'],
-            plot_range=config['plotting']['range'], 
+            #plot_range=config['plotting']['range'], 
+            plot_range=ms_wall_plot_range, 
         )
     else:
         ms_wall_plot = None
