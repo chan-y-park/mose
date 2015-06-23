@@ -91,7 +91,8 @@ class NetworkPlotBase(object):
         elif new_plot_idx > len(self.plots) - 1:
             new_plot_idx = len(self.plots) - 1
 
-        self.plots[self.current_plot_idx].set_visible(False)
+        if self.current_plot_idx is not None:
+            self.plots[self.current_plot_idx].set_visible(False)
         self.plots[new_plot_idx].set_visible(True)
         # Update the index variable for the currently displayed plot.
         self.current_plot_idx = new_plot_idx
