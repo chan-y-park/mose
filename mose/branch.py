@@ -77,17 +77,6 @@ class BranchPoint:
                         ode_size_of_step=ode_size_of_step,   
                         ode_num_steps=ode_num_steps,
                         )
-
-        d_eta_by_d_u = [(self.hair.periods[i+1] - self.hair.periods[i]) \
-                    / (complexify(self.hair.coordinates[i+1]) \
-                    - complexify(self.hair.coordinates[i])) \
-                    for i in range(len(self.hair.coordinates) - 1)]
-        
-        ### If the level is '10' it means it's 'debug'
-        ### hence we will display this nice plot
-        if logging.getLogger().getEffectiveLevel() == 10:
-            data_plot(d_eta_by_d_u, "Periods along the hair")
-
         ###  DEIFNE THIS NUMERICAL CONSTANT ELSEWHERE !!!!
         ###
         if abs(self.hair.base_point - complexify(self.hair.coordinates[-1]))\

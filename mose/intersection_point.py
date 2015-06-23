@@ -100,25 +100,34 @@ def get_k_wall_turning_points(k_wall):
         
     return tps
 
+# XXX: Turning off CGAL until the segmentation fault error is sorted out.
+#def find_new_intersection_points(
+#    prev_k_walls, new_k_walls, prev_intersection_points, dsz_matrix
+#):
+#    try:
+#        linux_distribution = platform.linux_distribution()[0]
+#        if linux_distribution != '':
+#            return find_new_intersection_points_using_cgal(
+#                prev_k_walls, new_k_walls, prev_intersection_points, 
+#                dsz_matrix, linux_distribution=linux_distribution,
+#            )
+#        else:
+#            raise OSError
+#    except OSError:
+#        logging.warning('CGAL not available; switch from '
+#                        'find_new_intersection_points_using_cgal() to '
+#                        'find_new_intersection_points_using_interpolation().')
+#        return find_new_intersection_points_using_interpolation(
+#            prev_k_walls, new_k_walls, prev_intersection_points, dsz_matrix
+#        )
+
 def find_new_intersection_points(
     prev_k_walls, new_k_walls, prev_intersection_points, dsz_matrix
 ):
-    try:
-        linux_distribution = platform.linux_distribution()[0]
-        if linux_distribution != '':
-            return find_new_intersection_points_using_cgal(
-                prev_k_walls, new_k_walls, prev_intersection_points, dsz_matrix,
-                linux_distribution=linux_distribution,
-            )
-        else:
-            raise OSError
-    except OSError:
-        logging.warning('CGAL not available; switch from '
-                        'find_new_intersection_points_using_cgal() to '
-                        'find_new_intersection_points_using_interpolation().')
-        return find_new_intersection_points_using_interpolation(
-            prev_k_walls, new_k_walls, prev_intersection_points, dsz_matrix
-        )
+    return find_new_intersection_points_using_interpolation(
+        prev_k_walls, new_k_walls, prev_intersection_points, dsz_matrix
+    )
+
 
 def find_new_intersection_points_using_cgal(
     prev_k_walls, new_k_walls, prev_intersection_points, dsz_matrix,
