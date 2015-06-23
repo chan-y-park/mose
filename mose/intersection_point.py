@@ -5,6 +5,7 @@ IntersectionPoint class.
 Uses general-purpose module, intersection.py
 """
 import platform
+import os
 import numpy
 import logging
 import ctypes
@@ -152,7 +153,8 @@ def find_new_intersection_points_using_cgal(
 
     # Load CGAL shared library.
     libcgal_intersection = numpy.ctypeslib.load_library(
-        lib_name, './mose/cgal_intersection/'
+        lib_name, 
+        os.path.dirname(os.path.realpath(__file__)) + '/cgal_intersection/'
     )
     cgal_find_intersections_of_curves = (libcgal_intersection.
                                          find_intersections_of_curves)
