@@ -1117,10 +1117,10 @@ if __name__=="__main__":
     #wmodel=WeierstrassProto([7+1j,-20j+7,3+1j],[-1j+2,15+2j,-2+12j])
     
     #Seiberg-Witten
-    rot=np.exp(np.pi*1j/10.0 * 0.0)
-    xr=np.exp(np.pi*1j/10.0)
-    wmodel=WeierstrassProto(np.array([-1.0/3*rot**2,0,1.0/4.0])/xr**2,
-                            np.array([-2.0/27*rot**3,0,1.0/12*rot,0])/xr**3)
+    # rot=np.exp(np.pi*1j/10.0 * 0.0)
+    # xr=np.exp(np.pi*1j/10.0)
+    # wmodel=WeierstrassProto(np.array([-1.0/3*rot**2,0,1.0/4.0])/xr**2,
+    #                         np.array([-2.0/27*rot**3,0,1.0/12*rot,0])/xr**3)
                             
     #D3 model
     #wmodel=WeierstrassProto([-1j*1.0,0],[1.0])
@@ -1132,12 +1132,32 @@ if __name__=="__main__":
     #Arccos model
     #rot=np.exp(np.pi*1j/8.0)
     #wmodel=WeierstrassProto([-1.0],[rot**2*1.0,0,0])
+
+    #N=2*
+    rot =1.0
+    xr = 1.0
+    m = 0.3 + 0.0j
+    g2 = 1.0 + 0.0j
+    g3 = 1.0 - 1.0j
+    wmodel=WeierstrassProto(\
+        np.array([ \
+                (- 432.0 * g2 )*(rot**2)/1728.0,\
+                (- 324.0 * g3 * (m ** 2))*rot/1728.0, \
+                ((-9.0 / 4.0) * (g2 ** 2) * (m ** 4))/1728.0\
+                ])/xr**2,
+        np.array([\
+                ( - 432.0 * g3 )/1728.0*(rot**3),\
+                ((- 18.0 * (g2 ** 2) * (m ** 2))/1728.0)*(rot**2),\
+                ((- (27.0 / 4.0) * g2 * g3 * (m ** 4))/1728.0)*rot,\
+                (((1.0 / 32.0) * (g2 ** 3) * (m ** 6) - (27.0 / 16.0) * (g3 ** 2) * (m ** 6))/1728.0)\
+                ])/xr**3)
+
     
 
-    # dnum=0
-    # animate_roots_and_angles_path(wmodel,dnum,4,3,\
-    #                              timesteps=5000,steps=120,\
-    #                              path=None,breaks=None)
+    dnum=0
+    animate_roots_and_angles_path(wmodel,dnum,4,3,\
+                                 timesteps=5000,steps=120,\
+                                 path=None,breaks=None)
 
     mon1 = monodromy_at_point_wmodel(0,wmodel,5000,5000,option='p')
 
