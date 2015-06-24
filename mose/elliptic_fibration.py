@@ -25,7 +25,7 @@ from numpy import array, linspace
 from numpy.linalg import det
 from operator import itemgetter
 from misc import path_derivative, data_plot, complexify, id_generator, \
-                    rotate_poly, basis_e
+                    rotate_poly, basis_e, zero_vector
 from zones import Zone
 
 
@@ -129,7 +129,7 @@ class EllipticFibration:
         ]
 
         branch_point_flavor_charges = self.determine_flavor_charges(\
-                                                            branch_point_loci)
+                                branch_point_loci, branch_point_gauge_charges)
 
         ### Here we determine the functional expressions for the e_i
         ### these will be used both in hair evolution and in primary kwall
@@ -261,17 +261,36 @@ class EllipticFibration:
         return [[0, 1], [M10(z), M11(z)]]
 
     
-    def determine_flavor_charges(self, branch_point_loci):
-        ### This is just a dummy assignment of flavor charges
-        ### it is completely wrong, starting with the fact that
-        ### we are taking the flavor lattice to hve dimension 
-        ### f + r + 1 = f + 2 instead of just f.
-
+    def determine_flavor_charges(self, branch_point_loci, 
+                                                branch_point_gauge_charges):
         n_bp = len(branch_point_loci)
-        # flavor_rank = n_bp - 2
+        flavor_rank = n_bp - 2
         flavor_charges = []
-        for i in range(n_bp):
-            flavor_charges.append(list(basis_e(i, n_bp)))
+        
+        ### Declare the first branch point to have flavor charge zero
+        flavor_charges.append(zero_vector(flavor_rank))
+
+        ### Then, we look for another branch-point, such that its gauge 
+        ### charge is linearly independent from that of the first branch point
+        ### and fix that one to have zero flavor charge
+        second_bp_index = None
+        first_bp_gauge_charge = branch_point_gauge_charges[0]
+        for i in range(n_bp)[1:]:
+            bp_gauge_charge = branch_point_gauge_charges[i]
+            if bp_gauge_charge[0] * first_bp_gauge_charge[1] \
+                        - bp_gauge_charge[1] * first_bp_gauge_charge[0] != 0:
+                second_bp_index = i
+                break
+
+        count = 0
+        for i in range(n_bp)[1:]:
+            if i != second_bp_index:
+                flavor_charges.append(list(basis_e(count, flavor_rank)))
+                count += 1
+
+            elif i == second_bp_index:
+                flavor_charges.append(list(zero_vector(flavor_rank)))
+
         return flavor_charges
 
     

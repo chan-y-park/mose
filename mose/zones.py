@@ -101,7 +101,8 @@ class Zone:
 
 
 
-def build_charge_orbit(intersection_point, zones):
+def build_charge_orbit(intersection_point, fibration):
+	zones = fibration.zones
 	initial_zone = determine_zone(intersection_point.locus, zones)
 
 	current_zone = initial_zone
@@ -113,12 +114,13 @@ def build_charge_orbit(intersection_point, zones):
 											current_zone, 
 											current_gauge_charges, 
 											current_flavor_charges,
-											zones
+											fibration
 										)
 
 
 def charges_in_neighboring_zones(depth, current_zone, gauge_charges, 
-														flavor_charges, zones):
+												flavor_charges, fibration):
+	zones = fibration.zones
 	depth_1 = depth - 1
 	
 	### Given the fgauge charges [g_1, g_2] of the intersection
@@ -137,7 +139,8 @@ def charges_in_neighboring_zones(depth, current_zone, gauge_charges,
 		[
 			flavor_charge_monodromy(
 									gauge_charges[i], flavor_charges[i], 
-									current_zone.bp_left, 'ccw'
+									current_zone.bp_left, 'ccw', 
+									fibration.dsz_matrix
 									) \
 			for i in [0, 1]
 		]
@@ -152,7 +155,8 @@ def charges_in_neighboring_zones(depth, current_zone, gauge_charges,
 		[
 			flavor_charge_monodromy(
 									gauge_charges[i], flavor_charges[i],
-									current_zone.bp_right, 'cw'
+									current_zone.bp_right, 'cw', 
+									fibration.dsz_matrix
 									) \
 			for i in [0, 1]
 		]
@@ -178,21 +182,21 @@ def charges_in_neighboring_zones(depth, current_zone, gauge_charges,
 												current_zone.left_neighbor,
 												gauge_charges_to_the_left,
 												flavor_charges_to_the_left,
-												zones
+												fibration
 												) \
 							+ charges_in_neighboring_zones(
 												depth_1, 
 												current_zone.right_neighbor,
 												gauge_charges_to_the_right,
 												flavor_charges_to_the_right,
-												zones
+												fibration
 												) \
 							+ charges_in_neighboring_zones(
 												depth_1, 
 												current_zone.bottom_neighbor,
 												gauge_charges,
 												flavor_charges,
-												zones
+												fibration
 												)
 		
 		elif current_zone.is_last_zone == True:
@@ -202,14 +206,14 @@ def charges_in_neighboring_zones(depth, current_zone, gauge_charges,
 												current_zone.left_neighbor,
 												gauge_charges_to_the_left,
 												flavor_charges_to_the_left,
-												zones
+												fibration
 												) \
 							+ charges_in_neighboring_zones(
 												depth_1, 
 												current_zone.right_neighbor,
 												gauge_charges_to_the_right,
 												flavor_charges_to_the_right,
-												zones
+												fibration
 												)
 			
 			for upper_zone in current_zone.upper_neighbors:
@@ -218,7 +222,7 @@ def charges_in_neighboring_zones(depth, current_zone, gauge_charges,
 												upper_zone,
 												gauge_charges,
 												flavor_charges,
-												zones
+												fibration
 												)
 
 		### Now we add the nagatives

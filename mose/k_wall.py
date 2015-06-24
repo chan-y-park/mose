@@ -200,8 +200,10 @@ trajectory!" % (sp[0], sp[-1])
             flavor_charge = self.local_flavor_charge[-1]
             new_gauge_charge = charge_monodromy(gauge_charge, branch_point,
                                                                     direction)
-            new_flavor_charge = flavor_charge_monodromy(gauge_charge, 
-                                        flavor_charge, branch_point, direction)
+            new_flavor_charge = flavor_charge_monodromy(
+                                        gauge_charge, flavor_charge, 
+                                        branch_point, direction, 
+                                        self.fibration.dsz_matrix)
             self.local_charge.append(new_gauge_charge)
             self.local_flavor_charge.append(new_flavor_charge)
 

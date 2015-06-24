@@ -68,7 +68,7 @@ class IntersectionPoint:
                                 self.parents[1].flavor_charge(self.indices[1])]
 
         self.zone = determine_zone(self.locus, self.fibration.zones)
-        self.charge_orbit = build_charge_orbit(self, self.fibration.zones)
+        self.charge_orbit = build_charge_orbit(self, self.fibration)
 
 
 
