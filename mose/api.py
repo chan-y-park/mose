@@ -2,7 +2,7 @@
 ### Temporary knobs to try different combinations
 ### of the available algorithms
 
-ENHANCE_MS_WALLS = False
+ENHANCE_MS_WALLS = True
 
 # If false, will use charge orbits
 SORT_BY_GENEALOGY = True
@@ -14,7 +14,7 @@ CUT_K_WALLS = True
 SWEEP_SORT_MS_WALLS = True
 
 # Whether to connect intersection points of an MS wall with a line
-PLOT_MS_WALL_LINKS = False
+PLOT_MS_WALL_LINKS = True
 
 # Decide whether to ignore intersections with pairing >2 or <0
 # will make the code run much faster
