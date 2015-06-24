@@ -309,7 +309,6 @@ class NetworkPlotTk(KWallNetworkPlotBase):
 
 class MSWallPlot:
     def __init__(self):
-        pyplot.clf()
         self.figure = pyplot.figure("Walls of marginal stability") 
 
     def draw(
@@ -317,6 +316,7 @@ class MSWallPlot:
         ms_walls,
         plot_range=None
     ):
+        pyplot.clf()
         # Every MSWall has the same fibration.
         fibration = ms_walls[0].fibration
 
