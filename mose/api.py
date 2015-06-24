@@ -309,7 +309,8 @@ def make_plots(config, data, show_plot=True, master=None,
             #plot_range=config['plotting']['range'], 
             plot_range=k_wall_network_plot_range, 
         )
-        k_wall_network_plot.autoscale()
+        if k_wall_network_plot_range is None:
+            k_wall_network_plot.autoscale()
 
     if data['multiple_networks'] is True:
         ms_wall_plot = MSWallPlot()
