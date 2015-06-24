@@ -266,7 +266,7 @@ class EllipticFibration:
         n_bp = len(branch_point_loci)
         flavor_rank = n_bp - 2
         flavor_charges = []
-        
+
         ### Declare the first branch point to have flavor charge zero
         flavor_charges.append(zero_vector(flavor_rank))
 
