@@ -307,6 +307,7 @@ class NetworkPlotTk(KWallNetworkPlotBase):
 
 class MSWallPlot:
     def __init__(self):
+        pyplot.clf()
         self.figure = pyplot.figure("Walls of marginal stability") 
 
     def draw(
