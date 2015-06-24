@@ -4,6 +4,7 @@ from sympy.abc import x, y, t
 from sympy import Subs, series, LT, degree_list, Poly, degree
 from sympy.core.numbers import NaN
 from numpy import array
+from api import IGNORE_WILD_INTERSECTIONS
 
 # To enhance the speed, we will keep memory of those KSWCFs that have been 
 # already computed once. 
@@ -157,36 +158,34 @@ def progeny_2(data, dsz, ks_filtration_degree):
 
     if m == 0:
         spectrum = []
-    elif m > 0:
+        return spectrum
+
+    elif 0 < m <= 2:
         spectrum = KS2(m, omega_1, omega_2, ks_filtration_degree)
         return spectrum[1:-1]
-        # the following command would return the new states in the global 
-        # basis, as opposed to the parent's basis.
+        
+    else:
+        if IGNORE_WILD_INTERSECTIONS == False:
+            if m > 2:
+                spectrum = KS2(m, omega_1, omega_2, ks_filtration_degree)
+                return spectrum[1:-1]
+                
+            elif m < 0:
+                logging.info(
+                        """
+                        \n*******************************
+                        \nNegative intersection pairing !
+                        \n*******************************
+                        \n\n(will use the absolute value and keep going)\n
+                        """
+                    )
+                spectrum = KS2(-m,omega_2,omega_1, ks_filtration_degree)
+                return list(reversed(spectrum[1:-1]))
+                
+        elif IGNORE_WILD_INTERSECTIONS == True:
+            spectrum = []
+            return spectrum
 
-        # Dropping the first and last state, because they correspond to the 
-        # parents.
-        #return [[(state[0][0] * gamma_1 + 
-        #           state[0][1] * gamma_2).tolist(), state[1]] 
-        #           for state in spectrum[1:-1]] 
-    elif m < 0:
-        logging.info(
-                """
-                \n*******************************
-                \nNegative intersection pairing !
-                \n*******************************
-                \n\n(will use the absolute value and keep going)\n
-                """
-            )
-        spectrum = KS2(-m,omega_2,omega_1, ks_filtration_degree)
-        return list(reversed(spectrum[1:-1]))
-        # the following command would return the new states in the global 
-        # basis, as opposed to the parent's basis
-
-        # Dropping the first and last state, because they correspond to the 
-        # parents.
-        #return [[(state[0][0] * gamma_2 + 
-        #           state[0][1] * gamma_1).tolist(), state[1]] 
-        #           for state in spectrum[1:-1]]
 
 def t_expand(expr, max_deg):
     """
