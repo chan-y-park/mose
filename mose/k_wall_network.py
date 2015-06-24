@@ -153,9 +153,11 @@ class KWallNetwork:
                         actual_charge = list(
                             charge[0]*array(gamma_1) + charge[1]*array(gamma_2)
                         )
-                        actual_flavor_charge = list(
-                                                charge[0] * array(gamma_f_1) 
-                                                + charge[1] * array(gamma_f_2)
+                        actual_flavor_charge = \
+                                    map(int, map(round, \
+                                        list(charge[0] * array(gamma_f_1) 
+                                            + charge[1] * array(gamma_f_2)))
+
                         )
                         k_wall = DescendantKWall(
                             initial_charge=actual_charge,
