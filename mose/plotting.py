@@ -376,15 +376,12 @@ class MSWallPlot:
         self.figure.savefig(plot_file_path)
 
 
-def plot_k_walls(k_walls, plot_range=[[-5, 5], [-5, 5]],
+def plot_k_walls(k_walls, plot_range=None,
                  plot_data_points=False,):
     """
     Plot K-walls for debugging purpose.
     """
-    [[x_min, x_max], [y_min, y_max]] = plot_range
     pyplot.figure()
-    pyplot.xlim(x_min, x_max)
-    pyplot.ylim(y_min, y_max)
     pyplot.axes().set_aspect('equal')
 
     for k_wall in k_walls:
@@ -394,6 +391,13 @@ def plot_k_walls(k_walls, plot_range=[[-5, 5], [-5, 5]],
 
         if(plot_data_points == True):
             pyplot.plot(xs, ys, 'o', color='k', markersize=4)
+
+    if plot_range is None:
+        pyplot.autoscale(enable=True, axis='both', tight=None)
+    else:
+        [[x_min, x_max], [y_min, y_max]] = plot_range
+        pyplot.xlim(x_min, x_max)
+        pyplot.ylim(y_min, y_max)
 
     mpldatacursor.datacursor(
         formatter='{label}'.format,

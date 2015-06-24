@@ -20,19 +20,24 @@ extern "C" int find_intersections_of_curves(
     coordinate *intersections, int max_num_of_intersections)
 {
 
+    std::vector<Polyline> polylines(2);
+
+    //std::cout << "curve_1 length: " << curve_1_size;
     std::vector<Point> points_1(curve_1_size);
     for (long i_1 = 0; i_1 < curve_1_size; i_1++)
-        points_1[i_1] = Point(curve_1[i_1].x, curve_1[i_1].y);
-    Polyline  polyline_1(points_1.begin(), points_1.end());
+        points_1.push_back(Point(curve_1[i_1].x, curve_1[i_1].y));
+    polylines.push_back(Polyline(points_1.begin(), points_1.end()));
+    //std::cout << "polyline_1 size: " << polylines.back().size();
 
+    //std::cout << "curve_1 length: " << curve_2_size;
     std::vector<Point> points_2(curve_2_size);
     for (long i_2 = 0; i_2 < curve_2_size; i_2++)
-        points_2[i_2] = Point(curve_2[i_2].x, curve_2[i_2].y);
-    Polyline  polyline_2(points_2.begin(), points_2.end());
+        points_2.push_back(Point(curve_2[i_2].x, curve_2[i_2].y));
+    polylines.push_back(Polyline(points_2.begin(), points_2.end()));
+    //std::cout << "polyline_2 size: " << polylines.back().size();
 
-    Polyline polylines[] = {polyline_1, polyline_2};
     std::list<Point> intersection_points;
-    CGAL::compute_intersection_points(polylines, polylines + 2,
+    CGAL::compute_intersection_points(polylines.begin(), polylines.end(),
                                       std::back_inserter(intersection_points));
 
     int num_of_intersections = intersection_points.size();
