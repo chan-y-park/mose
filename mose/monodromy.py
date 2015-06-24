@@ -58,4 +58,9 @@ def flavor_charge_monodromy(gauge_charge, flavor_charge, branch_point,
 	dsz_matrix = np.array(dsz)
 	pairing = k_wall_gauge_charge.dot(dsz_matrix.dot(bp_gauge_charge))
 
-	return list(k_wall_flavor_charge + pairing * bp_flavor_charge)
+	return map(int, map(round, list(k_wall_flavor_charge \
+												+ pairing * bp_flavor_charge))) 
+
+
+
+

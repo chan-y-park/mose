@@ -20,6 +20,8 @@ from math import pi
 
 from network_plot import NetworkPlotBase
 
+from api import PLOT_MS_WALL_LINKS
+
 class KWallNetworkPlotBase(NetworkPlotBase):
     def draw(
         self,
@@ -339,7 +341,9 @@ class MSWallPlot:
             for l in wall.locus:
                 xs.append(l.real)
                 ys.append(l.imag)
-            axes.plot(xs, ys, '-', markersize=4, label=label)
+
+            if PLOT_MS_WALL_LINKS == True:
+                axes.plot(xs, ys, '-', markersize=4, label=label)
             axes.plot(xs, ys, 'o', markersize=4, label=label)
 
         # Plot discriminant loci.

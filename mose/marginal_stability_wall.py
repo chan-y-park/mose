@@ -310,6 +310,7 @@ def build_ms_walls(k_wall_networks):
         all_intersections += kwn.intersections
     
     if SORT_BY_GENEALOGY == True:
+        logging.info('Constructing MS walls using genealogy')
     ### OLD METHOD, USED THE GENEALOGY
         ### to distinguish wall types, use the genealogy data
         data = [x.genealogy for x in all_intersections]
