@@ -30,6 +30,7 @@ class KWallNetworkPlotBase(NetworkPlotBase):
         plot_joints=False,
         plot_data_points=False,
     ):
+        pyplot.clf()
         labels = {'branch_points': [], 'joints': [], 'walls': []}
 
         branch_points = []
