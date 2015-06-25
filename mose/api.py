@@ -11,10 +11,10 @@ SORT_BY_GENEALOGY = False
 CUT_K_WALLS = True
 
 # If false, will sort by nearest neighbor
-SWEEP_SORT_MS_WALLS = False
+SWEEP_SORT_MS_WALLS = True
 
 # Whether to connect intersection points of an MS wall with a line
-PLOT_MS_WALL_LINKS = True
+PLOT_MS_WALL_LINKS = False
 
 # Decide whether to ignore intersections with pairing >2 or <0
 # will make the code run much faster
