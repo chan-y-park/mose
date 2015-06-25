@@ -1,0 +1,79 @@
+868: config file: C:/Users/Daniel/Documents/GitHub/mose/config/fibration_pure_su_2.ini
+868: start cpu time: 1435091241.76
+868: I have rotated the x-plane 0 times so far.
+868: 
+f = 
+         2
+-0.3333 x + 0.25
+
+g = 
+          3
+-0.07407 x + 0.08333 x
+
+868: 
+                    *************************************
+                    Having trouble tracking root braiding
+                            Will rotate the x-plane      
+                    *************************************
+
+868: I have rotated the x-plane 1 times so far.
+868: 
+f = 
+                   2
+(-0.103 + 0.317j) x + (0.07725 + -0.2378j)
+
+g = 
+                      3
+(0.02289 + 0.07045j) x + (-0.02575 + -0.07925j) x
+
+868:               
+Here is the full list of branch point data:              
+-------------------------------------------
+
+868:                 
+Branch point 0                
+--------------------                
+Locus: (-1-1.79637858894e-16j)                
+Monodromy: [[0, 1], [-1, 2]]                
+Gauge Charge: [-1, 1]                
+Flavor Charge: [1, 0]                
+Internal label: TB13YU                
+
+868:                 
+Branch point 1                
+--------------------                
+Locus: (1+1.79637858894e-16j)                
+Monodromy: [[2, 1], [-1, 0]]                
+Gauge Charge: [1, 1]                
+Flavor Charge: [0, 1]                
+Internal label: A8I50Q                
+
+868: Growing a K-Wall network at phase 1.00000000
+868: Evolving primary K-wall #0
+868: Evolving primary K-wall #1
+868: Evolving primary K-wall #2
+868: Evolving primary K-wall #3
+868: Iteration #1
+868: Using NumPy interpolation to find intersections.
+868: Evaluating intersections of NEW Kwalls with ALL Kwalls: found 1 of them.
+868: Creating new K-walls from intersections.
+868: computing the progeny of : [-1  1] and [-1 -1]
+868: intersection pairing : 2
+868: Iteration #2
+868: Using NumPy interpolation to find intersections.
+868: Evaluating intersections of NEW Kwalls with ALL Kwalls: found 0 of them.
+868: Creating new K-walls from intersections.
+868: Iteration #3
+868: Using NumPy interpolation to find intersections.
+868: Evaluating intersections of NEW Kwalls with ALL Kwalls: found 0 of them.
+868: Creating new K-walls from intersections.
+868: Iteration #4
+868: Using NumPy interpolation to find intersections.
+868: Evaluating intersections of NEW Kwalls with ALL Kwalls: found 0 of them.
+868: Creating new K-walls from intersections.
+868: Iteration #5
+868: Using NumPy interpolation to find intersections.
+868: Evaluating intersections of NEW Kwalls with ALL Kwalls: found 0 of them.
+868: Creating new K-walls from intersections.
+868: end time: 1435091304.79
+868: elapsed time: 63.0320000648
