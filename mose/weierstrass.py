@@ -57,7 +57,7 @@ from misc import period_A, period_B, real_part, rotate_poly, get_real_part
 
 
 
-NEGLIGIBLE_BOUND = 0.1**12
+NEGLIGIBLE_BOUND = 0.1**8
 
 U_PLANE_ROTATION_STEPS = 6
 
@@ -142,8 +142,14 @@ class WeierstrassModel:
             if np.absolute(coeff) > NEGLIGIBLE_BOUND:
                 self.D = np.poly1d(self.D.c[i:])
                 break
-        self.disc_locus = np.array(sorted(self.D.r,cmp=real_part))
-
+        
+        temp_disc_locus = np.array(sorted(self.D.r,cmp=real_part))
+        self.disc_locus = [temp_disc_locus[0]]
+        for entry in temp_disc_locus:
+            if np.abs(entry-self.disc_locus[-1]) > NEGLIGIBLE_BOUND:
+                self.disc_locus.append(entry)
+        self.disc_locus = np.array(self.disc_locus)
+        
         distance_half_matrix = [[self.disc_locus[i] - self.disc_locus[j] \
                                 for i,x in enumerate(self.disc_locus[:j])] 
                                         for j,y in enumerate(self.disc_locus)]
