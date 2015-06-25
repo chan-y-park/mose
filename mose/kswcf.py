@@ -4,7 +4,6 @@ from sympy.abc import x, y, t
 from sympy import Subs, series, LT, degree_list, Poly, degree
 from sympy.core.numbers import NaN
 from numpy import array
-from api import IGNORE_WILD_INTERSECTIONS
 
 # To enhance the speed, we will keep memory of those KSWCFs that have been 
 # already computed once. 
@@ -160,31 +159,21 @@ def progeny_2(data, dsz, ks_filtration_degree):
         spectrum = []
         return spectrum
 
-    elif 0 < m <= 2:
+    elif m > 0:
         spectrum = KS2(m, omega_1, omega_2, ks_filtration_degree)
         return spectrum[1:-1]
-        
-    else:
-        if IGNORE_WILD_INTERSECTIONS == False:
-            if m > 2:
-                spectrum = KS2(m, omega_1, omega_2, ks_filtration_degree)
-                return spectrum[1:-1]
-                
-            elif m < 0:
-                logging.info(
-                        """
-                        \n*******************************
-                        \nNegative intersection pairing !
-                        \n*******************************
-                        \n\n(will use the absolute value and keep going)\n
-                        """
-                    )
-                spectrum = KS2(-m,omega_2,omega_1, ks_filtration_degree)
-                return list(reversed(spectrum[1:-1]))
-                
-        elif IGNORE_WILD_INTERSECTIONS == True:
-            spectrum = []
-            return spectrum
+
+    elif m < 0:
+        logging.info(
+                """
+                \n*******************************
+                \nNegative intersection pairing !
+                \n*******************************
+                \n\n(will use the absolute value and keep going)\n
+                """
+            )
+        spectrum = KS2(-m,omega_2,omega_1, ks_filtration_degree)
+        return list(reversed(spectrum[1:-1]))
 
 
 def t_expand(expr, max_deg):
