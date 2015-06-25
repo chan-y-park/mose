@@ -1136,8 +1136,8 @@ if __name__=="__main__":
     #N=2*
     rot =1.0
     xr = 1.0
-    m = 0.3 + 0.0j
-    g2 = 1.0 + 0.0j
+    m = 3.0 + 0.0j
+    g2 = -1.0 + 0.0j
     g3 = 1.0 - 1.0j
     wmodel=WeierstrassProto(\
         np.array([ \
