@@ -14,7 +14,7 @@ CUT_K_WALLS = True
 SWEEP_SORT_MS_WALLS = True
 
 # Whether to connect intersection points of an MS wall with a line
-PLOT_MS_WALL_LINKS = True
+PLOT_MS_WALL_LINKS = False
 
 # Decide whether to ignore intersections with pairing >2 or <0
 # will make the code run much faster

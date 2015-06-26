@@ -286,9 +286,9 @@ def filter_wild_intersections(int_pt_list, dsz):
 
         pairing_matrix = array(dsz) ### turning the list into a matrix of numpy
         m = gamma_2.dot(pairing_matrix.dot(gamma_1))
-        if m > 0:
+        if m > 0 and m<=2:
             regular_list.append(int_pt)
-        if m <= 0:
+        elif m <= 0 or m>2:
             pass
         
     return regular_list
