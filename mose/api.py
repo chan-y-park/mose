@@ -5,7 +5,7 @@
 ENHANCE_MS_WALLS = True
 
 # If false, will use charge orbits
-SORT_BY_GENEALOGY = False
+SORT_BY_GENEALOGY = True
 
 # If false, will use straight approximation
 CUT_K_WALLS = True
