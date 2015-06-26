@@ -32,7 +32,7 @@ from zones import Zone
 NEGLIGIBLE_BOUND = 0.1**12
 
 class EllipticFibration:
-    def __init__(self, w_f, w_g, params):
+    def __init__(self, w_f, w_g, params, dsz_matrix):
         self.params = params
 
         self.sym_f = sympy.sympify(w_f)
@@ -47,10 +47,7 @@ class EllipticFibration:
         ### rotation of the u-plane
         self.u_rot_phase = 0
 
-        # We will work with the convention that the DSZ matrix is fixed to be
-        # the following. Must keep this attribute of the class, as it will be 
-        # used when computing the KSWCF for new Kwalls.
-        self.dsz_matrix = [[0, -1], [1, 0]]
+        self.dsz_matrix = dsz_matrix
 
         ### The following variable is true as long as all the
         ### branch point monodromies are computed using the 

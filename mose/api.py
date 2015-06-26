@@ -106,7 +106,8 @@ def analysis(config, phase=None,):
     fibration = EllipticFibration(
         config['fibration']['f'],
         config['fibration']['g'],
-        config['fibration parameters']
+        config['fibration parameters'],
+        config['KSWCF']['dsz_matrix']
     )
 
     #KWall.count = 0
