@@ -8,10 +8,10 @@ ENHANCE_MS_WALLS = True
 SORT_BY_GENEALOGY = True
 
 # If false, will use straight approximation
-CUT_K_WALLS = True
+CUT_K_WALLS = False
 
 # If false, will sort by nearest neighbor
-SWEEP_SORT_MS_WALLS = True
+SWEEP_SORT_MS_WALLS = False
 
 # Whether to connect intersection points of an MS wall with a line
 PLOT_MS_WALL_LINKS = False

@@ -30,7 +30,7 @@ class KWallNetworkPlotBase(NetworkPlotBase):
         plot_joints=False,
         plot_data_points=False,
     ):
-
+        
         labels = {'branch_points': [], 'joints': [], 'walls': []}
 
         branch_points = []
