@@ -57,7 +57,7 @@ from misc import period_A, period_B, real_part, rotate_poly, get_real_part
 
 
 
-NEGLIGIBLE_BOUND = 0.1**4
+NEGLIGIBLE_BOUND = 0.1**2
 
 U_PLANE_ROTATION_STEPS = 6
 
