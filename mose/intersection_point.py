@@ -142,12 +142,12 @@ def find_new_intersection_points_using_cgal(
     new_intersection_points = []
 
     lib_name = 'libcgal_intersection'
-    #if linux_distribution == 'Ubuntu':
-    #    lib_name += '_ubuntu'
-    #elif linux_distribution == 'Scientific Linux':
-    #    lib_name += '_het-math2'
-    #else:
-    #    raise OSError
+    if linux_distribution == 'Ubuntu':
+        lib_name += '_ubuntu'
+    elif linux_distribution == 'Scientific Linux':
+        lib_name += '_het-math2'
+    else:
+        raise OSError
 
     logging.info('Using CGAL to find intersections.')
 
