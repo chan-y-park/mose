@@ -13,6 +13,11 @@ from scipy.integrate import quad as n_int
 from cmath import pi, exp, phase, sqrt
 import matplotlib.pyplot as plt
 
+### Relative tolerance for the direction change
+### during primary KWall evolution, using the 
+### algorithm order_roots 
+PRIMARY_BENDING_TOLERANCE = 0.1
+
 def complexify(y):
     """ complexifies an array of two reals """
     return y[0] + 1j * y[1]
@@ -126,15 +131,22 @@ def order_roots(roots, segment, sign, theta):
                 (u1 - u0) \
                 )
 
-        if abs(phase_1) < abs(phase_2):
-            e1, e2 = twins
+        if abs(phase_1) > PRIMARY_BENDING_TOLERANCE and \
+                                abs(phase_2) > PRIMARY_BENDING_TOLERANCE:
+            # print "Exceeding primary bending tolerance"
+            # print "phase_1=%s" % phase_1
+            # print "phase_2=%s" % phase_2
+            return 0
         else:
-            e1, e2 = twins[::-1]
-        
-        eta_u1 = (sign) * 4.0 * ((e3 - e1) ** (-0.5)) * \
-                                    mp.ellipk( ((e2 - e1) / (e3 - e1)) )
+            if abs(phase_1) < abs(phase_2):
+                e1, e2 = twins
+            else:
+                e1, e2 = twins[::-1]
+            
+            eta_u1 = (sign) * 4.0 * ((e3 - e1) ** (-0.5)) * \
+                                        mp.ellipk( ((e2 - e1) / (e3 - e1)) )
 
-        return [[e1, e2, e3], complex(eta_u1)]
+            return [[e1, e2, e3], complex(eta_u1)]
     else:
         return 0
 
