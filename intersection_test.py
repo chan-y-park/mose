@@ -10,8 +10,8 @@ from mose.intersection_point import (
 def cgal(k_wall_1, k_wall_2):
     return find_new_intersection_points_using_cgal(
         [], [k_wall_1, k_wall_2], [], [[0, -1], [1, 0]], 
-        'Scientific Linux',
-        #'Ubuntu'
+        #'Scientific Linux',
+        'Ubuntu',
     )
 
 def find_all_intersections(kws):
