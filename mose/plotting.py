@@ -314,6 +314,10 @@ class MSWallPlot:
         ms_walls,
         plot_range=None
     ):
+
+        if len(ms_walls) == 0:
+            return None
+
         # Every MSWall has the same fibration.
         fibration = ms_walls[0].fibration
 
