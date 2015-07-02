@@ -26,6 +26,18 @@ from monodromy import charge_monodromy, flavor_charge_monodromy
 DISCRIMINANT_LOCI_RADIUS = 0.005
 
 
+# The initial evolution of primary kwalls is handled with an
+# automatic tuning.
+# The length of the single step is calibrated to be
+# 1/5000 th of the minimum distance between any two discriminant
+# loci.
+# The maximal number of steps is set to 400, although it may
+# be automatically truncated whenever e_1, e_2, e_3 become too
+# hard to distinguish.
+STEP_SIZE_RATIO = 5000.0
+MAX_NUM_STEPS = 400
+
+
 ### Temporary knobs to try different combinations
 ### of the available algorithms
 from api import CUT_K_WALLS
@@ -346,26 +358,16 @@ class PrimaryKWall(KWall):
                                     * array(positive_gauge_charge))
         self.initial_flavor_charge = list(int(round(sign)) \
                                     * array(positive_flavor_charge))
+
+        self.coordinates = numpy.empty((MAX_NUM_STEPS, 2), dtype=float)
+        self.periods = numpy.empty(MAX_NUM_STEPS, dtype=complex) 
         
-
-        # The initial evolution of primary kwalls is handled with an
-        # automatic tuning.
-        # The length of the single step is calibrated to be
-        # 1/2000 th of the minimum distance between any two discriminant
-        # loci.
-        # The maximal number of steps is set to 400, although it may
-        # be automatically truncated whenever e_1, e_2, e_3 become too
-        # hard to distinguish.
-        size_of_step = minimum_distance(self.fibration.branch_points)/2000.0
-        max_num_steps = 400
-
-        self.coordinates = numpy.empty((max_num_steps, 2), dtype=float)
-        self.periods = numpy.empty(max_num_steps, dtype=complex) 
-
-        for i in range(max_num_steps):
+        size_of_step = minimum_distance(self.fibration.branch_points) / \
+                                                        STEP_SIZE_RATIO
+        for i in range(MAX_NUM_STEPS):
             self.coordinates[i] = [u0.real, u0.imag]
             self.periods[i] = eta_0
-            if i == max_num_steps -1:
+            if i == MAX_NUM_STEPS -1:
                 break
             u1 = u0 + size_of_step * exp(1j*(theta + pi - cmath.phase(eta_0)))
             # u1 = u0 + size_of_step * exp(1j*(theta + pi)) /  (10 * eta_0)
@@ -378,8 +380,12 @@ class PrimaryKWall(KWall):
             segment = [u0, u1]
             try_step = order_roots(roots, segment, ellipk_sign, theta)
             # check if root tracking is no longer valid
-            if try_step == 0: 
-                break
+            if try_step == 0:
+                if i == 0:
+                    raise ValueError('Cannot evolve even a single step' + \
+                        'for primary K-wall #{}'.format(self.identifier))
+                else:
+                    break
             else:
                 [roots, eta_1] = try_step
                 eta_prime_1 = (eta_1 - eta_0) / (u1 - u0)
@@ -387,7 +393,7 @@ class PrimaryKWall(KWall):
                 eta_0 = eta_1
 
         last_step = i + 1
-        if last_step < max_num_steps:
+        if last_step < MAX_NUM_STEPS:
             self.coordinates.resize((last_step, 2))
             self.periods.resize(last_step)
             
