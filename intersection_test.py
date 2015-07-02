@@ -9,8 +9,27 @@ from mose.intersection_point import (
 
 def cgal(k_wall_1, k_wall_2):
     return find_new_intersection_points_using_cgal(
-        [], [k_wall_1, k_wall_2], [], [[0, -1], [1, 0]], 'Ubuntu'
+        [], [k_wall_1, k_wall_2], [], [[0, -1], [1, 0]], #'Ubuntu'
     )
+
+def find_all_intersections(kws):
+    for i, kwi in enumerate(kws):
+        for j, kwj in enumerate(kws[i+1:]):
+            #plot_k_walls([kwi, kwj])
+            print('##################################################')
+            print('Finding intersections between K-walls #{} and #{}.'
+                  .format(i, i+1+j))
+            print('Finding intersections using interpolation:')
+            ips = find_new_intersection_points_using_interpolation(
+                [], [kwi, kwj], [], [[0, -1], [1, 0]]
+            )
+            for ip in ips:
+                print('intersection at: {}'.format(ip.locus))
+            
+            ips = cgal(kwi, kwj)
+            for ip in ips:
+                print ip.locus
+
 
 #c = mose.load_config('config/fibration_su_2_Nf_1.ini')
 #d = mose.analysis(c, phase=1.0)
@@ -22,36 +41,18 @@ c, d = mose.load('results/cgal_test')
 kwn = d['k_wall_networks'][0]
 kws = kwn.k_walls
 
-pdb.set_trace()
+find_all_intersections(kws)
 
-ips1 = cgal(kws[0], kws[1])
-
-for ip in ips1:
-    print ip.locus
-
-ips2 = cgal(kws[0], kws[6])
-
-for ip in ips2:
-    print ip.locus
-
-def find_all_intersections(kws):
-    for i, kwi in enumerate(kws):
-        for j, kwj in enumerate(kws[i+1:]):
-            plot_k_walls([kwi, kwj])
-            print('##################################################')
-            print('Finding intersections between K-walls #{} and #{}.'
-                  .format(i, i+1+j))
-            ips = find_new_intersection_points_using_interpolation(
-                [], [kwi, kwj], [], [[0, -1], [1, 0]]
-            )
-            print('Finding intersections using interpolation:')
-            for ip in ips:
-                print('intersection at: {}'.format(ip.locus))
-            
-            ips = cgal(kwi, kwj)
-            for ip in ips:
-                print ip.locus
-
+#ips1 = cgal(kws[0], kws[2])
+#
+#for ip in ips1:
+#    print ip.locus
+#
+#ips2 = cgal(kws[0], kws[6])
+#
+#for ip in ips2:
+#    print ip.locus
+#
 #p = mose.make_plots(c, d)
 #kw1 = kws[0]
 #kw2 = kws[3]
