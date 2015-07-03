@@ -20,6 +20,8 @@ from math import pi
 
 from network_plot import NetworkPlotBase
 
+from api import PLOT_MS_WALL_LINKS
+
 class KWallNetworkPlotBase(NetworkPlotBase):
     def draw(
         self,
@@ -28,6 +30,7 @@ class KWallNetworkPlotBase(NetworkPlotBase):
         plot_joints=False,
         plot_data_points=False,
     ):
+        
         labels = {'branch_points': [], 'joints': [], 'walls': []}
 
         branch_points = []
@@ -314,9 +317,10 @@ class MSWallPlot:
         ms_walls,
         plot_range=None
     ):
-
         if len(ms_walls) == 0:
             return None
+
+        pyplot.clf()
 
         # Every MSWall has the same fibration.
         fibration = ms_walls[0].fibration
@@ -342,7 +346,9 @@ class MSWallPlot:
             for l in wall.locus:
                 xs.append(l.real)
                 ys.append(l.imag)
-            axes.plot(xs, ys, '-', markersize=4, label=label)
+
+            if PLOT_MS_WALL_LINKS == True:
+                axes.plot(xs, ys, '-', markersize=4, label=label)
             axes.plot(xs, ys, 'o', markersize=4, label=label)
 
         # Plot discriminant loci.

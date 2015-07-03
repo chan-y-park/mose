@@ -126,7 +126,11 @@ class MarginalStabilityWall:
                                                 for pt_2 in self.points \
                                                 if pt_1.locus != pt_2.locus])    
 
-            search_range = SEARCH_RANGE_RATIO * max_distance
+            # search_range = SEARCH_RANGE_RATIO * max_distance
+
+            ### This is just a starting value.
+            ### The search range will then be dynamically adapted.
+            search_range = 1.1 * max_distance
 
             self.semi_arc_1 = []
             self.semi_arc_2 = []
@@ -138,7 +142,12 @@ class MarginalStabilityWall:
             arc_is_finished = False
             while not arc_is_finished:
                 found_new_closest_point = False
+                
+                ### Set the maximal distance of points to be considered
+                ### in a neighborhood of current_point
                 epsilon = search_range
+                
+                ### We scan over all points for the next closest one
                 for pt in self.points:
                     distance = abs(pt.locus - current_point.locus)
                     if distance < epsilon and (not (pt.locus in seen)): 
@@ -169,9 +178,19 @@ class MarginalStabilityWall:
                 if found_new_closest_point == False:
                     arc_is_finished = True
                 else:
+                    ### We update the search range for the next iteration
+                    search_range = 2.0 * abs(closest_point.locus - \
+                                                        current_point.locus)
                     seen.append(closest_point.locus)
                     self.semi_arc_1.append(closest_point)
                     current_point = closest_point
+
+
+            ### For the second semi-arc, the appropriate search range
+            ### to begin with is (twice) the distance between the leftmost
+            ### point and its direct neighbor in arc_1
+            search_range = 2.0 * abs(leftmost_point.locus - \
+                                                    self.semi_arc_1[0].locus)
 
             ### Build the second semi-arc
             current_point = leftmost_point
@@ -189,6 +208,9 @@ class MarginalStabilityWall:
                 if found_new_closest_point == False:
                     arc_is_finished = True
                 else:
+                    ### We update the search range for the next iteration
+                    search_range = 2.0 * abs(closest_point.locus - \
+                                                        current_point.locus)
                     seen.append(closest_point.locus)
                     self.semi_arc_2.append(closest_point)
                     current_point = closest_point
@@ -310,6 +332,7 @@ def build_ms_walls(k_wall_networks):
         all_intersections += kwn.intersections
     
     if SORT_BY_GENEALOGY == True:
+        logging.info('Constructing MS walls using genealogy')
     ### OLD METHOD, USED THE GENEALOGY
         ### to distinguish wall types, use the genealogy data
         data = [x.genealogy for x in all_intersections]

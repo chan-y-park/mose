@@ -157,17 +157,12 @@ def progeny_2(data, dsz, ks_filtration_degree):
 
     if m == 0:
         spectrum = []
+        return spectrum
+
     elif m > 0:
         spectrum = KS2(m, omega_1, omega_2, ks_filtration_degree)
         return spectrum[1:-1]
-        # the following command would return the new states in the global 
-        # basis, as opposed to the parent's basis.
 
-        # Dropping the first and last state, because they correspond to the 
-        # parents.
-        #return [[(state[0][0] * gamma_1 + 
-        #           state[0][1] * gamma_2).tolist(), state[1]] 
-        #           for state in spectrum[1:-1]] 
     elif m < 0:
         logging.info(
                 """
@@ -179,14 +174,7 @@ def progeny_2(data, dsz, ks_filtration_degree):
             )
         spectrum = KS2(-m,omega_2,omega_1, ks_filtration_degree)
         return list(reversed(spectrum[1:-1]))
-        # the following command would return the new states in the global 
-        # basis, as opposed to the parent's basis
 
-        # Dropping the first and last state, because they correspond to the 
-        # parents.
-        #return [[(state[0][0] * gamma_2 + 
-        #           state[0][1] * gamma_1).tolist(), state[1]] 
-        #           for state in spectrum[1:-1]]
 
 def t_expand(expr, max_deg):
     """

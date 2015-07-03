@@ -10,6 +10,8 @@ class NetworkPlotBase(object):
         self.current_plot_idx = None 
 
         self.figure = matplotlib_figure
+        if self.figure is not None:
+            self.figure.clf()
     
     def draw(self, phase=None, branch_points=None, joints=None, walls=None,
              labels=None, plot_range=None, plot_joints=False,

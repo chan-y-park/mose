@@ -15,7 +15,7 @@ from k_wall import KWall
 
 ### Temporary knobs to try different combinations
 ### of the available algorithms
-from api import CUT_K_WALLS
+from api import CUT_K_WALLS, IGNORE_WILD_INTERSECTIONS
 
 
 class KWallNetwork:
@@ -118,6 +118,13 @@ class KWallNetwork:
                     self.k_walls, new_k_walls, self.intersections,
                     self.hit_table, self.fibration.dsz_matrix,
                 )
+            
+            if IGNORE_WILD_INTERSECTIONS == False:
+                pass
+            elif IGNORE_WILD_INTERSECTIONS == True:
+                new_intersections = filter_wild_intersections(\
+                                new_intersections, self.fibration.dsz_matrix)
+
             self.intersections += new_intersections
             self.k_walls += new_k_walls
             new_k_walls = []
@@ -153,9 +160,11 @@ class KWallNetwork:
                         actual_charge = list(
                             charge[0]*array(gamma_1) + charge[1]*array(gamma_2)
                         )
-                        actual_flavor_charge = list(
-                                                charge[0] * array(gamma_f_1) 
-                                                + charge[1] * array(gamma_f_2)
+                        actual_flavor_charge = \
+                                    map(int, map(round, \
+                                        list(charge[0] * array(gamma_f_1) 
+                                            + charge[1] * array(gamma_f_2)))
+
                         )
                         k_wall = DescendantKWall(
                             initial_charge=actual_charge,
@@ -265,3 +274,26 @@ def construct_k_wall_networks(fibration, config):
         pool.join()
 
     return k_wall_networks
+
+
+def filter_wild_intersections(int_pt_list, dsz):
+    regular_list = []
+
+    for int_pt in int_pt_list:
+        parents = int_pt.parents
+        gamma_1 = array(parents[0].charge(int_pt.indices[0]))
+        gamma_2 = array(parents[1].charge(int_pt.indices[1]))
+
+        pairing_matrix = array(dsz) ### turning the list into a matrix of numpy
+        m = gamma_2.dot(pairing_matrix.dot(gamma_1))
+        if m > 0 and m<=2:
+            regular_list.append(int_pt)
+        elif m <= 0 or m>2:
+            pass
+        
+    return regular_list
+
+
+
+
+
