@@ -14,7 +14,8 @@ SEARCH_RANGE_RATIO = 0.15
 
 ### Temporary knobs to try different combinations
 ### of the available algorithms
-from api import ENHANCE_MS_WALLS, SORT_BY_GENEALOGY, MS_WALLS_SORTING
+from api import ENHANCE_MS_WALLS, SORT_BY_GENEALOGY, MS_WALLS_SORTING, \
+                    CLEANUP_MS_WALLS
 
 class MarginalStabilityWall:
     """
@@ -81,6 +82,11 @@ class MarginalStabilityWall:
         else:
             pass
         
+        if CLEANUP_MS_WALLS == True:
+            self.cleanup()
+        else:
+            pass
+
         self.locus = [point.locus for point in self.points]
         MarginalStabilityWall.count += 1
 
@@ -115,7 +121,7 @@ class MarginalStabilityWall:
             else:
                 self.points.insert(0, branch_point_1)
                 self.points.append(branch_point_0)
-                
+
     
     ### OLD METHOD: This starts from the leftmost point (smallest Real part)
     ### of the intersection points of the MS wall, then tracks the 
@@ -272,7 +278,8 @@ class MarginalStabilityWall:
                                     for pt in self.points], key=getkey_second)
                                 ]
             
-            gap_start, gap_end = find_phase_gap(phase_sorted_pts, basepoint)
+            gap_start, gap_end = find_gap_for_sweep_sorting(phase_sorted_pts, \
+                                                                    basepoint)
 
             
 
@@ -319,7 +326,7 @@ class MarginalStabilityWall:
             points_copy = [pt for pt in self.points]
             phase_sorted_pts = sorted(points_copy, key=getkey_phase)
             
-            gap_start, gap_end = find_phase_gap(phase_sorted_pts, basepoint)
+            gap_start, gap_end = find_gap_for_phase_sorting(phase_sorted_pts)
 
             
 
@@ -347,14 +354,67 @@ class MarginalStabilityWall:
                                 .format([x.locus for x in reorganized_points])) 
                     self.points = reorganized_points
 
+    def cleanup(self):
+        ### Must be called after the wall is sorted. Preferably
+        ### sweep-sorted, or phase-sorted.
+        ### For each point, figures if its distance from its 
+        ### neighbors is larger than the distance bewteen neighbors
+        ### themselves, in that case it drops the point.
+        ### The points are labeled 1,2,3 for previous, currrent, following.
+        
+        ### SHOULD IMPROVE with a criterion for selecting the 1st and last point
+        ### right now they are picked up by default.
 
-def find_phase_gap(phase_sorted_pts, basepoint):
+        select_points = []
+
+        for i in range(1, len(self.points) - 1, 1):
+            dist_12 = abs(self.points[i].locus - self.points[i-1].locus)
+            dist_23 = abs(self.points[i].locus - self.points[i+1].locus)
+            dist_13 = abs(self.points[i-1].locus - self.points[i+1].locus)
+
+            if dist_13 < dist_12 and dist_13 < dist_23:
+                pass
+            else:
+                select_points.append(self.points[i])
+
+        select_points.insert(0, self.points[0])
+        select_points.append(self.points[-1])
+
+        self.points = select_points
+
+
+def find_gap_for_sweep_sorting(sweep_sorted_pts, basepoint):
+    ### we compute first the phase gap between the
+    ### points across the negative real axis
+    pt_0 = sweep_sorted_pts[0]
+    pt_1 = sweep_sorted_pts[-1]
+    phase_gap = 2.0 * pi + phase(pt_0.locus - basepoint) \
+                                                - phase(pt_1.locus - basepoint)
+    gap_start = len(sweep_sorted_pts)
+    gap_end = 0
+
+    ### Then we study angle differences between consecutive 
+    ### intersection points, and check if any of these
+    ### is larger than the above phase-gap.
+    angle = phase(pt_0.locus - basepoint)
+    for i, pt in enumerate(sweep_sorted_pts):
+        new_angle = phase(pt.locus - basepoint)
+        delta_angle = new_angle - angle
+        angle = new_angle
+        if delta_angle > phase_gap:
+            phase_gap = delta_angle
+            gap_start = i - 1
+            gap_end = i
+    
+    return gap_start, gap_end
+
+
+def find_gap_for_phase_sorting(phase_sorted_pts):
     ### we compute first the phase gap between the
     ### points across the negative real axis
     pt_0 = phase_sorted_pts[0]
     pt_1 = phase_sorted_pts[-1]
-    phase_gap = 2.0 * pi + phase(pt_0.locus - basepoint) \
-                                                - phase(pt_1.locus - basepoint)
+    phase_gap = 2.0 * pi + pt_0.phase - pt_1.phase
     gap_start = len(phase_sorted_pts)
     gap_end = 0
 
