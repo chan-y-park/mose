@@ -62,6 +62,8 @@ class MarginalStabilityWall:
         self.points = all_intersections
         self.delete_duplicate_points()     
 
+        self.deleted_points = []
+
         if MS_WALLS_SORTING == 'sweep':
             ### Now we reorder the list of self.points,
             ### according to the actual shape of the wall
@@ -364,31 +366,43 @@ class MarginalStabilityWall:
         
         ### SHOULD IMPROVE with a criterion for selecting the 1st and last point
         ### right now they are picked up by default.
+        
+        if len(self.points) < 5:
+            pass
 
-        select_points = []
+        else:
+            select_points = []
 
-        for i in range(1, len(self.points) - 1, 1):
-            dist_12 = abs(self.points[i].locus - self.points[i-1].locus)
-            dist_23 = abs(self.points[i].locus - self.points[i+1].locus)
-            dist_13 = abs(self.points[i-1].locus - self.points[i+1].locus)
-
-            avg_cumulative_dist = sum([ \
+            ### compute the average distance between consecutive points,
+            ### excluding the endpoints (which could be branch-points)
+            tot_avg_dist = sum([ \
                         abs(self.points[j].locus - self.points[j-1].locus) \
-                        for j in range(1, i + 1, 1)]) / i
+                        for j in range(2, len(self.points) - 1, 1)]) / \
+                        (len(self.points) - 2)
 
-            if dist_13 < dist_12 or dist_13 < dist_23:
-                pass
-            elif abs(dist_12 + dist_23) / 2.0 > 1.5 * avg_cumulative_dist:
-                ### if the average distance from neighboring points 
-                ### is larger than 1.5 times the average distance so far 
-                pass
-            else:
-                select_points.append(self.points[i])
+            for i in range(1, len(self.points) - 1, 1):
+                dist_12 = abs(self.points[i].locus - self.points[i-1].locus)
+                dist_23 = abs(self.points[i].locus - self.points[i+1].locus)
+                dist_13 = abs(self.points[i-1].locus - self.points[i+1].locus)
 
-        select_points.insert(0, self.points[0])
-        select_points.append(self.points[-1])
+                if dist_13 < dist_12 or dist_13 < dist_23:
+                    self.deleted_points.append(self.points[i])
+                    pass
+                elif dist_12 > 2.0 * tot_avg_dist or \
+                                            dist_23 > 2.0 * tot_avg_dist:
+                    ### if the distance from one of the neighboring points 
+                    ### is larger than 2 times the average distance so far 
+                    self.deleted_points.append(self.points[i])
+                    pass
+                else:
+                    select_points.append(self.points[i])
 
-        self.points = select_points
+            select_points.insert(0, self.points[0])
+            select_points.append(self.points[-1])
+
+            self.points = select_points
+
+        pass
 
 
 def find_gap_for_sweep_sorting(sweep_sorted_pts, basepoint):
