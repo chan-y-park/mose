@@ -60,13 +60,6 @@ class MarginalStabilityWall:
         self.fibration = fibration
         self.points = all_intersections
         self.delete_duplicate_points()     
-        
-        if ENHANCE_MS_WALLS == True:
-            ### the following enhances the self.points attribute, 
-            ### possibly by adding branch-points
-            self.enhance_ms_wall()
-        else:
-            pass
 
         if MS_WALLS_SORTING == 'sweep':
             ### Now we reorder the list of self.points,
@@ -80,6 +73,13 @@ class MarginalStabilityWall:
             ### Now we reorder the list of self.points,
             ### according to the phase \zeta
             self.reorganize_phase_sorting()
+
+        if ENHANCE_MS_WALLS == True:
+            ### the following enhances the self.points attribute, 
+            ### possibly by adding branch-points
+            self.enhance_ms_wall()
+        else:
+            pass
         
         self.locus = [point.locus for point in self.points]
         MarginalStabilityWall.count += 1
@@ -97,15 +97,25 @@ class MarginalStabilityWall:
         ### now we add branch-points if they belong to the MS-walls,
         ### this is determined by wether BOTH the parents of the MS-wall
         ### are primary kwalls.
-        a_random_point = self.points[0]
-        kwall_0, kwall_1 = a_random_point.parents
+        ### This function is called AFTER the points of the MS wall have 
+        ### been sorted
+        first_point = self.points[0]
+        kwall_0, kwall_1 = first_point.parents
 
         if kwall_0.__class__.__name__ == 'PrimaryKWall' \
                     and kwall_1.__class__.__name__ == 'PrimaryKWall':
             branch_point_0 = kwall_0.parents[0]
             branch_point_1 = kwall_1.parents[0]
-            self.points.append(branch_point_0)
-            self.points.append(branch_point_1)
+            
+            dist_0_0 = abs(branch_point_0.locus - self.points[0].locus)
+            dist_0_last = abs(branch_point_0.locus - self.points[-1].locus)
+            if dist_0_0 < dist_0_last:
+                self.points.insert(0, branch_point_0)
+                self.points.append(branch_point_1)
+            else:
+                self.points.insert(0, branch_point_1)
+                self.points.append(branch_point_0)
+                
     
     ### OLD METHOD: This starts from the leftmost point (smallest Real part)
     ### of the intersection points of the MS wall, then tracks the 
