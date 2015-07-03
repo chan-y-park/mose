@@ -273,27 +273,27 @@ class MarginalStabilityWall:
             basepoint = sum([pt.locus for pt in self.points]) \
                                                             / len(self.points)
             
-            phase_sorted_pts = [x[0] for x in sorted(
+            sweep_sorted_pts = [x[0] for x in sorted(
                                     [[pt, phase(pt.locus - basepoint)] \
                                     for pt in self.points], key=getkey_second)
                                 ]
             
-            gap_start, gap_end = find_gap_for_sweep_sorting(phase_sorted_pts, \
+            gap_start, gap_end = find_gap_for_sweep_sorting(sweep_sorted_pts, \
                                                                     basepoint)
 
             
 
             ### If the gap lies across the negative real axis, then 
             ### our points are already sorted correctly
-            if gap_start == len(phase_sorted_pts) and gap_end == 0:
-                self.points = phase_sorted_pts
+            if gap_start == len(sweep_sorted_pts) and gap_end == 0:
+                self.points = sweep_sorted_pts
 
             ### Otherwise we need to cut-and-paste
             else:
                 ### recall that the phase is defined between -pi and pi,
                 ### so we should cut and paste accordingly
-                reorganized_points = phase_sorted_pts[gap_end : ] \
-                                            + phase_sorted_pts[ : gap_start+1]
+                reorganized_points = sweep_sorted_pts[gap_end : ] \
+                                            + sweep_sorted_pts[ : gap_start+1]
 
                 if len(reorganized_points) == len(self.points):
                     self.points = reorganized_points
@@ -409,12 +409,19 @@ def find_gap_for_sweep_sorting(sweep_sorted_pts, basepoint):
     return gap_start, gap_end
 
 
-def find_gap_for_phase_sorting(phase_sorted_pts):
-    ### we compute first the phase gap between the
-    ### points across the negative real axis
+def find_gap_for_phase_sorting(phase_sorted_pts):    
+    min_phase = phase_sorted_pts[0].phase
+    max_phase = phase_sorted_pts[-1].phase
+    if max_phase - min_phase > pi:
+        raise ValueError('Cannot handle organizing MS walls generated '+ \
+                'by kwall networks of phase-range larger than pi')
+
+    ### We first compute the phase gap between the
+    ### first and the last point. Here we use the crucial assumption 
+    ### that the phase-range is at most pi.
     pt_0 = phase_sorted_pts[0]
     pt_1 = phase_sorted_pts[-1]
-    phase_gap = 2.0 * pi + pt_0.phase - pt_1.phase
+    phase_gap = pi + pt_0.phase - pt_1.phase
     gap_start = len(phase_sorted_pts)
     gap_end = 0
 
