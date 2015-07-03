@@ -421,9 +421,9 @@ def find_gap_for_phase_sorting(phase_sorted_pts):
     ### Then we study angle differences between consecutive 
     ### intersection points, and check if any of these
     ### is larger than the above phase-gap.
-    angle = phase(pt_0.locus - basepoint)
+    angle = pt_0.phase
     for i, pt in enumerate(phase_sorted_pts):
-        new_angle = phase(pt.locus - basepoint)
+        new_angle = pt.phase
         delta_angle = new_angle - angle
         angle = new_angle
         if delta_angle > phase_gap:
