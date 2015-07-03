@@ -25,4 +25,14 @@ def build_genealogy_tree(intersection):
         dad = parents[1].initial_point
         mom = parents[0].initial_point
 
-    return [dad.genealogy, mom.genealogy] 
+    if type(dad).__name__ == 'DescendantKWall':
+        g_dad = [dad.genealogy, dad.charge_wrt_parents]
+    else:
+        g_dad = [dad.genealogy, 'Primary']
+
+    if type(mom).__name__ == 'DescendantKWall':
+        g_mom = [mom.genealogy, mom.charge_wrt_parents]
+    else:
+        g_mom = [mom.genealogy, 'Primary']
+    
+    return [g_dad, g_mom] 
