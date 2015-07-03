@@ -198,7 +198,10 @@ def find_new_intersection_points_using_cgal(
                     curve_2, ctypes.c_long(len(curve_2)),
                     intersections, buffer_size,
                 )
-                if num_of_intersections > buffer_size:
+                if num_of_intersections == 0:
+                    intersection_search_finished = True
+                    intersections = []
+                elif num_of_intersections > buffer_size:
                     logging.info('Number of intersections larger than '
                                  'the buffer size; increase its size '
                                  'and run intersection finding again.')
@@ -206,6 +209,7 @@ def find_new_intersection_points_using_cgal(
                 else:
                     intersections.resize((num_of_intersections,2))
                     intersection_search_finished = True
+
             for ip_x, ip_y in intersections:
                 # Find where to put the intersection point in the
                 # given segment. It should be put AFTER the index

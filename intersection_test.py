@@ -29,6 +29,7 @@ def find_all_intersections(kws):
                 print('intersection at: {}'.format(ip.locus))
             
             ips = cgal(kwi, kwj)
+            print('\b\b')
             for ip in ips:
                 print ip.locus
 

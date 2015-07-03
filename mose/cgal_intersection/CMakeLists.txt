@@ -54,11 +54,4 @@ endif()
 # Creating entries for all .cpp/.C files with "main" routine
 # ##########################################################
 
-#include( CGAL_CreateSingleSourceCGALProgram )
-
-#create_single_source_cgal_program( "cgal_example.cpp" )
 add_library(cgal_intersection SHARED cgal_intersection.cpp)
-#add_library(cgal_example_shared SHARED cgal_example.cpp)
-#add_library(cgal_example_shared MODULE cgal_example.cpp)
-
-
