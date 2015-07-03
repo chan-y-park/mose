@@ -8,7 +8,7 @@ ENHANCE_MS_WALLS = True
 SORT_BY_GENEALOGY = True
 
 # If false, will use straight approximation
-CUT_K_WALLS = False
+CUT_K_WALLS = True
 
 # Three options: 'sweep', 'neighbor', 'phase'
 MS_WALLS_SORTING = 'phase'
