@@ -14,7 +14,7 @@ SEARCH_RANGE_RATIO = 0.15
 
 ### Temporary knobs to try different combinations
 ### of the available algorithms
-from api import ENHANCE_MS_WALLS, SORT_BY_GENEALOGY, SWEEP_SORT_MS_WALLS
+from api import ENHANCE_MS_WALLS, SORT_BY_GENEALOGY, MS_WALLS_SORTING
 
 class MarginalStabilityWall:
     """
@@ -68,14 +68,18 @@ class MarginalStabilityWall:
         else:
             pass
 
-        if SWEEP_SORT_MS_WALLS == True:
+        if MS_WALLS_SORTING == 'sweep':
             ### Now we reorder the list of self.points,
             ### according to the actual shape of the wall
             self.reorganize_sweep_sorting()
-        else:
+        elif MS_WALLS_SORTING == 'neighbor':
             ### Now we reorder the list of self.points,
             ### according to the actual shape of the wall
             self.reorganize_by_nearest_neighbor()
+        elif MS_WALLS_SORTING == 'phase':
+            ### Now we reorder the list of self.points,
+            ### according to the phase \zeta
+            self.reorganize_phase_sorting()
         
         self.locus = [point.locus for point in self.points]
         MarginalStabilityWall.count += 1
@@ -286,6 +290,53 @@ class MarginalStabilityWall:
                                 .format([x.locus for x in reorganized_points])) 
                     self.points = reorganized_points
 
+    ### NEW METHOD: an MS wall is assumed to have the shape of an arc, 
+    ### we fix a point somewhere in the middle of it, and sort 
+    ### all the intersection points accordint to the phase of the 
+    ### radius connecting them to the basepoint.
+    ### Then, we figure out where are the endpoints and reorganize 
+    ### accordingly.
+
+    def reorganize_phase_sorting(self):
+        """
+        Intersections come with a phase, that of the kwall network they belong 
+        to. This algorithm uses that phase to order intersections by phase.
+        """
+        if len(self.points) <= 2:
+            pass
+
+        else:
+            points_copy = [pt for pt in self.points]
+            phase_sorted_pts = sorted(points_copy, key=getkey_phase)
+            
+            gap_start, gap_end = find_phase_gap(phase_sorted_pts, basepoint)
+
+            
+
+            ### If the gap lies across the negative real axis, then 
+            ### our points are already sorted correctly
+            if gap_start == len(phase_sorted_pts) and gap_end == 0:
+                self.points = phase_sorted_pts
+
+            ### Otherwise we need to cut-and-paste
+            else:
+                ### recall that the phase is defined between -pi and pi,
+                ### so we should cut and paste accordingly
+                reorganized_points = phase_sorted_pts[gap_end : ] \
+                                            + phase_sorted_pts[ : gap_start+1]
+
+                if len(reorganized_points) == len(self.points):
+                    self.points = reorganized_points
+                    pass
+                else:
+                    logging.info("\n In MS wall #{} lost some of the points '\
+                                + 'while reorganizing it.'".format(self.count))
+                    logging.info("\noriginal points\n{}"\
+                                    .format([x.locus for x in self.points]))
+                    logging.info("\nreorganized points"\
+                                .format([x.locus for x in reorganized_points])) 
+                    self.points = reorganized_points
+
 
 def find_phase_gap(phase_sorted_pts, basepoint):
     ### we compute first the phase gap between the
@@ -319,6 +370,9 @@ def getkey_real(int_point):
 
 def getkey_second(x):
     return x[1]
+
+def getkey_phase(x):
+    return x.phase
 
 
 def build_ms_walls(k_wall_networks):
