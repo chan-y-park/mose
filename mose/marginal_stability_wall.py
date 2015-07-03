@@ -372,7 +372,15 @@ class MarginalStabilityWall:
             dist_23 = abs(self.points[i].locus - self.points[i+1].locus)
             dist_13 = abs(self.points[i-1].locus - self.points[i+1].locus)
 
-            if dist_13 < dist_12 and dist_13 < dist_23:
+            avg_cumulative_dist = sum([ \
+                        abs(self.points[j].locus - self.points[j-1].locus) \
+                        for j in range(1, i + 1, 1)]) / i
+
+            if dist_13 < dist_12 or dist_13 < dist_23:
+                pass
+            elif abs(dist_12 + dist_23) / 2.0 > 1.5 * avg_cumulative_dist:
+                ### if the average distance from neighboring points 
+                ### is larger than 1.5 times the average distance so far 
                 pass
             else:
                 select_points.append(self.points[i])
