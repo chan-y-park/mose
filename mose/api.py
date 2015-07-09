@@ -335,14 +335,9 @@ def make_plots(config, data, show_plot=True, master=None,
         k_wall_network_plot.show()
         if ms_wall_plot is not None:
             ms_wall_plot.show()
-        try:
-            raw_input('Press any key to continue...')
-        except NameError:
-            pass
-
-#    if master is None:
-#        try:
-#            raw_input('Press any key to continue...')
-#        except NameError:
-#            pass
+        if matplotlib.rcParams['backend'] == 'TkAgg':
+            try:
+                raw_input('Press any key to continue...')
+            except NameError:
+                pass
     return (k_wall_network_plot, ms_wall_plot)
