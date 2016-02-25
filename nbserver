@@ -1,0 +1,15 @@
+#!/bin/bash
+
+if [ "$1" = "start" ]; then
+#    ipython notebook --ipython-dir=.ipython --NotebookApp.profile=mose_nbserver --NotebookApp.log_level='WARN'  &> logs/nbserver.txt &
+#    ipython notebook --log-level='WARN' --ipython-dir=.ipython --NotebookApp.profile=mose_nbserver &> logs/nbserver.txt &
+    ipython notebook --ipython-dir=.ipython --NotebookApp.profile=mose_nbserver &> logs/nbserver.txt &
+    echo $! > logs/nbserver_pid.txt
+elif [ "$1" = "stop" ]; then
+    pid=$(head -n 1 logs/nbserver_pid.txt)
+    kill $pid
+else
+    echo "Usage:"
+    echo "nbserver start"
+    echo "nbserver stop"
+fi

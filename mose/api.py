@@ -54,7 +54,7 @@ from plotting import MSWallPlot
 from misc import formatted_date_time
 from diagnostics import diagnose_kwall_network
 
-LOGGING_FILE_NAME = 'log.mose.txt'
+LOGGING_FILE_NAME = 'logs/log.mose.txt'
 
 
 
@@ -73,11 +73,14 @@ def set_logging(level):
     #                     stream=sys.stdout)
     
     logger = logging.getLogger()
+    # Remove other handlers
+    for handler in logger.handlers:
+        logger.removeHandler(handler)
     logger.setLevel(logging_level)
+    formatter = logging.Formatter(logging_format)
     ### create console handler with a higher log level
     ch = logging.StreamHandler()
     ch.setLevel(logging_level)
-    formatter = logging.Formatter(logging_format)
     ch.setFormatter(formatter)
     logger.addHandler(ch)
     # Log to a file 'log.mose.txt'
@@ -312,9 +315,15 @@ def make_plots(config, data, show_plot=True, master=None,
         k_wall_network_plot = NetworkPlotTk(
             title=k_wall_network_plot_title,
         )
+    elif matplotlib.rcParams['backend'] == 'nbAgg':
+        k_wall_network_plot = NetworkPlot(
+            title=k_wall_network_plot_title,
+            use_matplotlib_widget=False,
+        )
     else:
         k_wall_network_plot = NetworkPlot(
             title=k_wall_network_plot_title,
+            use_matplotlib_widget=True,
         )
 
     # Draw the plots of K-wall networks.
@@ -342,14 +351,9 @@ def make_plots(config, data, show_plot=True, master=None,
         k_wall_network_plot.show()
         if ms_wall_plot is not None:
             ms_wall_plot.show()
-        try:
-            raw_input('Press any key to continue...')
-        except NameError:
-            pass
-
-#    if master is None:
-#        try:
-#            raw_input('Press any key to continue...')
-#        except NameError:
-#            pass
+        #if matplotlib.rcParams['backend'] == 'TkAgg':
+        #    try:
+        #        raw_input('Press any key to continue...')
+        #    except NameError:
+        #        pass
     return (k_wall_network_plot, ms_wall_plot)

@@ -106,24 +106,17 @@ class NetworkPlot(KWallNetworkPlotBase):
     def __init__(
         self, 
         title=None,
+        use_matplotlib_widget=False,
     ):
         super(NetworkPlot, self).__init__(
             matplotlib_figure=pyplot.figure(title),
         )
 
+        self.use_matplotlib_widget = use_matplotlib_widget
+
         self.axes_button_prev = None
         self.axes_button_next = None
         self.index_text = None
-
-#    def save(self, plot_dir, file_prefix=''):
-#        # TODO: change the current figure to plot_id.
-#        digits = len(str(len(self.plots)-1))
-#        for i, axes in enumerate(self.plots):
-#            self.change_current_plot(i)
-#            plot_file_path = os.path.join(
-#                plot_dir, file_prefix + str(i).zfill(digits) + '.png'
-#            )
-#            self.figure.savefig(plot_file_path)
 
 
     def change_current_plot(self, new_plot_idx):
@@ -148,7 +141,7 @@ class NetworkPlot(KWallNetworkPlotBase):
         self.plots[plot_idx].set_visible(True)
         self.set_data_cursor()
 
-        if(len(self.plots) > 1):
+        if(len(self.plots) > 1 and self.use_matplotlib_widget is True):
             button_width = .05
             index_width = .03*len(str(len(self.plots)-1))
             button_height = .05
@@ -198,11 +191,13 @@ class NetworkPlotTk(KWallNetworkPlotBase):
             master = tk.Tk()
             master.withdraw()
         self.master = master
+        #self.master.protocol("WM_DELETE_WINDOW", self.on_closing)
 
         # Create a Toplevel widget, which is a child of GUILoom 
         # and contains plots,
         self.toplevel = tk.Toplevel(master)
         self.toplevel.wm_title(title)
+        self.toplevel.protocol("WM_DELETE_WINDOW", self.on_closing)
 
         self.plot_idx_scale = None
 
@@ -221,7 +216,13 @@ class NetworkPlotTk(KWallNetworkPlotBase):
         toolbar = NavigationToolbar(self.canvas, self.toplevel)
         toolbar.update()
         self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
-    
+   
+
+
+    def on_closing(self):
+        self.toplevel.destroy()
+        self.master.destroy()
+
 
     def scale_action(self, scale_value):
         new_plot_idx = int(scale_value)
@@ -297,6 +298,7 @@ class NetworkPlotTk(KWallNetworkPlotBase):
                 command=self.scale_action,
                 #length=100*len(self.plots),
                 orient=tk.HORIZONTAL,
+                #showvalue=1,
                 showvalue=0,
                 to=len(self.plots)-1,
                 variable=self.current_plot_idx,
