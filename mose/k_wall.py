@@ -12,7 +12,8 @@ from numpy import array, linspace
 from numpy.linalg import det
 from scipy.integrate import odeint
 from sympy import diff, N, simplify, series
-from sympy import mpmath as mp
+#from sympy import mpmath as mp
+import mpmath as mp
 from scipy import interpolate
 
 from branch import BranchPoint, minimum_distance
@@ -38,9 +39,7 @@ STEP_SIZE_RATIO = 5000.0
 MAX_NUM_STEPS = 400
 
 
-### Temporary knobs to try different combinations
-### of the available algorithms
-from api import CUT_K_WALLS
+from parameters import CUT_K_WALLS
 
 
 class KWall(object):
@@ -353,6 +352,7 @@ class PrimaryKWall(KWall):
         ### of primary kwalls: it is the sign relating the actual period
         ### of the kwall (given by eta_0) to the elliptic-K-function
         ### period.
+        pdb.set_trace()
         ellipk_sign = int_sign((eta_0 / ellipk_period).real)
         self.initial_charge = list(int(round(sign)) \
                                     * array(positive_gauge_charge))

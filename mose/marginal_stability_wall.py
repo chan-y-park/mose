@@ -12,10 +12,8 @@ from cmath import phase, pi
 ### IF TOO SMALL, WE WILL LOSE POINTS ON THE MS-WALL.
 SEARCH_RANGE_RATIO = 0.15 
 
-### Temporary knobs to try different combinations
-### of the available algorithms
-from api import ENHANCE_MS_WALLS, SORT_BY_GENEALOGY, MS_WALLS_SORTING, \
-                    CLEANUP_MS_WALLS
+from parameters import (ENHANCE_MS_WALLS, SORT_BY_GENEALOGY, MS_WALLS_SORTING,
+                        CLEANUP_MS_WALLS,)
 
 class MarginalStabilityWall:
     """

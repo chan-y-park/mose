@@ -20,7 +20,7 @@ from math import pi
 
 from network_plot import NetworkPlotBase
 
-from api import PLOT_MS_WALL_LINKS
+from parameters import PLOT_MS_WALL_LINKS
 
 class KWallNetworkPlotBase(NetworkPlotBase):
     def draw(
@@ -371,7 +371,7 @@ class MSWallPlot:
             axes=axes,
             formatter='{label}'.format,
             #tolerance=2,
-            hover=True,
+            #hover=True,
             #display='single',
             #display='multiple',
         )

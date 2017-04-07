@@ -66,7 +66,8 @@ from scipy import interpolate
 
 # temporarily added the following:
 from sympy import diff, N, simplify
-from sympy import mpmath as mp
+#from sympy import mpmath as mp
+import mpmath as mp
 from sympy.utilities.lambdify import lambdify
 from cmath import exp, pi
 from numpy import array, linspace

@@ -1,7 +1,7 @@
 import logging
 import signal
 import multiprocessing
-# import pdb
+import pdb
 from multiprocessing.managers import BaseManager
 from numpy import array
 from elliptic_fibration import EllipticFibration
@@ -12,10 +12,7 @@ from intersection_point import find_new_intersections_using_hit_table
 from misc import complexify, cut_singular_k_wall, id_generator
 from kswcf import progeny_2
 from k_wall import KWall
-
-### Temporary knobs to try different combinations
-### of the available algorithms
-from api import CUT_K_WALLS, IGNORE_WILD_INTERSECTIONS
+from parameters import CUT_K_WALLS, IGNORE_WILD_INTERSECTIONS
 
 
 class KWallNetwork:

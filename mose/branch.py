@@ -12,7 +12,8 @@ from numpy import array, linspace
 from numpy.linalg import det
 from scipy.integrate import odeint
 from sympy import diff, N, simplify, series, I
-from sympy import mpmath as mp
+#from sympy import mpmath as mp
+import mpmath as mp
 from scipy import interpolate
 
 from misc import complexify, sort_by_abs, left_right, clock, order_roots, \

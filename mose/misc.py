@@ -7,7 +7,8 @@ import cmath
 from scipy.optimize import fsolve
 from scipy.integrate import quad as n_int
 from sympy.abc import u
-from sympy import mpmath as mp
+#from sympy import mpmath as mp
+import mpmath as mp
 from operator import itemgetter
 from scipy.integrate import quad as n_int
 from cmath import pi, exp, phase, sqrt

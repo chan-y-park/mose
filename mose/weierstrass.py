@@ -51,7 +51,7 @@ import numpy as np
 from numpy import linalg as LA
 from scipy.integrate import odeint
 # from scipy.special import ellipk
-from sympy.mpmath import ellipk
+from mpmath import ellipk
 from itertools import combinations
 from misc import period_A, period_B, real_part, rotate_poly, get_real_part
 
